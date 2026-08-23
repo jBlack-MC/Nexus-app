@@ -53,16 +53,17 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    fun toggleCompleted(task: Task) {
+    fun updateTask(taskId: String, title: String, description: String, isCompleted: Boolean) {
         val id = projectId ?: return
+        if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
                 RetrofitClient.instance.updateTask(
-                    task.id,
+                    taskId,
                     UpdateTaskRequest(
-                        title = task.title,
-                        description = task.description,
-                        isCompleted = !task.isCompleted
+                        title = title.trim(),
+                        description = description.trim().ifBlank { null },
+                        isCompleted = isCompleted
                     )
                 )
             }.onSuccess {
@@ -71,6 +72,15 @@ class TaskListViewModel : ViewModel() {
                 _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to update task")
             }
         }
+    }
+
+    fun toggleCompleted(task: Task) {
+        updateTask(
+            taskId = task.id,
+            title = task.title,
+            description = task.description ?: "",
+            isCompleted = !task.isCompleted
+        )
     }
 
     fun deleteTask(taskId: String) {

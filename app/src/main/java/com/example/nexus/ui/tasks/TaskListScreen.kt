@@ -38,6 +38,8 @@ fun TaskListScreen(
     val uiState by viewModel.uiState.collectAsState()
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var editingTaskId by remember { mutableStateOf<String?>(null) }
+    var editingTaskCompleted by remember { mutableStateOf(false) }
 
     LaunchedEffect(projectId) {
         viewModel.loadTasks(projectId)
@@ -68,11 +70,32 @@ fun TaskListScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {
-                    viewModel.createTask(title, description)
+                    if (editingTaskId == null) {
+                        viewModel.createTask(title, description)
+                    } else {
+                        viewModel.updateTask(
+                            taskId = editingTaskId ?: return@Button,
+                            title = title,
+                            description = description,
+                            isCompleted = editingTaskCompleted
+                        )
+                    }
                     title = ""
                     description = ""
+                    editingTaskId = null
+                    editingTaskCompleted = false
                 }) {
-                    Text("Create")
+                    Text(if (editingTaskId == null) "Create" else "Save")
+                }
+                if (editingTaskId != null) {
+                    Button(onClick = {
+                        title = ""
+                        description = ""
+                        editingTaskId = null
+                        editingTaskCompleted = false
+                    }) {
+                        Text("Cancel")
+                    }
                 }
                 Button(onClick = onBackToProject) {
                     Text("Back")
@@ -100,6 +123,14 @@ fun TaskListScreen(
                             Text(text = task.description ?: "No description")
                             Text(text = if (task.isCompleted) "Done" else "Open")
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(onClick = {
+                                    editingTaskId = task.id
+                                    title = task.title
+                                    description = task.description ?: ""
+                                    editingTaskCompleted = task.isCompleted
+                                }) {
+                                    Text("Edit")
+                                }
                                 Button(onClick = { viewModel.toggleCompleted(task) }) {
                                     Text(if (task.isCompleted) "Mark Open" else "Complete")
                                 }
@@ -114,4 +145,3 @@ fun TaskListScreen(
         }
     }
 }
-

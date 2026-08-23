@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.nexus.auth.AuthSession
@@ -15,11 +16,13 @@ import com.example.nexus.ui.AuthViewModel
 import com.example.nexus.ui.DashboardScreen
 import com.example.nexus.ui.LoginScreen
 import com.example.nexus.ui.RegisterScreen
+import com.example.nexus.ui.SplashIntroScreen
 import com.example.nexus.ui.projects.ProjectDetailScreen
 import com.example.nexus.ui.projects.ProjectListScreen
 import com.example.nexus.ui.tasks.TaskListScreen
 
 private object Routes {
+    const val SPLASH = "splash"
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
@@ -35,9 +38,16 @@ private object Routes {
 fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
-    LaunchedEffect(authState.isAuthenticated) {
-        if (authState.isAuthenticated) {
+    LaunchedEffect(authState.isAuthenticated, currentRoute) {
+        if (
+            authState.isAuthenticated &&
+                currentRoute != null &&
+                currentRoute != Routes.SPLASH &&
+                currentRoute != Routes.DASHBOARD
+        ) {
             navController.navigate(Routes.DASHBOARD) {
                 popUpTo(Routes.LOGIN) { inclusive = true }
             }
@@ -46,8 +56,19 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
 
     NavHost(
         navController = navController,
-        startDestination = if (authState.isAuthenticated) Routes.DASHBOARD else Routes.LOGIN
+        startDestination = Routes.SPLASH
     ) {
+        composable(Routes.SPLASH) {
+            SplashIntroScreen(
+                onFinished = {
+                    val nextRoute = if (authState.isAuthenticated) Routes.DASHBOARD else Routes.LOGIN
+                    navController.navigate(nextRoute) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Routes.LOGIN) {
             LoginScreen(
                 uiState = authState,
