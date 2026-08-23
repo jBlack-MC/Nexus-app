@@ -30,12 +30,12 @@ object RetrofitClient {
         .addInterceptor(logging)
         .build()
 
-    val instance: NexusApiService by lazy {
+    val instance: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(httpClient)
             .build()
-            .create(NexusApiService::class.java)
+            .create(ApiService::class.java)
     }
 }
