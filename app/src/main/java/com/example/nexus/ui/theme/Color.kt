@@ -2,6 +2,9 @@ package com.example.nexus.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val BrandPurple = Color(0xFFA855F7)
+val BrandGreen = Color(0xFF22C55E)
+
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

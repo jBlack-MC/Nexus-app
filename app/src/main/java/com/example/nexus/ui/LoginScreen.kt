@@ -18,9 +18,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.nexus.ui.components.NexusLogo
 
 @Composable
 fun LoginScreen(
@@ -34,10 +36,18 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Login", style = MaterialTheme.typography.headlineMedium)
+        NexusLogo(iconSize = 80.dp, textSize = 42)
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            "Welcome Back",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.align(Alignment.Start)
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(

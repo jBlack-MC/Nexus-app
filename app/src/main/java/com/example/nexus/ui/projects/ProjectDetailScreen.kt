@@ -3,9 +3,11 @@ package com.example.nexus.ui.projects
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -23,9 +25,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.ui.components.NexusLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +61,20 @@ fun ProjectDetailScreen(
     var editingTaskCompleted by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Project Detail") }) }
+        topBar = {
+            TopAppBar(
+                title = {
+                    NexusLogo(iconSize = 32.dp, textSize = 22)
+                },
+                actions = {
+                    Text(
+                        "Details",
+                        modifier = Modifier.padding(end = 16.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
