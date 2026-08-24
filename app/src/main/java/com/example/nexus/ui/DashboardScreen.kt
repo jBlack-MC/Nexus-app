@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.ui.components.NexusLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +36,9 @@ fun DashboardScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("Nexus Dashboard") })
+            CenterAlignedTopAppBar(
+                title = { NexusLogo(iconSize = 36.dp, textSize = 26) }
+            )
         }
     ) { paddingValues ->
         Box(
