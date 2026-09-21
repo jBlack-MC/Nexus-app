@@ -1,35 +1,21 @@
 package com.example.nexus.ui.projects
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.NexusLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,14 +26,18 @@ fun ProjectListScreen(
     viewModel: ProjectListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var newProjectName by remember { mutableStateOf("") }
-    var newProjectDescription by remember { mutableStateOf("") }
+    var showCreateDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     NexusLogo(iconSize = 32.dp, textSize = 22)
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackToDashboard) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 },
                 actions = {
                     Text(
@@ -57,76 +47,159 @@ fun ProjectListScreen(
                     )
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showCreateDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = "New Project")
+            }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = newProjectName,
-                onValueChange = { newProjectName = it },
-                label = { Text("Project name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = newProjectDescription,
-                onValueChange = { newProjectDescription = it },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = {
-                    viewModel.createProject(newProjectName, newProjectDescription)
-                    newProjectName = ""
-                    newProjectDescription = ""
-                }) {
-                    Text("Create")
-                }
-                Button(onClick = onBackToDashboard) {
-                    Text("Back")
-                }
-            }
-
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            }
-
-            if (!uiState.errorMessage.isNullOrBlank()) {
-                Text(text = uiState.errorMessage ?: "", color = MaterialTheme.colorScheme.error)
-            }
-
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(uiState.projects, key = { it.id }) { project ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onOpenProject(project.id) }
-                                .padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(text = project.name, style = MaterialTheme.typography.titleMedium)
-                            Text(text = project.description ?: "No description")
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = { onOpenProject(project.id) }) {
-                                    Text("Open")
-                                }
-                                Button(onClick = { viewModel.deleteProject(project.id) }) {
-                                    Text("Delete")
-                                }
-                            }
-                        }
+            if (uiState.isLoading && uiState.projects.isEmpty()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.projects.isEmpty()) {
+                EmptyState(
+                    message = "No projects yet. Create one to get started!",
+                    onAction = { showCreateDialog = true },
+                    actionLabel = "Create Project"
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(uiState.projects, key = { it.id }) { project ->
+                        ProjectItem(
+                            project = project,
+                            onClick = { onOpenProject(project.id) },
+                            onDelete = { viewModel.deleteProject(project.id) }
+                        )
                     }
                 }
             }
+
+            if (!uiState.errorMessage.isNullOrBlank()) {
+                Snackbar(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp),
+                    action = {
+                        TextButton(onClick = { viewModel.loadProjects() }) {
+                            Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
+                        }
+                    }
+                ) {
+                    Text(uiState.errorMessage!!)
+                }
+            }
+        }
+
+        if (showCreateDialog) {
+            CreateProjectDialog(
+                onDismiss = { showCreateDialog = false },
+                onCreate = { name, desc ->
+                    viewModel.createProject(name, desc)
+                    showCreateDialog = false
+                }
+            )
         }
     }
+}
+
+@Composable
+fun ProjectItem(
+    project: com.example.nexus.api.Project,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = project.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            if (!project.description.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = project.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CreateProjectDialog(
+    onDismiss: () -> Unit,
+    onCreate: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var desc by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("New Project") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = { Text("Description (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onCreate(name, desc) },
+                enabled = name.isNotBlank()
+            ) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
