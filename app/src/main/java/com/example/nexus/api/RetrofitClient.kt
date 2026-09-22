@@ -1,5 +1,6 @@
 package com.example.nexus.api
 
+import com.example.nexus.BuildConfig
 import com.example.nexus.auth.AuthSession
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -11,7 +12,7 @@ object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:5263/api/"
 
     private val logging = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
     }
 
     private val authInterceptor = Interceptor { chain ->

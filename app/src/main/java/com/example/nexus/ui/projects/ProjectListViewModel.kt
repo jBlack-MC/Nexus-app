@@ -3,8 +3,12 @@ package com.example.nexus.ui.projects
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
+import com.example.nexus.api.ApiError
 import com.example.nexus.api.CreateProjectRequest
 import com.example.nexus.api.Project
+import com.example.nexus.api.toApiError
+import com.example.nexus.api.toUserMessage
+import com.example.nexus.auth.AuthSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,7 +35,7 @@ class ProjectListViewModel : ViewModel() {
             }.onSuccess { projects ->
                 _uiState.value = ProjectListUiState(projects = projects)
             }.onFailure { error ->
-                _uiState.value = ProjectListUiState(errorMessage = error.message ?: "Failed to load projects")
+                handleError(error)
             }
         }
     }
@@ -46,7 +50,7 @@ class ProjectListViewModel : ViewModel() {
             }.onSuccess {
                 loadProjects()
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to create project")
+                handleError(error)
             }
         }
     }
@@ -58,9 +62,19 @@ class ProjectListViewModel : ViewModel() {
             }.onSuccess {
                 loadProjects()
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to delete project")
+                handleError(error)
             }
         }
     }
-}
 
+    private fun handleError(error: Throwable) {
+        val apiError = error.toApiError()
+        if (apiError is ApiError.SessionExpired) {
+            AuthSession.clearToken()
+        }
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            errorMessage = apiError.toUserMessage()
+        )
+    }
+}

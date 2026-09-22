@@ -3,7 +3,11 @@ package com.example.nexus.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
+import com.example.nexus.api.ApiError
 import com.example.nexus.api.DashboardData
+import com.example.nexus.api.toApiError
+import com.example.nexus.api.toUserMessage
+import com.example.nexus.auth.AuthSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -25,11 +29,16 @@ class DashboardViewModel : ViewModel() {
     fun fetchDashboard() {
         viewModelScope.launch {
             _uiState.value = DashboardState.Loading
-            try {
-                val data = NexusApp.repository.getDashboard()
+            runCatching {
+                NexusApp.repository.getDashboard()
+            }.onSuccess { data ->
                 _uiState.value = DashboardState.Success(data)
-            } catch (e: Exception) {
-                _uiState.value = DashboardState.Error(e.message ?: "Unknown Error")
+            }.onFailure { error ->
+                val apiError = error.toApiError()
+                if (apiError is ApiError.SessionExpired) {
+                    AuthSession.clearToken()
+                }
+                _uiState.value = DashboardState.Error(apiError.toUserMessage())
             }
         }
     }

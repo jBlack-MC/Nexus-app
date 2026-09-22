@@ -38,12 +38,17 @@ private object Routes {
 fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
+    val isAppAuthenticated by AuthSession.isAuthenticated.collectAsState()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    LaunchedEffect(authState.isAuthenticated, currentRoute) {
-        if (
-            authState.isAuthenticated &&
+    LaunchedEffect(isAppAuthenticated, currentRoute) {
+        if (!isAppAuthenticated && currentRoute != Routes.LOGIN && currentRoute != Routes.REGISTER && currentRoute != Routes.SPLASH) {
+            navController.navigate(Routes.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        } else if (
+            isAppAuthenticated &&
                 currentRoute != null &&
                 currentRoute != Routes.SPLASH &&
                 currentRoute != Routes.DASHBOARD
@@ -61,7 +66,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
         composable(Routes.SPLASH) {
             SplashIntroScreen(
                 onFinished = {
-                    val nextRoute = if (authState.isAuthenticated) Routes.DASHBOARD else Routes.LOGIN
+                    val nextRoute = if (isAppAuthenticated) Routes.DASHBOARD else Routes.LOGIN
                     navController.navigate(nextRoute) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }

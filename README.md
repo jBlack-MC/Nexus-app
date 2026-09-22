@@ -1,188 +1,240 @@
 # Nexus
 
-A task & project manager for Android built with Kotlin and Jetpack Compose.
-Nexus lets users authenticate with a backend via JWT, view a dashboard of
-project/task activity, and create / edit / delete projects and tasks in a
-nested navigation flow.
+Nexus is a focused Android workspace for people who want to turn projects into clear, manageable next steps. It brings projects, tasks, and progress into one calm mobile experience, so an individual or small team can see what matters, decide what to do next, and keep moving.
 
-> **Status:** Active development. The app currently targets a local emulator
-> backend (`http://10.0.2.2:5263`); see [Local backend](#local-backend) below.
+Today, Nexus provides a secure foundation: account access, a project dashboard, and task management inside each project. The product direction is to evolve from a simple task tracker into a dependable daily planning companion - useful in a few seconds, not another complicated system to maintain.
+
+> Status: active development. The default backend is a local service reachable from the Android emulator at `http://10.0.2.2:5263`.
+
+## Contents
+
+- [Features](#features)
+- [Product direction](#product-direction)
+- [Roadmap](#roadmap)
+- [Tech stack](#tech-stack)
+- [Requirements](#requirements)
+- [Getting started](#getting-started)
+- [Build and test](#build-and-test)
+- [Continuous integration](#continuous-integration)
+- [Changelog](#changelog)
+- [Backend API](#backend-api)
+- [Testing](#testing)
+- [Project structure](#project-structure)
+- [Security and release notes](#security-and-release-notes)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- **JWT authentication** — login & register, with session persistence.
-- **Dashboard** — at-a-glance view of project, task, and activity counts.
-- **Projects & Tasks** — full CRUD for projects, and nested CRUD for a project's
-  tasks (create, edit, complete, delete).
-- **Theming** — Material 3 with dynamic color on Android 12+ and a custom
-  brand theme otherwise.
-- **Intro animation** — an animated splash logo sequence that respects
-  `prefers-reduced-motion`.
+- Register and sign in with a persisted JWT session.
+- View dashboard counts for projects, tasks, and activity.
+- Create, edit, and delete projects and project tasks.
+- Mark tasks as complete.
+- Navigate through a single-activity Jetpack Compose UI.
+- Use Material 3 theming, including dynamic color on Android 12 and later.
 
-## Screenshots
+## Product direction
 
-| Splash | Login | Dashboard |
-| --- | --- | --- |
-| _screenshots/splash.png_ | _screenshots/login.png_ | _screenshots/dashboard.png_ |
+Nexus should earn a place on a user's home screen by being clear, quick, and trustworthy.
 
-*(Screenshot assets are not yet committed. Drop them under `screenshots/` and
-update the links above.)*
+| Principle | What it means in Nexus |
+| --- | --- |
+| Focus over clutter | The home screen should answer: what needs attention now? |
+| Fast capture | Adding a task should take seconds, with sensible defaults. |
+| Progress with context | Projects should show what is moving, blocked, and complete - not just a task count. |
+| Calm by default | Notifications, visual hierarchy, and empty states should help users act without creating pressure. |
+| Trustworthy data | Sessions, backups, sync, and offline behaviour must be predictable before advanced features are added. |
+
+## Roadmap
+
+These are proposed improvements, not features currently available in the app. Build them in this order so the product becomes more useful before it becomes more complex.
+
+### Now: make the core experience excellent
+
+- Add due dates, priority, status, and optional labels to tasks.
+- Add subtasks and checklists for work that needs more than one step.
+- Offer list and board views so users can choose the clearest way to work.
+- Improve the dashboard with overdue, due today, and upcoming task sections.
+- Add search, filtering, sorting, and a useful empty state for every list.
+- Support pull-to-refresh, clear loading states, retry actions, and human-friendly error messages.
+- Add onboarding that explains projects, tasks, and the first useful action.
+- Write ViewModel, navigation, and API error-handling tests for the current flows.
+
+### Next: make Nexus a daily habit
+
+- Add reminders and notifications for due and overdue tasks, with user-controlled schedules.
+- Introduce a "Today" view that helps users choose a small, realistic set of tasks.
+- Add recurring tasks, task notes, attachments or links, and project templates.
+- Add a calendar view for deadlines and a timeline view for project progress.
+- Let users archive projects and review completed work or weekly progress.
+- Add light and dark theme controls plus accessibility improvements: larger touch targets, content descriptions, contrast checks, and reduced-motion support.
+
+### Later: make it collaborative and dependable everywhere
+
+- Add shared projects, roles, comments, activity history, and mentions.
+- Add offline-first storage with a visible sync state and conflict handling.
+- Provide push notifications, secure account recovery, and configurable privacy controls.
+- Add calendar integration, CSV import/export, home-screen widgets, and a tablet-friendly layout.
+- Add product analytics that measure successful outcomes (for example, tasks completed or time to first project) while respecting user privacy.
+
+Before starting a roadmap item, define the user problem, the smallest useful version, and one success measure. For example: "Can a user capture a task in under 10 seconds?" This keeps Nexus purposeful rather than feature-heavy.
 
 ## Tech stack
 
-| Layer | Library / API |
+| Area | Technology |
 | --- | --- |
 | Language | Kotlin 2.2.10 |
-| UI | Jetpack Compose (Material 3) |
-| Build | Android Gradle Plugin 9.3.1, Compose BOM 2026.02.01 |
-| Architecture | Single-activity, MVVM (`ViewModel` + `StateFlow` + `runCatching`) |
-| Navigation | `androidx.navigation:navigation-compose` |
-| Network | Retrofit 3.0 + Gson + OkHttp (auth + logging interceptors) |
-| Persistence | AndroidX `security-crypto` — `EncryptedSharedPreferences` |
-| Min SDK | 24 |
-| Target / Compile SDK | 37 |
+| UI | Jetpack Compose and Material 3 |
+| Architecture | Single activity with MVVM, `ViewModel`, and `StateFlow` |
+| Navigation | Navigation Compose |
+| Network | Retrofit, Gson, and OkHttp |
+| Session storage | AndroidX Security Crypto |
+| Local cache | Room database for projects, tasks, and dashboard data |
+| Build | Gradle 9.5 and Android Gradle Plugin 9.3.1 |
+| Android support | Min SDK 24; target and compile SDK 37 |
 
-## Project structure
+## Requirements
 
-```
-app/src/main/
-├── AndroidManifest.xml            # Single activity, network-security config
-├── java/com/example/nexus/
-│   ├── NexusApp.kt                # Application; initializes auth session
-│   ├── MainActivity.kt            # setContent { NexusTheme { NexusNavHost } }
-│   ├── api/                       # Network layer
-│   │   ├── RetrofitClient.kt      # OkHttp client + auth/logging interceptors
-│   │   ├── ApiService.kt          # Typed REST endpoints
-│   │   ├── AuthModels.kt          # register/login request + auth response
-│   │   ├── DashboardData.kt
-│   │   └── ProjectAndTaskModels.kt
-│   ├── auth/
-│   │   ├── AuthSession.kt        # In-process auth/session state holder
-│   │   └── SecureTokenStore.kt   # Local token persistence
-│   ├── ui/
-│   │   ├── AuthViewModel.kt       # login/register state machine
-│   │   ├── DashboardScreen/ViewModel
-│   │   ├── LoginScreen, RegisterScreen, SplashIntroScreen
-│   │   ├── components/            # NexusLogo, EmptyState
-│   │   ├── navigation/NexusNavHost.kt
-│   │   ├── projects/              # Project list + detail screens + ViewModels
-│   │   ├── tasks/                 # Task list screen + ViewModel
-│   │   └── theme/                 # Color, Type, Theme
-│   └── util/
-│       └── TokenManager.kt        # EncryptedSharedPreferences helper
-└── res/
-    ├── values/      # strings, colors, themes
-    ├── xml/         # backup rules, data-extraction rules, network-security config
-    └── mipmap-*/    # launcher icons
+- Android Studio with Android SDK Platform 37 installed.
+- JDK 17 or later for Gradle.
+- An Android device or emulator running API 24 or later.
+- A Nexus-compatible backend available at `10.0.2.2:5263` when running on an emulator.
+
+## Getting started
+
+1. Clone the repository and open it in Android Studio.
+2. Allow Gradle sync to finish and install any missing Android SDK components.
+3. Start the local backend so the emulator can reach `http://10.0.2.2:5263/api/`.
+4. Select a device or emulator, then run the `app` configuration.
+5. Register an account or sign in.
+
+The `10.0.2.2` address is Android Emulator's alias for the development machine. A physical device cannot use this address; configure an accessible HTTPS backend before using one.
+
+## Build and test
+
+Run commands from the repository root.
+
+```sh
+# Linux or macOS
+./gradlew test
+./gradlew assembleDebug
+./gradlew assembleRelease bundleRelease
 ```
 
-### Navigation graph
-
-```
-splash  ──(token?)──▶  dashboard
-        └──(no token)──▶  login  ──► register
-                             │
-                             ▼
-                          dashboard  ──►  projects
-                                            │
-                                            ├──▶ project detail (tasks)
-                                            │       │
-                                            │       ├── create/edit project
-                                            │       ├── create/edit task
-                                            │       └── delete
-                                            └──► tasks (by project)
+```powershell
+# Windows PowerShell
+.\gradlew.bat test
+.\gradlew.bat assembleDebug
+.\gradlew.bat assembleRelease bundleRelease
 ```
 
-## Build & run
+The debug APK is written to `app/build/outputs/apk/debug/`. Release APK and App Bundle outputs are written under `app/build/outputs/apk/release/` and `app/build/outputs/bundle/release/`.
 
-**Requirements**
-- Android Studio (Giraffe or later, matching AGP 9.3.1)
-- JDK 17+
-- A running backend reachable at `10.0.2.2:5263` from the emulator
-  (see [Local backend](#local-backend)).
+Instrumented tests require a connected device or running emulator:
 
-**Steps**
-1. Open the project in Android Studio.
-2. `./gradlew build` to compile, or press ▶ in Studio to run on a device/emulator
-   (API 24+ recommended).
-3. Register or log in to obtain a session.
+```sh
+./gradlew connectedAndroidTest
+```
 
-> **Note for production:** the shipped `BASE_URL` is an HTTP emulator-local
-> address and cleartext is explicitly permitted **only** for `10.0.2.2` in
-> `res/xml/network_security_config.xml`. Before shipping to a real backend,
-> switch the base URL to your HTTPS endpoint and remove the cleartext config.
+## Continuous integration
 
-### Continuous integration
+[GitHub Actions](.github/workflows/android-ci.yml) runs unit tests and builds the debug APK, release APK, and release AAB on pushes to `main`, `master`, and `release/**`; on pull requests to `main` and `master`; and when manually started from the Actions tab.
 
-GitHub Actions builds the unit tests, debug APK, and unsigned release APK/AAB
-on pushes to `main`, `master`, or `release/**`, and pull requests to `main` or
-`master`. You can also start it from
-the repository's **Actions** tab. Download the resulting files from the
-workflow run's artifacts: `nexus-debug-apk` and `nexus-release-artifacts`.
+Each run publishes two downloadable artifacts:
 
-Release files are intentionally unsigned. To publish to Google Play, configure
-a release signing key through GitHub repository secrets and add a signing step;
-never commit a keystore or its passwords to the repository.
+- `nexus-debug-apk`
+- `nexus-release-artifacts`
 
-### Local backend
+The release artifacts are unsigned. Configure release signing with GitHub Actions secrets before distributing the app or publishing it to Google Play. Never commit a keystore or its passwords to the repository.
 
-Nexus expects a JSON API at `http://10.0.2.2:5263/api/`. Endpoints (see
-`ApiService.kt`):
+## Changelog
 
-| Method | Path | Purpose |
+### Version 1.0 - current foundation
+
+#### Added
+
+- JWT registration, sign-in, sign-out, and persisted session handling.
+- Animated splash experience and Compose navigation for authentication, dashboard, projects, and tasks.
+- Dashboard counts for projects, tasks, and activity.
+- Project and task creation, editing, deletion, and task completion.
+- Retrofit API client with authorization headers and debug-only HTTP logging.
+- Room-backed cache for projects, tasks, and dashboard data when reads cannot reach the backend.
+- Material 3 interface, dynamic color support, loading states, retry actions, and empty states.
+- GitHub Actions CI that tests the project and publishes APK/AAB build artifacts.
+
+#### Next improvements
+
+The [roadmap](#roadmap) describes the planned user-facing improvements. The first release-quality milestone is task due dates, priority, a useful Today view, and a production HTTPS backend.
+
+## Backend API
+
+The Android client uses `http://10.0.2.2:5263/api/` by default. The base URL is defined in `RetrofitClient.kt`.
+
+| Method | Endpoint | Description |
 | --- | --- | --- |
-| `POST` | `auth/register` | register (`email`, `password`, `displayName`) → `{ token }` |
-| `POST` | `auth/login` | login → `{ token }` |
-| `GET` | `dashboard` | `{ projects, tasks, activity }` (auth required) |
-| `GET` | `projects` | list projects (auth required) |
-| `GET` | `projects/{projectId}` | project by id |
-| `POST` | `projects` | create project |
-| `PUT` | `projects/{projectId}` | update project |
-| `DELETE` | `projects/{projectId}` | delete project |
-| `GET` | `projects/{projectId}/tasks` | list tasks for a project |
-| `POST` | `projects/{projectId}/tasks` | create task |
-| `PUT` | `tasks/{taskId}` | update task |
-| `DELETE` | `tasks/{taskId}` | delete task |
+| `POST` | `/auth/register` | Create an account with email, password, and display name. |
+| `POST` | `/auth/login` | Sign in and receive a JWT. |
+| `GET` | `/dashboard` | Get project, task, and activity counts. |
+| `GET`, `POST` | `/projects` | List or create projects. |
+| `GET`, `PUT`, `DELETE` | `/projects/{projectId}` | Read, update, or delete a project. |
+| `GET`, `POST` | `/projects/{projectId}/tasks` | List or create a project's tasks. |
+| `PUT`, `DELETE` | `/tasks/{taskId}` | Update or delete a task. |
 
-The auth token is sent as `Authorization: Bearer <jwt>` via an OkHttp
-interceptor (`RetrofitClient.kt`).
+Authenticated requests send `Authorization: Bearer <jwt>` automatically.
 
-## Security notes
+### Local data and offline behaviour
 
-- **Secrets:** do not commit any keystore, API key, or production credentials.
-  Backend credentials must live in environment-driven gradle properties or a
-  CI secrets store, not in source.
-- **Logging:** HTTP logging is intended for **debug** builds only. Ensure the
-  logging interceptor level is gated on `BuildConfig.DEBUG` before release so
-  auth tokens and credentials are never written to logcat.
-- **Backup:** review `res/xml/backup_rules.xml` and `data_extraction_rules.xml`
-  to ensure anything sensitive (token storage) is excluded from cloud/device
-  backup.
-- **TLS:** all production traffic must use HTTPS; the cleartext exception is
-  scoped to the local emulator host only.
+Nexus stores a local Room cache for dashboard data, projects, and tasks. When a read request fails, the app can show its cached data when available. Creating, updating, and deleting data still requires a connection; queued offline changes and conflict resolution are planned improvements.
 
 ## Testing
 
-```
-./gradlew test                  # unit tests (host JVM)
-./gradlew connectedAndroidTest  # instrumentation tests (device/emulator)
+Run unit tests on your development machine:
+
+```sh
+./gradlew test
 ```
 
-The project currently ships only the default template tests
-(`ExampleUnitTest.kt`, `ExampleInstrumentedTest.kt`). Contributions adding
-coverage for `AuthViewModel`, the dashboard / projects / tasks ViewModels, and
-the auth-gated navigation flow are encouraged.
+Run instrumentation tests on a connected device or emulator:
+
+```sh
+./gradlew connectedAndroidTest
+```
+
+Before a release, test sign-up, sign-in, sign-out, project and task CRUD, task completion, retry behaviour, cached reads, and navigation on both a small phone and a larger screen.
+
+## Project structure
+
+```text
+app/src/main/
+|- AndroidManifest.xml
+|- java/com/example/nexus/
+|  |- api/           # Retrofit service, API models, and client
+|  |- auth/          # Session state and secure token storage
+|  |- data/          # Room entities, DAOs, database, and repository
+|  |- ui/            # Compose screens, ViewModels, navigation, and theme
+|  |- util/          # Shared utilities
+|  |- MainActivity.kt
+|  `- NexusApp.kt
+`- res/              # Resources, icons, themes, and XML configuration
+
+.github/workflows/
+`- android-ci.yml    # GitHub Actions build and artifact workflow
+```
+
+## Security and release notes
+
+- The development endpoint uses HTTP only for `10.0.2.2`; replace it with an HTTPS endpoint for production and remove the cleartext exception in `res/xml/network_security_config.xml`.
+- HTTP request-body logging is enabled only in debug builds. Keep it disabled in release builds to prevent credentials or tokens reaching logcat.
+- Review the backup and data-extraction rules before release to ensure tokens are excluded from device and cloud backups.
+- Do not commit API keys, keystores, passwords, or other production secrets.
 
 ## Contributing
 
-1. Open an issue or describe scope before large changes.
-2. Follow the existing architecture: single-activity + MVVM
-   (`ViewModel` + `StateFlow` + `runCatching`).
-3. Match the code style (`kotlin.code.style=official`, set in `gradle.properties`).
-4. When introducing reflection-based types (e.g. Gson) and re-enabling R8,
-   add matching keep rules to `app/src/main/keepRules/rules.keep`.
+1. Keep changes focused and include tests where practical.
+2. Follow the existing single-activity MVVM structure.
+3. Run `./gradlew test` before opening a pull request.
+4. Add ProGuard/R8 keep rules for reflection-based types when minification is enabled.
 
 ## License
 
-Specify a license here (e.g. MIT or Apache-2.0). Until one is chosen, all rights
-remain with the project authors.
+No license has been selected yet. Until one is added, all rights are reserved by the project authors.
