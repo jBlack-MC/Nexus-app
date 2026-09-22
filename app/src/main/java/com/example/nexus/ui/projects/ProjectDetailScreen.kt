@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.DetailSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +64,7 @@ fun ProjectDetailScreen(
                 .padding(paddingValues)
         ) {
             if (uiState.isLoading && project == null) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                DetailSkeleton()
             } else if (!uiState.errorMessage.isNullOrBlank() && project == null) {
                 ErrorState(
                     message = uiState.errorMessage!!,

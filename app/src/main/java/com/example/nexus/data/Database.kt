@@ -148,6 +148,9 @@ class TaskConverters {
     @TypeConverter fun checklistToString(value: List<ChecklistItem>): String = gson.toJson(value)
     @TypeConverter fun stringToChecklist(value: String): List<ChecklistItem> =
         gson.fromJson(value, object : TypeToken<List<ChecklistItem>>() {}.type) ?: emptyList()
+    @TypeConverter fun intListToString(value: List<Int>): String = gson.toJson(value)
+    @TypeConverter fun stringToIntList(value: String): List<Int> =
+        gson.fromJson(value, object : TypeToken<List<Int>>() {}.type) ?: emptyList()
     @TypeConverter fun frequencyToString(value: HabitFrequency): String = value.name
     @TypeConverter fun stringToFrequency(value: String): HabitFrequency = HabitFrequency.valueOf(value)
 }

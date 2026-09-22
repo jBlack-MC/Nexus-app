@@ -11,6 +11,8 @@ import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 sealed class DashboardState {
@@ -22,6 +24,7 @@ sealed class DashboardState {
 class DashboardViewModel(
     private val dashboardLoader: suspend () -> DashboardData = { NexusApp.repository.getDashboard() },
     private val cachedTasksLoader: suspend () -> List<Task> = { NexusApp.repository.getCachedTasks() },
+    private val cachedDashboardLoader: suspend () -> DashboardData? = { NexusApp.repository.getCachedDashboard() },
     private val clearSession: () -> Unit = { AuthSession.clearToken() }
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<DashboardState>(DashboardState.Loading)
@@ -34,16 +37,24 @@ class DashboardViewModel(
     fun fetchDashboard() {
         viewModelScope.launch {
             _uiState.value = DashboardState.Loading
+            val cachedData = cachedDashboardLoader()
+            val cachedTasks = cachedTasksLoader()
+            _uiState.value = DashboardState.Success(cachedData ?: DashboardData(0, 0, 0), cachedTasks)
+
             runCatching {
-                dashboardLoader() to cachedTasksLoader()
+                coroutineScope {
+                    val dashboard = async { dashboardLoader() }
+                    val tasks = async { cachedTasksLoader() }
+                    dashboard.await() to tasks.await()
+                }
             }.onSuccess { (data, tasks) ->
                 _uiState.value = DashboardState.Success(data, tasks)
             }.onFailure { error ->
-                val apiError = error.toApiError()
-                if (apiError is ApiError.SessionExpired) {
-                    clearSession()
+                if (cachedData == null) {
+                    val apiError = error.toApiError()
+                    if (apiError is ApiError.SessionExpired) clearSession()
+                    _uiState.value = DashboardState.Error(apiError.toUserMessage())
                 }
-                _uiState.value = DashboardState.Error(apiError.toUserMessage())
             }
         }
     }

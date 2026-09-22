@@ -21,6 +21,7 @@ import com.example.nexus.api.TaskStatus
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.ListSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun TaskListScreen(
                 .padding(paddingValues)
         ) {
             if (uiState.isLoading && uiState.tasks.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                ListSkeleton(labelWidth = 0.7f)
             } else if (!uiState.errorMessage.isNullOrBlank() && uiState.tasks.isEmpty()) {
                 ErrorState(
                     message = uiState.errorMessage!!,

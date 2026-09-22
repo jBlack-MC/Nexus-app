@@ -35,6 +35,8 @@ class NexusRepository(
 
     private fun DashboardEntity.toModel() = DashboardData(projects, tasks, activity)
 
+    suspend fun getCachedDashboard(): DashboardData? = database.dashboardDao().getDashboard()?.toModel()
+
     suspend fun getProfile(): UserProfile = apiService.getProfile()
 
     suspend fun updateProfile(request: UpdateProfileRequest): UserProfile = apiService.updateProfile(request)

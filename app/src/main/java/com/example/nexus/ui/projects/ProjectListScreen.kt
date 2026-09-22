@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.ListSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +66,7 @@ fun ProjectListScreen(
                 .padding(paddingValues)
         ) {
             if (uiState.isLoading && uiState.projects.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                ListSkeleton()
             } else if (!uiState.errorMessage.isNullOrBlank() && uiState.projects.isEmpty()) {
                 ErrorState(
                     message = uiState.errorMessage!!,
