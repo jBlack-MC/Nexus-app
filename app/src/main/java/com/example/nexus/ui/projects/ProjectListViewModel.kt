@@ -19,7 +19,12 @@ data class ProjectListUiState(
     val errorMessage: String? = null
 )
 
-class ProjectListViewModel : ViewModel() {
+class ProjectListViewModel(
+    private val projectsLoader: suspend () -> List<Project> = { NexusApp.repository.getProjects() },
+    private val projectCreator: suspend (CreateProjectRequest) -> Project = { NexusApp.repository.createProject(it) },
+    private val projectDeleter: suspend (String) -> Unit = { NexusApp.repository.deleteProject(it) },
+    private val clearSession: () -> Unit = { AuthSession.clearToken() }
+) : ViewModel() {
     private val _uiState = MutableStateFlow(ProjectListUiState(isLoading = true))
     val uiState: StateFlow<ProjectListUiState> = _uiState
 
@@ -31,7 +36,7 @@ class ProjectListViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                NexusApp.repository.getProjects()
+                projectsLoader()
             }.onSuccess { projects ->
                 _uiState.value = ProjectListUiState(projects = projects)
             }.onFailure { error ->
@@ -44,7 +49,7 @@ class ProjectListViewModel : ViewModel() {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.createProject(
+                projectCreator(
                     CreateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null })
                 )
             }.onSuccess {
@@ -58,7 +63,7 @@ class ProjectListViewModel : ViewModel() {
     fun deleteProject(projectId: String) {
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.deleteProject(projectId)
+                projectDeleter(projectId)
             }.onSuccess {
                 loadProjects()
             }.onFailure { error ->
@@ -70,7 +75,7 @@ class ProjectListViewModel : ViewModel() {
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()
         if (apiError is ApiError.SessionExpired) {
-            AuthSession.clearToken()
+            clearSession()
         }
         _uiState.value = _uiState.value.copy(
             isLoading = false,

@@ -19,7 +19,11 @@ sealed class DashboardState {
     data class Error(val message: String) : DashboardState()
 }
 
-class DashboardViewModel : ViewModel() {
+class DashboardViewModel(
+    private val dashboardLoader: suspend () -> DashboardData = { NexusApp.repository.getDashboard() },
+    private val cachedTasksLoader: suspend () -> List<Task> = { NexusApp.repository.getCachedTasks() },
+    private val clearSession: () -> Unit = { AuthSession.clearToken() }
+) : ViewModel() {
     private val _uiState = MutableStateFlow<DashboardState>(DashboardState.Loading)
     val uiState: StateFlow<DashboardState> = _uiState
 
@@ -31,13 +35,13 @@ class DashboardViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = DashboardState.Loading
             runCatching {
-                NexusApp.repository.getDashboard() to NexusApp.repository.getCachedTasks()
+                dashboardLoader() to cachedTasksLoader()
             }.onSuccess { (data, tasks) ->
                 _uiState.value = DashboardState.Success(data, tasks)
             }.onFailure { error ->
                 val apiError = error.toApiError()
                 if (apiError is ApiError.SessionExpired) {
-                    AuthSession.clearToken()
+                    clearSession()
                 }
                 _uiState.value = DashboardState.Error(apiError.toUserMessage())
             }
