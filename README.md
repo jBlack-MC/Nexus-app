@@ -22,7 +22,7 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 </p>
 
 The button downloads the prototype APK from `docs/NexusApp.apk`.
-
+press raw when forwarded
 > Status: active development. The default backend is a local service reachable from the Android emulator at `http://10.0.2.2:5263`.
 
 ## Contents
