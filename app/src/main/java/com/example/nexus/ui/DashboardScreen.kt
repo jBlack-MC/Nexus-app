@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.SkeletonBlock
 import com.example.nexus.api.Task
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -57,7 +58,15 @@ fun DashboardScreen(
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
-                is DashboardState.Loading -> CircularProgressIndicator()
+                is DashboardState.Loading -> Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SkeletonBlock(modifier = Modifier.fillMaxWidth(), height = 72.dp)
+                    SkeletonBlock(modifier = Modifier.fillMaxWidth(), height = 72.dp)
+                    SkeletonBlock(modifier = Modifier.fillMaxWidth(), height = 72.dp)
+                    SkeletonBlock(modifier = Modifier.fillMaxWidth(), height = 48.dp)
+                }
                 is DashboardState.Error -> ErrorState(
                     message = state.message,
                     onRetry = { viewModel.fetchDashboard() }

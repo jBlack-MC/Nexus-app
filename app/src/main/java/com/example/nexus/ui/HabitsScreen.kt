@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -45,6 +44,7 @@ import com.example.nexus.api.Habit
 import com.example.nexus.api.HabitFrequency
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.ListSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +80,7 @@ fun HabitsScreen(
         }
     ) { paddingValues ->
         when {
-            state.isLoading && state.habits.isEmpty() -> CircularProgressIndicator(modifier = Modifier.padding(paddingValues))
+            state.isLoading && state.habits.isEmpty() -> ListSkeleton()
             !state.errorMessage.isNullOrBlank() && state.habits.isEmpty() -> ErrorState(
                 message = state.errorMessage!!,
                 onRetry = viewModel::loadHabits

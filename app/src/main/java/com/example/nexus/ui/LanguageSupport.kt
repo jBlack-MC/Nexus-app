@@ -48,7 +48,7 @@ fun LanguagePicker(
     }
 }
 
-fun AuthCopy.language(code: String): AuthCopy = when (code) {
+fun getAuthCopy(code: String): AuthCopy = when (code) {
     "zu" -> AuthCopy("Siyakwamukela", "Ngena ukuze uqhubeke ku-Nexus", "I-imeyili", "Iphasiwedi", "Ngena", "Dala i-akhawunti")
     "tn" -> AuthCopy("Re a go amogela", "Tsena go tswelela mo Nexus", "Imeile", "Khunololamorago", "Tsena", "Tlhama akhaonto")
     else -> AuthCopy("Welcome Back", "Sign in to continue to Nexus", "Email", "Password", "Sign In", "Create Account")

@@ -26,7 +26,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val language by SettingsSession.language.collectAsState()
-    val copy = language.language(language)
+    val copy = getAuthCopy(language)
 
     Surface(
         modifier = Modifier
@@ -127,11 +127,7 @@ fun LoginScreen(
                 shape = MaterialTheme.shapes.medium
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                    Text("Signing in…", style = MaterialTheme.typography.titleMedium)
                 } else {
                     Text(copy.signIn, style = MaterialTheme.typography.titleMedium)
                 }

@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.settings.ThemeMode
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.DetailSkeleton
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 
@@ -59,7 +60,7 @@ fun SettingsScreen(
                 .padding(paddingValues)
         ) {
             if (uiState.isLoading && uiState.profile == null) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                DetailSkeleton()
             } else if (!uiState.errorMessage.isNullOrBlank() && uiState.profile == null) {
                 ErrorState(
                     message = uiState.errorMessage!!,
@@ -100,7 +101,7 @@ fun SettingsScreen(
                                 enabled = !uiState.isLoading && displayName.isNotBlank() && displayName != uiState.profile?.displayName
                             ) {
                                 if (uiState.isLoading) {
-                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                    Text("Saving...", style = MaterialTheme.typography.labelLarge)
                                 } else {
                                     Text("Save Changes")
                                 }

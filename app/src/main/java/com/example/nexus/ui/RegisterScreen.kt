@@ -27,7 +27,7 @@ fun RegisterScreen(
     var displayName by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val language by SettingsSession.language.collectAsState()
-    val copy = language.language(language)
+    val copy = getAuthCopy(language)
 
     Surface(
         modifier = Modifier
@@ -142,11 +142,7 @@ fun RegisterScreen(
             shape = MaterialTheme.shapes.medium
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                    Text("Creating account…", style = MaterialTheme.typography.titleMedium)
             } else {
                 Text(
                     copy.createAccount,

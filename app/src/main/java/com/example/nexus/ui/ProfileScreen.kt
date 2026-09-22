@@ -13,7 +13,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.DetailSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +59,7 @@ fun ProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             when {
-                uiState.isLoading && uiState.profile == null -> CircularProgressIndicator()
+                uiState.isLoading && uiState.profile == null -> DetailSkeleton()
                 uiState.profile == null && !uiState.errorMessage.isNullOrBlank() -> ErrorState(
                     message = uiState.errorMessage!!,
                     onRetry = viewModel::loadProfile

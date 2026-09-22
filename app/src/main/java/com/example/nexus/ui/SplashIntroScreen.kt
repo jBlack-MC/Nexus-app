@@ -56,7 +56,7 @@ fun SplashIntroScreen(onFinished: () -> Unit) {
             onFinished()
         } else {
             timeline.snapTo(0f)
-            timeline.animateTo(1f, animationSpec = tween(durationMillis = 3600, easing = LinearEasing))
+            timeline.animateTo(1f, animationSpec = tween(durationMillis = 900, easing = LinearEasing))
             onFinished()
         }
     }
