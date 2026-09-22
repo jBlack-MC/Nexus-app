@@ -6,8 +6,10 @@ import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.DashboardData
 import com.example.nexus.api.Project
 import com.example.nexus.api.Task
+import com.example.nexus.api.UpdateProfileRequest
 import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.UpdateTaskRequest
+import com.example.nexus.api.UserProfile
 
 class NexusRepository(
     private val database: NexusDatabase,
@@ -16,10 +18,14 @@ class NexusRepository(
     private fun ProjectEntity.toModel() = Project(id, name, description, createdAt, updatedAt)
     private fun Project.toEntity() = ProjectEntity(id, name, description, createdAt, updatedAt)
 
-    private fun TaskEntity.toModel() = Task(id, projectId, title, description, isCompleted, createdAt, updatedAt)
-    private fun Task.toEntity() = TaskEntity(id, projectId, title, description, isCompleted, createdAt, updatedAt)
+    private fun TaskEntity.toModel() = Task(id, projectId, title, description, isCompleted, dueDate, priority, status, labels, checklist, createdAt, updatedAt)
+    private fun Task.toEntity() = TaskEntity(id, projectId, title, description, isCompleted, dueDate, priority, status, labels, checklist, createdAt, updatedAt)
 
     private fun DashboardEntity.toModel() = DashboardData(projects, tasks, activity)
+
+    suspend fun getProfile(): UserProfile = apiService.getProfile()
+
+    suspend fun updateProfile(request: UpdateProfileRequest): UserProfile = apiService.updateProfile(request)
 
     suspend fun getDashboard(): DashboardData {
         return try {
@@ -82,6 +88,8 @@ class NexusRepository(
             database.taskDao().getTasksByProjectId(projectId).map { it.toModel() }
         }
     }
+
+    suspend fun getCachedTasks(): List<Task> = database.taskDao().getAllTasks().map { it.toModel() }
 
     suspend fun createTask(projectId: String, request: CreateTaskRequest): Task {
         val task = apiService.createTask(projectId, request)

@@ -3,8 +3,9 @@ package com.example.nexus.util
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.nexus.auth.TokenStore
 
-class TokenManager(context: Context) {
+class TokenManager(context: Context) : TokenStore {
     private val appContext = context.applicationContext
 
     private val prefs by lazy {
@@ -21,13 +22,13 @@ class TokenManager(context: Context) {
         )
     }
 
-    fun saveToken(token: String) {
+    override fun saveToken(token: String) {
         prefs.edit().putString(KEY_TOKEN, token).apply()
     }
 
-    fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
+    override fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
-    fun clearToken() {
+    override fun clearToken() {
         prefs.edit().remove(KEY_TOKEN).apply()
     }
 
@@ -36,4 +37,3 @@ class TokenManager(context: Context) {
         private const val KEY_TOKEN = "jwt_token"
     }
 }
-

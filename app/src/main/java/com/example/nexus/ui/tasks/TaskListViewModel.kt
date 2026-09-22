@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
 import com.example.nexus.api.ApiError
 import com.example.nexus.api.CreateTaskRequest
+import com.example.nexus.api.ChecklistItem
 import com.example.nexus.api.Task
+import com.example.nexus.api.TaskPriority
+import com.example.nexus.api.TaskStatus
 import com.example.nexus.api.UpdateTaskRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
@@ -40,14 +43,14 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    fun createTask(title: String, description: String) {
+    fun createTask(title: String, description: String, dueDate: String?, priority: TaskPriority, status: TaskStatus, labels: List<String>, checklist: List<ChecklistItem>) {
         val id = projectId ?: return
         if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
                 NexusApp.repository.createTask(
                     id,
-                    CreateTaskRequest(title = title.trim(), description = description.trim().ifBlank { null })
+                    CreateTaskRequest(title.trim(), description.trim().ifBlank { null }, dueDate, priority, status, labels, checklist)
                 )
             }.onSuccess {
                 loadTasks(id)
@@ -57,18 +60,14 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    fun updateTask(taskId: String, title: String, description: String, isCompleted: Boolean) {
+    fun updateTask(taskId: String, title: String, description: String, isCompleted: Boolean, dueDate: String? = null, priority: TaskPriority = TaskPriority.NONE, status: TaskStatus = if (isCompleted) TaskStatus.DONE else TaskStatus.TODO, labels: List<String> = emptyList(), checklist: List<ChecklistItem> = emptyList()) {
         val id = projectId ?: return
         if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
                 NexusApp.repository.updateTask(
                     taskId,
-                    UpdateTaskRequest(
-                        title = title.trim(),
-                        description = description.trim().ifBlank { null },
-                        isCompleted = isCompleted
-                    )
+                    UpdateTaskRequest(title.trim(), description.trim().ifBlank { null }, isCompleted, dueDate, priority, status, labels, checklist)
                 )
             }.onSuccess {
                 loadTasks(id)
@@ -83,7 +82,12 @@ class TaskListViewModel : ViewModel() {
             taskId = task.id,
             title = task.title,
             description = task.description ?: "",
-            isCompleted = !task.isCompleted
+            isCompleted = !task.isCompleted,
+            dueDate = task.dueDate,
+            priority = task.priority,
+            status = if (!task.isCompleted) TaskStatus.DONE else TaskStatus.TODO,
+            labels = task.labels,
+            checklist = task.checklist
         )
     }
 

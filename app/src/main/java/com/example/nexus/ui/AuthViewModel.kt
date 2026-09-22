@@ -1,5 +1,4 @@
 package com.example.nexus.ui
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.api.LoginRequest
@@ -31,10 +30,19 @@ class AuthViewModel : ViewModel() {
     }
 
     fun login(email: String, password: String) {
+        if (!isValidEmail(email)) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Please enter a valid email address")
+            return
+        }
+        if (password.length < 6) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Password must be at least 6 characters")
+            return
+        }
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                RetrofitClient.instance.login(LoginRequest(email, password))
+                RetrofitClient.instance.login(LoginRequest(email.trim(), password))
             }.onSuccess { response ->
                 AuthSession.saveToken(response.token)
                 _uiState.value = _uiState.value.copy(isLoading = false, isAuthenticated = true)
@@ -48,10 +56,23 @@ class AuthViewModel : ViewModel() {
     }
 
     fun register(email: String, password: String, displayName: String) {
+        if (displayName.isBlank()) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Please enter a display name")
+            return
+        }
+        if (!isValidEmail(email)) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Please enter a valid email address")
+            return
+        }
+        if (password.length < 6) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Password must be at least 6 characters")
+            return
+        }
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                RetrofitClient.instance.register(RegisterRequest(email, password, displayName))
+                RetrofitClient.instance.register(RegisterRequest(email.trim(), password, displayName.trim()))
             }.onSuccess { response ->
                 AuthSession.saveToken(response.token)
                 _uiState.value = _uiState.value.copy(isLoading = false, isAuthenticated = true)
@@ -62,5 +83,10 @@ class AuthViewModel : ViewModel() {
                 )
             }
         }
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$".toRegex()
+        return email.matches(emailRegex)
     }
 }

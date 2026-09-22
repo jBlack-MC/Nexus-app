@@ -15,6 +15,7 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - [Tech stack](#tech-stack)
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
+- [Test credentials](#test-credentials)
 - [Build and test](#build-and-test)
 - [Continuous integration](#continuous-integration)
 - [Changelog](#changelog)
@@ -31,15 +32,15 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - Register and sign in with a persisted JWT session.
 - View dashboard counts for projects, tasks, and activity.
 - Create, edit, and delete projects and project tasks.
+- Plan tasks with an optional due date, priority, status, labels, and checklist steps.
+- Search, filter, sort, and switch between task list and status-board views.
 - Mark tasks as complete.
 - Navigate through a single-activity Jetpack Compose UI.
 - Use Material 3 theming, including dynamic color on Android 12 and later.
 
 ## Splash animation
 
-![Nexus splash animation](docs/nexus-splash.svg)
-
-The preview recreates the supplied Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
+View the interactive preview in [`docs/nexus-intro.html`](docs/nexus-intro.html). It recreates the Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
 
 ## Product direction
 
@@ -127,6 +128,16 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 5. Register an account or sign in.
 
 The `10.0.2.2` address is Android Emulator's alias for the development machine. A physical device cannot use this address; configure an accessible HTTPS backend before using one.
+
+## Test credentials
+
+The following accounts are reserved for development and verification. You can add them to your local system by running [`docs/seed_test_users.ps1`](docs/seed_test_users.ps1) while the backend is active.
+
+| Name | Email | Password | Role / Purpose |
+| --- | --- | --- | --- |
+| Nexus Admin | `admin@nexus-app.com` | `nexusAdmin123` | System administration and global oversight. |
+| Jane Doe | `jane.doe@nexus-app.com` | `janeDoe789` | Power user with multiple active projects. |
+| Test User | `test.user@nexus-app.com` | `testUser456` | Standard user for regression testing. |
 
 ## Build and test
 
