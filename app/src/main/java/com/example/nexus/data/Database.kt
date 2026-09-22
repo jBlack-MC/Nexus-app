@@ -13,6 +13,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.example.nexus.api.ChecklistItem
+import com.example.nexus.api.HabitFrequency
 import com.example.nexus.api.TaskPriority
 import com.example.nexus.api.TaskStatus
 import com.google.gson.Gson
@@ -50,6 +51,17 @@ data class DashboardEntity(
     val projects: Int,
     val tasks: Int,
     val activity: Int
+)
+
+@Entity(tableName = "habits")
+data class HabitEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val description: String?,
+    val frequency: HabitFrequency,
+    val targetDays: List<Int>,
+    val completedDates: List<String>,
+    val createdAt: String?
 )
 
 @Dao
@@ -112,6 +124,21 @@ interface DashboardDao {
     suspend fun insertDashboard(dashboard: DashboardEntity)
 }
 
+@Dao
+interface HabitDao {
+    @Query("SELECT * FROM habits ORDER BY name")
+    suspend fun getHabits(): List<HabitEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHabits(habits: List<HabitEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHabit(habit: HabitEntity)
+
+    @Query("DELETE FROM habits WHERE id = :habitId")
+    suspend fun deleteHabit(habitId: String)
+}
+
 class TaskConverters {
     private val gson = Gson()
 
@@ -121,14 +148,17 @@ class TaskConverters {
     @TypeConverter fun checklistToString(value: List<ChecklistItem>): String = gson.toJson(value)
     @TypeConverter fun stringToChecklist(value: String): List<ChecklistItem> =
         gson.fromJson(value, object : TypeToken<List<ChecklistItem>>() {}.type) ?: emptyList()
+    @TypeConverter fun frequencyToString(value: HabitFrequency): String = value.name
+    @TypeConverter fun stringToFrequency(value: String): HabitFrequency = HabitFrequency.valueOf(value)
 }
 
 @TypeConverters(TaskConverters::class)
-@Database(entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class], version = 2, exportSchema = false)
+@Database(entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class, HabitEntity::class], version = 3, exportSchema = false)
 abstract class NexusDatabase : RoomDatabase() {
     abstract fun projectDao(): ProjectDao
     abstract fun taskDao(): TaskDao
     abstract fun dashboardDao(): DashboardDao
+    abstract fun habitDao(): HabitDao
 
     companion object {
         @Volatile

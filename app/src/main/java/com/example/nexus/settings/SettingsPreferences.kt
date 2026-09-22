@@ -22,9 +22,16 @@ class SettingsPreferences(context: Context) : SettingsStore {
         prefs.edit().putBoolean(KEY_NOTIFICATIONS, enabled).apply()
     }
 
+    override fun getLanguage(): String = prefs.getString(KEY_LANGUAGE, "en") ?: "en"
+
+    override fun setLanguage(language: String) {
+        prefs.edit().putString(KEY_LANGUAGE, language).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "nexus_settings_prefs"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_NOTIFICATIONS = "notifications_enabled"
+        private const val KEY_LANGUAGE = "language"
     }
 }

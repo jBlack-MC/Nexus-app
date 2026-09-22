@@ -9,6 +9,12 @@ import retrofit2.http.Path
 import retrofit2.http.PATCH
 
 interface ApiService {
+    @GET("app/config")
+    suspend fun getAppConfig(): AppConfig
+
+    @GET("localization/{language}")
+    suspend fun getLocalization(@Path("language") language: String): LocalizationBundle
+
     @GET("dashboard")
     suspend fun getDashboard(): DashboardData
 
@@ -23,6 +29,27 @@ interface ApiService {
 
     @PATCH("users/me")
     suspend fun updateProfile(@Body request: UpdateProfileRequest): UserProfile
+
+    @POST("users/me/password")
+    suspend fun changePassword(@Body request: ChangePasswordRequest)
+
+    @DELETE("users/me")
+    suspend fun deleteAccount()
+
+    @GET("habits")
+    suspend fun getHabits(): List<Habit>
+
+    @POST("habits")
+    suspend fun createHabit(@Body request: CreateHabitRequest): Habit
+
+    @PATCH("habits/{habitId}")
+    suspend fun updateHabit(
+        @Path("habitId") habitId: String,
+        @Body request: UpdateHabitRequest
+    ): Habit
+
+    @DELETE("habits/{habitId}")
+    suspend fun deleteHabit(@Path("habitId") habitId: String)
 
     @GET("projects")
     suspend fun getProjects(): List<Project>

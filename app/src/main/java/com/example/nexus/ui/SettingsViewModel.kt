@@ -22,7 +22,8 @@ data class SettingsUiState(
     val isLoading: Boolean = false,
     val profile: UserProfile? = null,
     val errorMessage: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val csvExport: String? = null
 )
 
 class SettingsViewModel : ViewModel() {
@@ -40,6 +41,11 @@ class SettingsViewModel : ViewModel() {
                 _uiState.value = _uiState.value.copy(notificationsEnabled = enabled)
             }
         }
+        viewModelScope.launch {
+            SettingsSession.language.collect { language ->
+                _uiState.value = _uiState.value.copy(selectedLanguage = language)
+            }
+        }
         loadProfile()
     }
 
@@ -49,6 +55,7 @@ class SettingsViewModel : ViewModel() {
             runCatching {
                 NexusApp.repository.getProfile()
             }.onSuccess { profile ->
+                SettingsSession.setLanguage(profile.language)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     profile = profile,
@@ -68,6 +75,7 @@ class SettingsViewModel : ViewModel() {
             runCatching {
                 NexusApp.repository.updateProfile(UpdateProfileRequest(displayName = displayName.trim()))
             }.onSuccess { profile ->
+                SettingsSession.setLanguage(profile.language)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     profile = profile,
@@ -90,12 +98,49 @@ class SettingsViewModel : ViewModel() {
 
     fun setLanguage(language: String) {
         if (language == _uiState.value.selectedLanguage) return
+        SettingsSession.setLanguage(language)
         _uiState.value = _uiState.value.copy(selectedLanguage = language)
         updatePreferences(language = language)
     }
 
     fun logout() {
         AuthSession.clearToken()
+    }
+
+    fun changePassword(currentPassword: String, newPassword: String) {
+        if (currentPassword.isBlank() || newPassword.length < 6) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Use a current password and a new password of at least 6 characters")
+            return
+        }
+        viewModelScope.launch {
+            runCatching { NexusApp.repository.changePassword(com.example.nexus.api.ChangePasswordRequest(currentPassword, newPassword)) }
+                .onSuccess { _uiState.value = _uiState.value.copy(successMessage = "Password changed successfully") }
+                .onFailure(::handleError)
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            runCatching { NexusApp.repository.deleteAccount() }
+                .onSuccess { AuthSession.clearToken() }
+                .onFailure(::handleError)
+        }
+    }
+
+    fun exportCsv() {
+        viewModelScope.launch {
+            runCatching { NexusApp.repository.getHabits() }
+                .onSuccess { habits ->
+                    val rows = habits.flatMap { habit ->
+                        habit.completedDates.map { date -> "${habit.name},${habit.frequency},$date" }
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        csvExport = "habit,frequency,completed_date\n${rows.joinToString("\n")}",
+                        successMessage = "CSV export ready"
+                    )
+                }
+                .onFailure(::handleError)
+        }
     }
 
     private fun handleError(error: Throwable) {

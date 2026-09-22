@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,16 +27,22 @@ import java.util.Locale
 fun DashboardScreen(
     onOpenProjects: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenProfile: () -> Unit,
+    onOpenHabits: () -> Unit,
     onLogout: () -> Unit,
     viewModel: DashboardViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val remoteConfigState by viewModel<RemoteConfigViewModel>().uiState.collectAsState()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { NexusLogo(iconSize = 36.dp, textSize = 26) },
                 actions = {
+                    IconButton(onClick = onOpenProfile) {
+                        Icon(Icons.Filled.Person, contentDescription = "Profile")
+                    }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
@@ -69,9 +76,46 @@ fun DashboardScreen(
                     Button(onClick = onOpenProjects, modifier = Modifier.fillMaxWidth()) {
                         Text("Open Projects")
                     }
+                    if (remoteConfigState.config.featureFlags["habits"] != false) {
+                        Button(onClick = onOpenHabits, modifier = Modifier.fillMaxWidth()) {
+                            Text("Open Habits")
+                        }
+                    }
                     Button(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
                         Text("Log Out")
                     }
+                }
+            }
+
+            if (uiState !is DashboardState.Success) {
+                Button(
+                    onClick = onOpenProjects,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text("Open Projects")
+                }
+            }
+
+            val config = remoteConfigState.config
+            val notice = when {
+                config.maintenanceMode -> config.maintenanceMessage.ifBlank { "Nexus is temporarily under maintenance." }
+                config.announcements.isNotEmpty() -> "${config.announcements.first().title}: ${config.announcements.first().message}"
+                else -> null
+            }
+            if (notice != null) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(12.dp)
+                        .fillMaxWidth(),
+                    color = if (config.maintenanceMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = if (config.maintenanceMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(notice, modifier = Modifier.padding(12.dp))
                 }
             }
         }

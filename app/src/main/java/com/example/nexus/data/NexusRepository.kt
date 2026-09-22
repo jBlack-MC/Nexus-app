@@ -10,11 +10,23 @@ import com.example.nexus.api.UpdateProfileRequest
 import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.UpdateTaskRequest
 import com.example.nexus.api.UserProfile
+import com.example.nexus.api.CreateHabitRequest
+import com.example.nexus.api.Habit
+import com.example.nexus.api.UpdateHabitRequest
+import com.example.nexus.api.AppConfig
+import com.example.nexus.api.LocalizationBundle
 
 class NexusRepository(
     private val database: NexusDatabase,
     private val apiService: ApiService
 ) {
+    suspend fun getAppConfig(): AppConfig = runCatching { apiService.getAppConfig() }.getOrDefault(AppConfig())
+
+    suspend fun getLocalization(language: String): LocalizationBundle =
+        runCatching { apiService.getLocalization(language) }.getOrDefault(LocalizationBundle(language))
+
+    private fun HabitEntity.toModel() = Habit(id, name, description, frequency, targetDays, completedDates, createdAt)
+    private fun Habit.toEntity() = HabitEntity(id, name, description, frequency, targetDays, completedDates, createdAt)
     private fun ProjectEntity.toModel() = Project(id, name, description, createdAt, updatedAt)
     private fun Project.toEntity() = ProjectEntity(id, name, description, createdAt, updatedAt)
 
@@ -26,6 +38,41 @@ class NexusRepository(
     suspend fun getProfile(): UserProfile = apiService.getProfile()
 
     suspend fun updateProfile(request: UpdateProfileRequest): UserProfile = apiService.updateProfile(request)
+
+    suspend fun changePassword(request: com.example.nexus.api.ChangePasswordRequest) = apiService.changePassword(request)
+
+    suspend fun deleteAccount() = apiService.deleteAccount()
+
+    suspend fun getHabits(): List<Habit> = try {
+        apiService.getHabits().also { habits -> database.habitDao().insertHabits(habits.map { it.toEntity() }) }
+    } catch (_: Exception) {
+        database.habitDao().getHabits().map { it.toModel() }
+    }
+
+    suspend fun createHabit(request: CreateHabitRequest): Habit {
+        return try {
+            apiService.createHabit(request).also { database.habitDao().insertHabit(it.toEntity()) }
+        } catch (_: Exception) {
+            val habit = Habit(java.util.UUID.randomUUID().toString(), request.name, request.description, request.frequency, request.targetDays)
+            database.habitDao().insertHabit(habit.toEntity())
+            habit
+        }
+    }
+
+    suspend fun updateHabit(habit: Habit): Habit {
+        return try {
+            apiService.updateHabit(habit.id, UpdateHabitRequest(habit.name, habit.description, habit.frequency, habit.targetDays, habit.completedDates))
+                .also { database.habitDao().insertHabit(it.toEntity()) }
+        } catch (_: Exception) {
+            database.habitDao().insertHabit(habit.toEntity())
+            habit
+        }
+    }
+
+    suspend fun deleteHabit(habitId: String) {
+        runCatching { apiService.deleteHabit(habitId) }
+        database.habitDao().deleteHabit(habitId)
+    }
 
     suspend fun getDashboard(): DashboardData {
         return try {

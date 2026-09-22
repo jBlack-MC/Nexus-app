@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.settings.SettingsSession
 
 @Composable
 fun RegisterScreen(
@@ -25,30 +26,44 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var displayName by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val language by SettingsSession.language.collectAsState()
+    val copy = language.language(language)
 
-    Column(
+    Surface(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground
     ) {
-        NexusLogo(iconSize = 80.dp, textSize = 42)
-        Spacer(modifier = Modifier.height(32.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            NexusLogo(iconSize = 80.dp, textSize = 42)
+            LanguagePicker(
+                selectedLanguage = language,
+                onLanguageSelected = SettingsSession::setLanguage,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            "Create Account",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Text(
-            "Get started with your Nexus profile",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                copy.createAccount,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Text(
+                "Get started with your Nexus profile",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
             value = displayName,
@@ -67,7 +82,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(copy.email) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -81,7 +96,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(copy.password) },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
@@ -134,7 +149,7 @@ fun RegisterScreen(
                 )
             } else {
                 Text(
-                    "Create Account",
+                    copy.createAccount,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
@@ -148,6 +163,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Already have an account? Login")
+        }
         }
     }
 }
