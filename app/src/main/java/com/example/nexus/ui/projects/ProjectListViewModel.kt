@@ -2,9 +2,9 @@ package com.example.nexus.ui.projects
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nexus.NexusApp
 import com.example.nexus.api.CreateProjectRequest
 import com.example.nexus.api.Project
-import com.example.nexus.api.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -27,7 +27,7 @@ class ProjectListViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                RetrofitClient.instance.getProjects()
+                NexusApp.repository.getProjects()
             }.onSuccess { projects ->
                 _uiState.value = ProjectListUiState(projects = projects)
             }.onFailure { error ->
@@ -40,7 +40,7 @@ class ProjectListViewModel : ViewModel() {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.createProject(
+                NexusApp.repository.createProject(
                     CreateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null })
                 )
             }.onSuccess {
@@ -54,7 +54,7 @@ class ProjectListViewModel : ViewModel() {
     fun deleteProject(projectId: String) {
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.deleteProject(projectId)
+                NexusApp.repository.deleteProject(projectId)
             }.onSuccess {
                 loadProjects()
             }.onFailure { error ->

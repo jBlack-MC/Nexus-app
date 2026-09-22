@@ -2,9 +2,9 @@ package com.example.nexus.ui.projects
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nexus.NexusApp
 import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.Project
-import com.example.nexus.api.RetrofitClient
 import com.example.nexus.api.Task
 import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.UpdateTaskRequest
@@ -33,8 +33,8 @@ class ProjectDetailViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                val project = RetrofitClient.instance.getProject(projectId)
-                val tasks = RetrofitClient.instance.getTasks(projectId)
+                val project = NexusApp.repository.getProject(projectId)
+                val tasks = NexusApp.repository.getTasks(projectId)
                 project to tasks
             }.onSuccess { (project, tasks) ->
                 _uiState.value = ProjectDetailUiState(project = project, tasks = tasks)
@@ -48,7 +48,7 @@ class ProjectDetailViewModel : ViewModel() {
         val id = projectId ?: return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.getTasks(id)
+                NexusApp.repository.getTasks(id)
             }.onSuccess { tasks ->
                 _uiState.value = _uiState.value.copy(tasks = tasks, errorMessage = null)
             }.onFailure { error ->
@@ -62,7 +62,7 @@ class ProjectDetailViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                RetrofitClient.instance.updateProject(
+                NexusApp.repository.updateProject(
                     id,
                     UpdateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null })
                 )
@@ -82,7 +82,7 @@ class ProjectDetailViewModel : ViewModel() {
         if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.createTask(
+                NexusApp.repository.createTask(
                     id,
                     CreateTaskRequest(title = title.trim(), description = description.trim().ifBlank { null })
                 )
@@ -97,7 +97,7 @@ class ProjectDetailViewModel : ViewModel() {
     fun updateTask(task: Task, title: String, description: String, isCompleted: Boolean) {
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.updateTask(
+                NexusApp.repository.updateTask(
                     task.id,
                     UpdateTaskRequest(
                         title = title.trim(),
@@ -116,7 +116,7 @@ class ProjectDetailViewModel : ViewModel() {
     fun deleteTask(taskId: String) {
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.deleteTask(taskId)
+                NexusApp.repository.deleteTask(taskId)
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
@@ -129,7 +129,7 @@ class ProjectDetailViewModel : ViewModel() {
         val id = projectId ?: return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.deleteProject(id)
+                NexusApp.repository.deleteProject(id)
             }.onSuccess {
                 _uiState.value = _uiState.value.copy(isDeleted = true)
             }.onFailure { error ->

@@ -2,8 +2,8 @@ package com.example.nexus.ui.tasks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nexus.NexusApp
 import com.example.nexus.api.CreateTaskRequest
-import com.example.nexus.api.RetrofitClient
 import com.example.nexus.api.Task
 import com.example.nexus.api.UpdateTaskRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ class TaskListViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                RetrofitClient.instance.getTasks(projectId)
+                NexusApp.repository.getTasks(projectId)
             }.onSuccess { tasks ->
                 _uiState.value = TaskListUiState(tasks = tasks)
             }.onFailure { error ->
@@ -41,7 +41,7 @@ class TaskListViewModel : ViewModel() {
         if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.createTask(
+                NexusApp.repository.createTask(
                     id,
                     CreateTaskRequest(title = title.trim(), description = description.trim().ifBlank { null })
                 )
@@ -58,7 +58,7 @@ class TaskListViewModel : ViewModel() {
         if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.updateTask(
+                NexusApp.repository.updateTask(
                     taskId,
                     UpdateTaskRequest(
                         title = title.trim(),
@@ -87,7 +87,7 @@ class TaskListViewModel : ViewModel() {
         val id = projectId ?: return
         viewModelScope.launch {
             runCatching {
-                RetrofitClient.instance.deleteTask(taskId)
+                NexusApp.repository.deleteTask(taskId)
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
