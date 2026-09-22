@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
 import com.example.nexus.api.ApiError
 import com.example.nexus.api.DashboardData
+import com.example.nexus.api.Task
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
@@ -14,7 +15,7 @@ import kotlinx.coroutines.launch
 
 sealed class DashboardState {
     data object Loading : DashboardState()
-    data class Success(val data: DashboardData) : DashboardState()
+    data class Success(val data: DashboardData, val cachedTasks: List<Task>) : DashboardState()
     data class Error(val message: String) : DashboardState()
 }
 
@@ -30,9 +31,9 @@ class DashboardViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = DashboardState.Loading
             runCatching {
-                NexusApp.repository.getDashboard()
-            }.onSuccess { data ->
-                _uiState.value = DashboardState.Success(data)
+                NexusApp.repository.getDashboard() to NexusApp.repository.getCachedTasks()
+            }.onSuccess { (data, tasks) ->
+                _uiState.value = DashboardState.Success(data, tasks)
             }.onFailure { error ->
                 val apiError = error.toApiError()
                 if (apiError is ApiError.SessionExpired) {

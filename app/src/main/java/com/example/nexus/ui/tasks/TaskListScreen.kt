@@ -1,7 +1,5 @@
 package com.example.nexus.ui.tasks
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +16,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.api.Task
+import com.example.nexus.api.TaskPriority
+import com.example.nexus.api.TaskStatus
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
@@ -116,7 +116,15 @@ fun TaskListScreen(
             CreateTaskDialog(
                 onDismiss = { showCreateDialog = false },
                 onCreate = { title, desc ->
-                    viewModel.createTask(title, desc)
+                    viewModel.createTask(
+                        title = title,
+                        description = desc,
+                        dueDate = null,
+                        priority = TaskPriority.NONE,
+                        status = TaskStatus.TODO,
+                        labels = emptyList(),
+                        checklist = emptyList()
+                    )
                     showCreateDialog = false
                 }
             )

@@ -16,8 +16,8 @@ class NexusRepository(
     private fun ProjectEntity.toModel() = Project(id, name, description, createdAt, updatedAt)
     private fun Project.toEntity() = ProjectEntity(id, name, description, createdAt, updatedAt)
 
-    private fun TaskEntity.toModel() = Task(id, projectId, title, description, isCompleted, createdAt, updatedAt)
-    private fun Task.toEntity() = TaskEntity(id, projectId, title, description, isCompleted, createdAt, updatedAt)
+    private fun TaskEntity.toModel() = Task(id, projectId, title, description, isCompleted, dueDate, priority, status, labels, checklist, createdAt, updatedAt)
+    private fun Task.toEntity() = TaskEntity(id, projectId, title, description, isCompleted, dueDate, priority, status, labels, checklist, createdAt, updatedAt)
 
     private fun DashboardEntity.toModel() = DashboardData(projects, tasks, activity)
 
@@ -82,6 +82,8 @@ class NexusRepository(
             database.taskDao().getTasksByProjectId(projectId).map { it.toModel() }
         }
     }
+
+    suspend fun getCachedTasks(): List<Task> = database.taskDao().getAllTasks().map { it.toModel() }
 
     suspend fun createTask(projectId: String, request: CreateTaskRequest): Task {
         val task = apiService.createTask(projectId, request)

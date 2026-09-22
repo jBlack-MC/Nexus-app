@@ -31,15 +31,15 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - Register and sign in with a persisted JWT session.
 - View dashboard counts for projects, tasks, and activity.
 - Create, edit, and delete projects and project tasks.
+- Plan tasks with an optional due date, priority, status, labels, and checklist steps.
+- Search, filter, sort, and switch between task list and status-board views.
 - Mark tasks as complete.
 - Navigate through a single-activity Jetpack Compose UI.
 - Use Material 3 theming, including dynamic color on Android 12 and later.
 
 ## Splash animation
 
-![Nexus splash animation](docs/nexus-splash.svg)
-
-The preview recreates the supplied Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
+View the interactive preview in [`docs/nexus-intro.html`](docs/nexus-intro.html). It recreates the Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
 
 ## Product direction
 
