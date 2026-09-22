@@ -6,6 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.PATCH
 
 interface ApiService {
     @GET("dashboard")
@@ -17,10 +18,10 @@ interface ApiService {
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
 
-    @GET("auth/profile")
+    @GET("users/me")
     suspend fun getProfile(): UserProfile
 
-    @PUT("auth/profile")
+    @PATCH("users/me")
     suspend fun updateProfile(@Body request: UpdateProfileRequest): UserProfile
 
     @GET("projects")

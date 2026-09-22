@@ -17,10 +17,14 @@ data class AuthResponse(
 
 data class UserProfile(
     val email: String,
-    val displayName: String
+    val displayName: String,
+    val language: String = "en",
+    val notificationsEnabled: Boolean = true
 )
 
 data class UpdateProfileRequest(
-    val displayName: String
+    val displayName: String? = null,
+    val language: String? = null,
+    val notificationsEnabled: Boolean? = null
 )
 

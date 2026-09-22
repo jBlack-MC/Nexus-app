@@ -1,5 +1,9 @@
 # Nexus
 
+<p align="center">
+  <img src="docs/nexus-intro.svg" alt="Nexus logo" width="280" />
+</p>
+
 Nexus is a focused Android workspace for people who want to turn projects into clear, manageable next steps. It brings projects, tasks, and progress into one calm mobile experience, so an individual or small team can see what matters, decide what to do next, and keep moving.
 
 Today, Nexus provides a secure foundation: account access, a project dashboard, and task management inside each project. The product direction is to evolve from a simple task tracker into a dependable daily planning companion - useful in a few seconds, not another complicated system to maintain.
@@ -22,6 +26,7 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - [Project improvement log](#project-improvement-log)
 - [Backend API](#backend-api)
 - [Testing](#testing)
+- [Part 2 evidence](#part-2-evidence)
 - [Project structure](#project-structure)
 - [Security and release notes](#security-and-release-notes)
 - [Contributing](#contributing)
@@ -112,6 +117,14 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 | Build | Gradle 9.5 and Android Gradle Plugin 9.3.1 |
 | Android support | Min SDK 24; target and compile SDK 37 |
 
+## Key design decisions
+
+**Offline-aware reads.** Nexus keeps a Room cache of dashboards, projects, and tasks. A user can still review the most recently loaded work when connectivity is unavailable. Writes deliberately remain online-only for this milestone: silently queuing edits without a visible sync state or conflict policy would make task data less trustworthy. The final PoE will add a durable write queue, sync status, and a documented conflict-resolution rule.
+
+**A custom REST API.** The app uses a small Nexus API rather than a third-party task service so its project, task, dashboard, and account rules match the assessment requirements and remain under the product team's control. Retrofit models make that contract explicit; authenticated requests carry a bearer token and the client does not embed third-party service credentials.
+
+**JWT session authentication.** Registration and login return a JWT. The token is stored with AndroidX Security Crypto and attached by the networking layer to protected requests. The app clears the session when the user logs out or the API reports that a session has expired. Google SSO remains a planned extension because it needs a Google OAuth client ID, server-side ID-token verification, and an API endpoint that issues the same Nexus JWT as password login.
+
 ## Requirements
 
 - Android Studio with Android SDK Platform 37 installed.
@@ -190,6 +203,8 @@ The release artifacts are unsigned. Configure release signing with GitHub Action
 - Room-backed cache for projects, tasks, and dashboard data when reads cannot reach the backend.
 - Material 3 interface, dynamic color support, loading states, retry actions, and empty states.
 - GitHub Actions CI that tests the project and publishes APK/AAB build artifacts.
+- A connected Settings screen with local system/light/dark preference, account display-name updates, language selection, and notification preference controls.
+- Dashboard and project-list ViewModels now accept test fakes and have success, empty, and failure unit-test coverage.
 
 #### Next improvements
 
@@ -207,6 +222,7 @@ The Android client uses `http://10.0.2.2:5263/api/` by default. The base URL is 
 | --- | --- | --- |
 | `POST` | `/auth/register` | Create an account with email, password, and display name. |
 | `POST` | `/auth/login` | Sign in and receive a JWT. |
+| `GET`, `PATCH` | `/users/me` | Read or partially update the signed-in user's display name, language, and notification preference. |
 | `GET` | `/dashboard` | Get project, task, and activity counts. |
 | `GET`, `POST` | `/projects` | List or create projects. |
 | `GET`, `PUT`, `DELETE` | `/projects/{projectId}` | Read, update, or delete a project. |
@@ -234,6 +250,32 @@ Run instrumentation tests on a connected device or emulator:
 ```
 
 Before a release, test sign-up, sign-in, sign-out, project and task CRUD, task completion, retry behaviour, cached reads, and navigation on both a small phone and a larger screen.
+
+The unit suite covers authentication validation/network outcomes plus dashboard and project-list loading for populated, empty, and failed responses. The ViewModels accept loader functions in their constructors, so tests use deterministic fakes instead of a live API.
+
+## Part 2 evidence
+
+### Screenshots
+
+Add real emulator/device screenshots to `docs/screenshots/` before submission: Dashboard, project creation, task completion, and Settings. Do not use mockups as assessment evidence.
+
+### Demo video
+
+**Submission link:** _add unlisted video URL after recording_. The narrated sequence should show registration, login, project creation, task creation/completion, Settings, and matching auth-store/PostgreSQL data. A ready-to-read script is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+
+### Delivered in this Part 2 pass
+
+- Settings is reachable from the Dashboard and supports a server-backed display name, language, and notification preference update; its theme preference is persisted locally.
+- Task planning includes due dates, priorities, statuses, labels, checklists, list/board presentation, filtering, and dashboard attention sections.
+- Unit tests cover populated, empty, and failed dashboard/project loading states without a network dependency.
+- CI verifies unit tests and produces debug/release APK and AAB artifacts for each qualifying push or pull request.
+
+### Final PoE scope
+
+- Google SSO after server-side Google ID-token verification is available.
+- Offline write queue with visible sync status and conflict resolution.
+- Push-notification delivery and user-controlled reminder scheduling.
+- Complete localized UI strings once the selected-language contract is supported throughout the client.
 
 ## Project structure
 
