@@ -118,7 +118,11 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Sign In", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Sign In",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
 
