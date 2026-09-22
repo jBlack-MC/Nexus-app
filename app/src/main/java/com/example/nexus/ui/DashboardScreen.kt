@@ -3,6 +3,8 @@ package com.example.nexus.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -23,6 +25,7 @@ import java.util.Locale
 @Composable
 fun DashboardScreen(
     onOpenProjects: () -> Unit,
+    onOpenSettings: () -> Unit,
     onLogout: () -> Unit,
     viewModel: DashboardViewModel = viewModel()
 ) {
@@ -31,7 +34,12 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { NexusLogo(iconSize = 36.dp, textSize = 26) }
+                title = { NexusLogo(iconSize = 36.dp, textSize = 26) },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                    }
+                }
             )
         }
     ) { paddingValues ->

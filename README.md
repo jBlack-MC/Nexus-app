@@ -15,6 +15,7 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - [Tech stack](#tech-stack)
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
+- [Test credentials](#test-credentials)
 - [Build and test](#build-and-test)
 - [Continuous integration](#continuous-integration)
 - [Changelog](#changelog)
@@ -127,6 +128,16 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 5. Register an account or sign in.
 
 The `10.0.2.2` address is Android Emulator's alias for the development machine. A physical device cannot use this address; configure an accessible HTTPS backend before using one.
+
+## Test credentials
+
+The following accounts are reserved for development and verification. You can add them to your local system by running [`docs/seed_test_users.ps1`](docs/seed_test_users.ps1) while the backend is active.
+
+| Name | Email | Password | Role / Purpose |
+| --- | --- | --- | --- |
+| Nexus Admin | `admin@nexus-app.com` | `nexusAdmin123` | System administration and global oversight. |
+| Jane Doe | `jane.doe@nexus-app.com` | `janeDoe789` | Power user with multiple active projects. |
+| Test User | `test.user@nexus-app.com` | `testUser456` | Standard user for regression testing. |
 
 ## Build and test
 

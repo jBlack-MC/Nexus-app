@@ -17,6 +17,12 @@ interface ApiService {
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
 
+    @GET("auth/profile")
+    suspend fun getProfile(): UserProfile
+
+    @PUT("auth/profile")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): UserProfile
+
     @GET("projects")
     suspend fun getProjects(): List<Project>
 
