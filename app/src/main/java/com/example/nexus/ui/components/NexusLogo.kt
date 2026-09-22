@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nexus.R
 import com.example.nexus.ui.theme.BrandGreen
+import com.example.nexus.ui.theme.BrandIconBg
 import com.example.nexus.ui.theme.BrandPurple
 
 @Composable
@@ -38,7 +39,7 @@ fun NexusLogo(
             modifier = Modifier
                 .size(iconSize)
                 .clip(RoundedCornerShape(iconSize * 0.25f))
-                .background(if (isDark) Color(0xFF0A0A0F) else Color.Transparent),
+                .background(if (isDark) BrandIconBg else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
             Icon(

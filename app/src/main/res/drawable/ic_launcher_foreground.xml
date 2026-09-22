@@ -5,11 +5,11 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#A855F7"
+        android:fillColor="@color/brand_purple"
         android:pathData="M20.25,20.25h13.5a4.05,4.05 0,0 1,4.05 4.05v59.4a4.05,4.05 0,0 1,-4.05 4.05h-13.5a4.05,4.05 0,0 1,-4.05 -4.05v-59.4a4.05,4.05 0,0 1,4.05 -4.05z" />
 
     <path
-        android:fillColor="#22C55E"
+        android:fillColor="@color/brand_green"
         android:pathData="M74.25,20.25h13.5a4.05,4.05 0,0 1,4.05 4.05v59.4a4.05,4.05 0,0 1,-4.05 4.05h-13.5a4.05,4.05 0,0 1,-4.05 -4.05v-59.4a4.05,4.05 0,0 1,4.05 -4.05z" />
 
     <path
@@ -25,10 +25,10 @@
                 android:endY="108"
                 android:type="linear">
                 <item
-                    android:color="#A855F7"
+                    android:color="@color/brand_purple"
                     android:offset="0" />
                 <item
-                    android:color="#22C55E"
+                    android:color="@color/brand_green"
                     android:offset="1" />
             </gradient>
         </aapt:attr>

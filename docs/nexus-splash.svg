@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title description">
+  <title id="title">Nexus splash animation</title>
+  <desc id="description">The Nexus mark forms from a spinning ring, four dots, and connected lines, followed by the Nexus wordmark.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#121218"/><stop offset="1" stop-color="#050507"/></linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#A855F7"/><stop offset="1" stop-color="#22C55E"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#8b5cf6" stop-opacity=".42"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#background)"/>
+  <g transform="translate(240 55)">
+    <rect x="1" y="1" width="158" height="158" rx="31" fill="#0A0A0F" stroke="#1F1F27"/>
+    <circle cx="80" cy="80" r="66" fill="url(#glow)"><animate attributeName="opacity" values=".45;.7;.45" dur="4.5s" repeatCount="indefinite"/></circle>
+    <g fill="none" stroke-linecap="round" stroke-width="6">
+      <path d="M30 30V130" stroke="#22C55E" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0" keyTimes="0;.43;.52;1" dur="3.6s" repeatCount="indefinite"/></path>
+      <path d="M30 30L130 130" stroke="url(#brand)" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0" keyTimes="0;.52;.62;1" dur="3.6s" repeatCount="indefinite"/></path>
+      <path d="M130 30V130" stroke="#A855F7" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0" keyTimes="0;.62;.71;1" dur="3.6s" repeatCount="indefinite"/></path>
+    </g>
+    <g>
+      <circle cx="80" cy="80" r="9" fill="#A855F7"><animate attributeName="cx" values="80;80;130;130" keyTimes="0;.21;.42;1" dur="3.6s" repeatCount="indefinite"/><animate attributeName="cy" values="80;80;130;130" keyTimes="0;.21;.42;1" dur="3.6s" repeatCount="indefinite"/></circle>
+      <circle cx="80" cy="80" r="9" fill="#22C55E"><animate attributeName="cx" values="80;80;130;130" keyTimes="0;.225;.435;1" dur="3.6s" repeatCount="indefinite"/><animate attributeName="cy" values="80;80;30;30" keyTimes="0;.225;.435;1" dur="3.6s" repeatCount="indefinite"/></circle>
+      <circle cx="80" cy="80" r="9" fill="#A855F7"><animate attributeName="cx" values="80;80;30;30" keyTimes="0;.24;.45;1" dur="3.6s" repeatCount="indefinite"/><animate attributeName="cy" values="80;80;30;30" keyTimes="0;.24;.45;1" dur="3.6s" repeatCount="indefinite"/></circle>
+      <circle cx="80" cy="80" r="9" fill="#22C55E"><animate attributeName="cx" values="80;80;30;30" keyTimes="0;.255;.465;1" dur="3.6s" repeatCount="indefinite"/><animate attributeName="cy" values="80;80;130;130" keyTimes="0;.255;.465;1" dur="3.6s" repeatCount="indefinite"/></circle>
+    </g>
+    <path d="M80 66a14 14 0 1 1-1 0" fill="none" stroke="url(#brand)" stroke-width="3" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 80 80;760 80 80;760 80 80" keyTimes="0;.21;.28" dur="3.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.04;.21;.28;1" dur="3.6s" repeatCount="indefinite"/></path>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1" keyTimes="0;.87;.92;1" dur="3.6s" repeatCount="indefinite"/><rect x="30" y="30" width="20" height="100" rx="6" fill="#A855F7"/><rect x="110" y="30" width="20" height="100" rx="6" fill="#22C55E"/><path d="M40 30L120 130" stroke="url(#brand)" stroke-width="20" stroke-linecap="round"/></g>
+  </g>
+  <text x="320" y="260" text-anchor="middle" fill="url(#brand)" font-family="Arial, sans-serif" font-size="40" font-weight="600" opacity="0">Nexus<animate attributeName="opacity" values="0;0;1;1" keyTimes="0;.9;1;1" dur="3.6s" repeatCount="indefinite"/></text>
+</svg>

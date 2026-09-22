@@ -34,16 +34,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nexus.ui.theme.BrandBorder
+import com.example.nexus.ui.theme.BrandDeepBg
+import com.example.nexus.ui.theme.BrandGlow
+import com.example.nexus.ui.theme.BrandGreen
+import com.example.nexus.ui.theme.BrandIconBg
+import com.example.nexus.ui.theme.BrandPurple
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
-
-private val Purple = Color(0xFFA855F7)
-private val Green = Color(0xFF22C55E)
-private val DeepBg = Color(0xFF050507)
-private val Glow = Color(0xFF8B5CF6)
-private val IconBg = Color(0xFF0A0A0F)
-private val Border = Color(0xFF1F1F27)
 
 @Composable
 fun SplashIntroScreen(onFinished: () -> Unit) {
@@ -115,7 +114,7 @@ fun SplashIntroScreen(onFinished: () -> Unit) {
                 Brush.radialGradient(
                     colorStops = arrayOf(
                         0f to Color(0xFF121218),
-                        1f to DeepBg
+                        1f to BrandDeepBg
                     ),
                     radius = with(LocalDensity.current) { 560.dp.toPx() },
                     center = Offset.Unspecified
@@ -152,7 +151,7 @@ fun SplashIntroScreen(onFinished: () -> Unit) {
             Text(
                 text = "Nexus",
                 style = TextStyle(
-                    brush = Brush.linearGradient(listOf(Purple, Green)),
+                    brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
                     fontSize = 38.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = (-0.2).sp
@@ -191,13 +190,13 @@ private fun NexusIcon(
         val center = Offset(size.width / 2f, size.height / 2f)
 
         drawRoundRect(
-            color = IconBg,
+            color = BrandIconBg,
             topLeft = Offset(inset, inset),
             size = Size(size.width - inset * 2, size.height - inset * 2),
             cornerRadius = CornerRadius(corner, corner)
         )
         drawRoundRect(
-            color = Border,
+            color = BrandBorder,
             topLeft = Offset(inset, inset),
             size = Size(size.width - inset * 2, size.height - inset * 2),
             cornerRadius = CornerRadius(corner, corner),
@@ -207,7 +206,7 @@ private fun NexusIcon(
         val breathe = 0.1f + (0.1f * (sin(lineProgress[1] * PI).toFloat() + 1f) / 2f)
         drawCircle(
             brush = Brush.radialGradient(
-                colorStops = arrayOf(0f to Glow.copy(alpha = 0.45f), 1f to Color.Transparent),
+                colorStops = arrayOf(0f to BrandGlow.copy(alpha = 0.45f), 1f to Color.Transparent),
                 center = center,
                 radius = 66f * scale
             ),
@@ -216,19 +215,19 @@ private fun NexusIcon(
             alpha = breathe
         )
 
-        val grad = Brush.linearGradient(listOf(Purple, Green), start = Offset.Zero, end = Offset(size.width, size.height))
+        val grad = Brush.linearGradient(listOf(BrandPurple, BrandGreen), start = Offset.Zero, end = Offset(size.width, size.height))
         val p30 = 30f * scale
         val p130 = 130f * scale
 
         drawIntoCenter(center, connectedScale) {
-            drawProgressLine(Offset(p30, p30), Offset(p30, p130), lineProgress[0], Green, stroke6, connectedAlpha)
+            drawProgressLine(Offset(p30, p30), Offset(p30, p130), lineProgress[0], BrandGreen, stroke6, connectedAlpha)
             drawProgressLine(Offset(p30, p30), Offset(p130, p130), lineProgress[1], grad, stroke6, connectedAlpha)
-            drawProgressLine(Offset(p130, p30), Offset(p130, p130), lineProgress[2], Purple, stroke6, connectedAlpha)
+            drawProgressLine(Offset(p130, p30), Offset(p130, p130), lineProgress[2], BrandPurple, stroke6, connectedAlpha)
 
-            drawDot(dotProgress[0], Offset(50f * scale, 50f * scale), Purple, 9f * scale, connectedAlpha)
-            drawDot(dotProgress[1], Offset(50f * scale, -50f * scale), Green, 9f * scale, connectedAlpha)
-            drawDot(dotProgress[2], Offset(-50f * scale, -50f * scale), Purple, 9f * scale, connectedAlpha)
-            drawDot(dotProgress[3], Offset(-50f * scale, 50f * scale), Green, 9f * scale, connectedAlpha)
+            drawDot(dotProgress[0], Offset(50f * scale, 50f * scale), BrandPurple, 9f * scale, connectedAlpha)
+            drawDot(dotProgress[1], Offset(50f * scale, -50f * scale), BrandGreen, 9f * scale, connectedAlpha)
+            drawDot(dotProgress[2], Offset(-50f * scale, -50f * scale), BrandPurple, 9f * scale, connectedAlpha)
+            drawDot(dotProgress[3], Offset(-50f * scale, 50f * scale), BrandGreen, 9f * scale, connectedAlpha)
 
             if (spinnerAlpha > 0f) {
                 drawArc(
@@ -255,14 +254,14 @@ private fun NexusIcon(
 
         drawIntoCenter(center, monogramScale) {
             drawRoundRect(
-                color = Purple,
+                color = BrandPurple,
                 topLeft = Offset(30f * scale, 30f * scale),
                 size = Size(20f * scale, 100f * scale),
                 cornerRadius = CornerRadius(6f * scale, 6f * scale),
                 alpha = monogramAlpha
             )
             drawRoundRect(
-                color = Green,
+                color = BrandGreen,
                 topLeft = Offset(110f * scale, 30f * scale),
                 size = Size(20f * scale, 100f * scale),
                 cornerRadius = CornerRadius(6f * scale, 6f * scale),
