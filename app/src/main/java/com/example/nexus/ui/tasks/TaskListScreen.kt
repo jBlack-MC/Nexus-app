@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.api.Task
 import com.example.nexus.ui.components.EmptyState
+import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +69,11 @@ fun TaskListScreen(
         ) {
             if (uiState.isLoading && uiState.tasks.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (!uiState.errorMessage.isNullOrBlank() && uiState.tasks.isEmpty()) {
+                ErrorState(
+                    message = uiState.errorMessage!!,
+                    onRetry = { viewModel.loadTasks(projectId) }
+                )
             } else if (uiState.tasks.isEmpty()) {
                 EmptyState(
                     message = "No tasks yet. Add one to stay productive!",
@@ -90,7 +96,7 @@ fun TaskListScreen(
                 }
             }
 
-            if (!uiState.errorMessage.isNullOrBlank()) {
+            if (!uiState.errorMessage.isNullOrBlank() && uiState.tasks.isNotEmpty()) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)

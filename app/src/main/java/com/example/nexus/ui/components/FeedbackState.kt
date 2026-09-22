@@ -2,6 +2,7 @@ package com.example.nexus.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,7 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun EmptyState(
+fun FeedbackState(
     message: String,
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.Inbox,
@@ -46,4 +47,35 @@ fun EmptyState(
             }
         }
     }
+}
+
+@Composable
+fun ErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FeedbackState(
+        message = message,
+        icon = Icons.Default.CloudOff,
+        actionLabel = "Retry",
+        onAction = onRetry,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun EmptyState(
+    message: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+) {
+    FeedbackState(
+        message = message,
+        icon = Icons.Default.Inbox,
+        actionLabel = actionLabel,
+        onAction = onAction,
+        modifier = modifier
+    )
 }

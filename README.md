@@ -9,6 +9,7 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 ## Contents
 
 - [Features](#features)
+- [Splash animation](#splash-animation)
 - [Product direction](#product-direction)
 - [Roadmap](#roadmap)
 - [Tech stack](#tech-stack)
@@ -17,6 +18,7 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - [Build and test](#build-and-test)
 - [Continuous integration](#continuous-integration)
 - [Changelog](#changelog)
+- [Project improvement log](#project-improvement-log)
 - [Backend API](#backend-api)
 - [Testing](#testing)
 - [Project structure](#project-structure)
@@ -32,6 +34,12 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 - Mark tasks as complete.
 - Navigate through a single-activity Jetpack Compose UI.
 - Use Material 3 theming, including dynamic color on Android 12 and later.
+
+## Splash animation
+
+![Nexus splash animation](docs/nexus-splash.svg)
+
+The preview recreates the supplied Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
 
 ## Product direction
 
@@ -78,6 +86,16 @@ These are proposed improvements, not features currently available in the app. Bu
 - Add product analytics that measure successful outcomes (for example, tasks completed or time to first project) while respecting user privacy.
 
 Before starting a roadmap item, define the user problem, the smallest useful version, and one success measure. For example: "Can a user capture a task in under 10 seconds?" This keeps Nexus purposeful rather than feature-heavy.
+
+### First delivery brief
+
+| Item | User problem | Smallest useful version | Success measure |
+| --- | --- | --- | --- |
+| Task planning | People cannot tell which task needs attention first. | Let a user set a due date and priority when creating or editing a task, then show overdue, today, and upcoming tasks on the dashboard. | A user can capture a dated task in under 10 seconds and correctly identify every overdue task. |
+| Task clarity | Larger tasks are easy to lose halfway through. | Add a checklist to a task with completion progress. | A user can finish a multi-step task without creating separate placeholder tasks. |
+| Find work | A growing task list becomes difficult to scan. | Search task titles and filter by completion, due date, and priority. | A user can find a known task in under 15 seconds. |
+
+Feature status is intentional: the roadmap is proposed work, while [the improvement log](PROJECT_IMPROVEMENTS.md) records delivered changes and implementation prerequisites.
 
 ## Tech stack
 
@@ -165,6 +183,10 @@ The release artifacts are unsigned. Configure release signing with GitHub Action
 #### Next improvements
 
 The [roadmap](#roadmap) describes the planned user-facing improvements. The first release-quality milestone is task due dates, priority, a useful Today view, and a production HTTPS backend.
+
+## Project improvement log
+
+See [PROJECT_IMPROVEMENTS.md](PROJECT_IMPROVEMENTS.md) for a dated record of delivered improvements, the current implementation status, and the technical prerequisites for the next features.
 
 ## Backend API
 

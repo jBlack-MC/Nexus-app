@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.ui.components.EmptyState
+import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +62,11 @@ fun ProjectListScreen(
         ) {
             if (uiState.isLoading && uiState.projects.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (!uiState.errorMessage.isNullOrBlank() && uiState.projects.isEmpty()) {
+                ErrorState(
+                    message = uiState.errorMessage!!,
+                    onRetry = { viewModel.loadProjects() }
+                )
             } else if (uiState.projects.isEmpty()) {
                 EmptyState(
                     message = "No projects yet. Create one to get started!",
@@ -83,7 +89,7 @@ fun ProjectListScreen(
                 }
             }
 
-            if (!uiState.errorMessage.isNullOrBlank()) {
+            if (!uiState.errorMessage.isNullOrBlank() && uiState.projects.isNotEmpty()) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
