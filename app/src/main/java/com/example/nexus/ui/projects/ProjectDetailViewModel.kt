@@ -3,11 +3,15 @@ package com.example.nexus.ui.projects
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
+import com.example.nexus.api.ApiError
 import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.Project
 import com.example.nexus.api.Task
 import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.UpdateTaskRequest
+import com.example.nexus.api.toApiError
+import com.example.nexus.api.toUserMessage
+import com.example.nexus.auth.AuthSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,7 +43,7 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess { (project, tasks) ->
                 _uiState.value = ProjectDetailUiState(project = project, tasks = tasks)
             }.onFailure { error ->
-                _uiState.value = ProjectDetailUiState(errorMessage = error.message ?: "Failed to load project")
+                handleError(error)
             }
         }
     }
@@ -52,7 +56,7 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess { tasks ->
                 _uiState.value = _uiState.value.copy(tasks = tasks, errorMessage = null)
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to load tasks")
+                handleError(error)
             }
         }
     }
@@ -69,10 +73,7 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess { project ->
                 _uiState.value = _uiState.value.copy(isLoading = false, project = project)
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = error.message ?: "Failed to update project"
-                )
+                handleError(error)
             }
         }
     }
@@ -89,7 +90,7 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to create task")
+                handleError(error)
             }
         }
     }
@@ -108,7 +109,7 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to update task")
+                handleError(error)
             }
         }
     }
@@ -120,7 +121,7 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to delete task")
+                handleError(error)
             }
         }
     }
@@ -133,9 +134,19 @@ class ProjectDetailViewModel : ViewModel() {
             }.onSuccess {
                 _uiState.value = _uiState.value.copy(isDeleted = true)
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to delete project")
+                handleError(error)
             }
         }
     }
-}
 
+    private fun handleError(error: Throwable) {
+        val apiError = error.toApiError()
+        if (apiError is ApiError.SessionExpired) {
+            AuthSession.clearToken()
+        }
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            errorMessage = apiError.toUserMessage()
+        )
+    }
+}

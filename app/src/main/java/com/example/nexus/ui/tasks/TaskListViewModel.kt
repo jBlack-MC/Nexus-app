@@ -3,9 +3,13 @@ package com.example.nexus.ui.tasks
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
+import com.example.nexus.api.ApiError
 import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.Task
 import com.example.nexus.api.UpdateTaskRequest
+import com.example.nexus.api.toApiError
+import com.example.nexus.api.toUserMessage
+import com.example.nexus.auth.AuthSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,7 +35,7 @@ class TaskListViewModel : ViewModel() {
             }.onSuccess { tasks ->
                 _uiState.value = TaskListUiState(tasks = tasks)
             }.onFailure { error ->
-                _uiState.value = TaskListUiState(errorMessage = error.message ?: "Failed to load tasks")
+                handleError(error)
             }
         }
     }
@@ -48,7 +52,7 @@ class TaskListViewModel : ViewModel() {
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to create task")
+                handleError(error)
             }
         }
     }
@@ -69,7 +73,7 @@ class TaskListViewModel : ViewModel() {
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to update task")
+                handleError(error)
             }
         }
     }
@@ -91,9 +95,19 @@ class TaskListViewModel : ViewModel() {
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(errorMessage = error.message ?: "Failed to delete task")
+                handleError(error)
             }
         }
     }
-}
 
+    private fun handleError(error: Throwable) {
+        val apiError = error.toApiError()
+        if (apiError is ApiError.SessionExpired) {
+            AuthSession.clearToken()
+        }
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            errorMessage = apiError.toUserMessage()
+        )
+    }
+}

@@ -1,20 +1,32 @@
 package com.example.nexus.auth
 
-object AuthSession {
-    private var tokenStore: SecureTokenStore? = null
+import com.example.nexus.util.TokenManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-    fun initialize(store: SecureTokenStore) {
-        tokenStore = store
+object AuthSession {
+    private var tokenManager: TokenManager? = null
+    private val _isAuthenticated = MutableStateFlow(false)
+    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+
+    fun initialize(manager: TokenManager) {
+        tokenManager = manager
+        _isAuthenticated.value = manager.getToken() != null
+    }
+
+    fun getToken(): String? {
+        val manager = tokenManager ?: throw IllegalStateException("AuthSession.initialize() was not called")
+        return manager.getToken()
     }
 
     fun saveToken(token: String) {
-        tokenStore?.saveToken(token)
+        tokenManager?.saveToken(token)
+        _isAuthenticated.value = true
     }
-
-    fun getToken(): String? = tokenStore?.getToken()
 
     fun clearToken() {
-        tokenStore?.clearToken()
+        tokenManager?.clearToken()
+        _isAuthenticated.value = false
     }
 }
-
