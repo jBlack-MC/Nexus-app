@@ -143,3 +143,46 @@ Nexus expects a JSON API at `http://10.0.2.2:5263/api/`. Endpoints (see
 | `POST` | `projects/{projectId}/tasks` | create task |
 | `PUT` | `tasks/{taskId}` | update task |
 | `DELETE` | `tasks/{taskId}` | delete task |
+
+The auth token is sent as `Authorization: Bearer <jwt>` via an OkHttp
+interceptor (`RetrofitClient.kt`).
+
+## Security notes
+
+- **Secrets:** do not commit any keystore, API key, or production credentials.
+  Backend credentials must live in environment-driven gradle properties or a
+  CI secrets store, not in source.
+- **Logging:** HTTP logging is intended for **debug** builds only. Ensure the
+  logging interceptor level is gated on `BuildConfig.DEBUG` before release so
+  auth tokens and credentials are never written to logcat.
+- **Backup:** review `res/xml/backup_rules.xml` and `data_extraction_rules.xml`
+  to ensure anything sensitive (token storage) is excluded from cloud/device
+  backup.
+- **TLS:** all production traffic must use HTTPS; the cleartext exception is
+  scoped to the local emulator host only.
+
+## Testing
+
+```
+./gradlew test                  # unit tests (host JVM)
+./gradlew connectedAndroidTest  # instrumentation tests (device/emulator)
+```
+
+The project currently ships only the default template tests
+(`ExampleUnitTest.kt`, `ExampleInstrumentedTest.kt`). Contributions adding
+coverage for `AuthViewModel`, the dashboard / projects / tasks ViewModels, and
+the auth-gated navigation flow are encouraged.
+
+## Contributing
+
+1. Open an issue or describe scope before large changes.
+2. Follow the existing architecture: single-activity + MVVM
+   (`ViewModel` + `StateFlow` + `runCatching`).
+3. Match the code style (`kotlin.code.style=official`, set in `gradle.properties`).
+4. When introducing reflection-based types (e.g. Gson) and re-enabling R8,
+   add matching keep rules to `app/src/main/keepRules/rules.keep`.
+
+## License
+
+Specify a license here (e.g. MIT or Apache-2.0). Until one is chosen, all rights
+remain with the project authors.

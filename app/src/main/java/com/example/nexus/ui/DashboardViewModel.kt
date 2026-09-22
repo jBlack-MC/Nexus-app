@@ -2,8 +2,8 @@ package com.example.nexus.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nexus.NexusApp
 import com.example.nexus.api.DashboardData
-import com.example.nexus.api.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ class DashboardViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = DashboardState.Loading
             try {
-                val data = RetrofitClient.instance.getDashboard()
+                val data = NexusApp.repository.getDashboard()
                 _uiState.value = DashboardState.Success(data)
             } catch (e: Exception) {
                 _uiState.value = DashboardState.Error(e.message ?: "Unknown Error")
