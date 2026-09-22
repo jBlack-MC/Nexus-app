@@ -28,3 +28,8 @@ data class UpdateProfileRequest(
     val notificationsEnabled: Boolean? = null
 )
 
+data class ChangePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
+)
+

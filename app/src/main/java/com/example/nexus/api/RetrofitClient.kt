@@ -40,4 +40,12 @@ object RetrofitClient {
             .build()
             .create(ApiService::class.java)
     }
+
+    val languageInstance: LanguageApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.mymemory.translated.net/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(LanguageApiService::class.java)
+    }
 }

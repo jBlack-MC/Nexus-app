@@ -13,10 +13,14 @@ object SettingsSession {
     private val _notificationsEnabled = MutableStateFlow(true)
     val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
+    private val _language = MutableStateFlow("en")
+    val language: StateFlow<String> = _language.asStateFlow()
+
     fun initialize(settingsStore: SettingsStore) {
         store = settingsStore
         _themeMode.value = settingsStore.getThemeMode()
         _notificationsEnabled.value = settingsStore.getNotificationsEnabled()
+        _language.value = settingsStore.getLanguage()
     }
 
     private fun getStore(): SettingsStore {
@@ -31,5 +35,10 @@ object SettingsSession {
     fun setNotificationsEnabled(enabled: Boolean) {
         getStore().setNotificationsEnabled(enabled)
         _notificationsEnabled.value = enabled
+    }
+
+    fun setLanguage(language: String) {
+        getStore().setLanguage(language)
+        _language.value = language
     }
 }

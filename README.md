@@ -55,6 +55,10 @@ The button downloads the prototype APK from `docs/NexusApp.apk`.
 - Plan tasks with an optional due date, priority, status, labels, and checklist steps.
 - Search, filter, sort, and switch between task list and status-board views.
 - Mark tasks as complete.
+- Create, edit, delete, and complete habits with daily, weekly, or custom frequency types.
+- Track current streak, best streak, completion rate, points, levels, badges, and redeemable rewards.
+- Manage profile details, password changes, notifications, theme, language, sync, CSV export, and account deletion from Settings.
+- Choose English, isiZulu, or Setswana before login or from Settings, with an online MyMemory translation API for additional translated content when internet is available.
 - Navigate through a single-activity Jetpack Compose UI.
 - Use Material 3 theming, including dynamic color on Android 12 and later.
 
@@ -128,17 +132,24 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 | Navigation | Navigation Compose |
 | Network | Retrofit, Gson, and OkHttp |
 | Session storage | AndroidX Security Crypto |
-| Local cache | Room database for projects, tasks, and dashboard data |
+| Local cache | Room database for projects, tasks, dashboard data, and habits |
+| Habit engine | Kotlin streak calculation with points, levels, badges, and rewards |
+| Translation | MyMemory online translation API (`en`, `zu`, `tn`) |
+| Backend | Node.js + Express REST API with JWT authentication |
 | Build | Gradle 9.5 and Android Gradle Plugin 9.3.1 |
 | Android support | Min SDK 24; target and compile SDK 37 |
 
 ## Key design decisions
 
-**Offline-aware reads.** Nexus keeps a Room cache of dashboards, projects, and tasks. A user can still review the most recently loaded work when connectivity is unavailable. Writes deliberately remain online-only for this milestone: silently queuing edits without a visible sync state or conflict policy would make task data less trustworthy. The final PoE will add a durable write queue, sync status, and a documented conflict-resolution rule.
+**Offline-aware reads and habits.** Nexus keeps a Room cache of dashboards, projects, tasks, and habits. Habit creation, editing, completion, and deletion fall back to the local cache when the REST API is unavailable, so the core habit workflow remains usable offline. Settings includes an explicit sync action; durable conflict queues remain a backend deployment concern.
 
 **A custom REST API.** The app uses a small Nexus API rather than a third-party task service so its project, task, dashboard, and account rules match the assessment requirements and remain under the product team's control. Retrofit models make that contract explicit; authenticated requests carry a bearer token and the client does not embed third-party service credentials.
 
 **JWT session authentication.** Registration and login return a JWT. The token is stored with AndroidX Security Crypto and attached by the networking layer to protected requests. The app clears the session when the user logs out or the API reports that a session has expired. Google SSO remains a planned extension because it needs a Google OAuth client ID, server-side ID-token verification, and an API endpoint that issues the same Nexus JWT as password login.
+
+**Streak and gamification rules.** A completed habit records an ISO date. Current streak counts consecutive dates ending today; best streak is the longest consecutive run. Each completion awards 10 points and each best-streak day awards 5 bonus points. Every 100 points advances a level. Three-day and seven-day streaks and an 80% completion rate unlock badges, with rewards available for redemption in the Habits screen.
+
+**Languages.** The language selector is available on Login, Register, and Settings. It persists locally before authentication, then synchronizes the preference to `/users/me` after login. English (`en`), isiZulu (`zu`), and Setswana (`tn`) are included. The optional translation client uses MyMemory's public endpoint and fails back to local copy when the device is offline; no API key or user credential is sent to the translation service.
 
 ## Requirements
 
@@ -156,6 +167,18 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 5. Register an account or sign in.
 
 The `10.0.2.2` address is Android Emulator's alias for the development machine. A physical device cannot use this address; configure an accessible HTTPS backend before using one.
+
+### Start the Node.js + Express API
+
+The repository includes a small REST API in [`backend/`](backend/) with a JSON database for prototype persistence:
+
+```sh
+cd backend
+npm install
+npm start
+```
+
+Set `JWT_SECRET` before deployment. The Android emulator reaches this service through `http://10.0.2.2:5263/api/`; a physical device needs the host computer's LAN address or a hosted HTTPS URL in `BuildConfig.BASE_URL`.
 
 ## Test credentials
 
@@ -238,6 +261,12 @@ The Android client uses `http://10.0.2.2:5263/api/` by default. The base URL is 
 | `POST` | `/auth/register` | Create an account with email, password, and display name. |
 | `POST` | `/auth/login` | Sign in and receive a JWT. |
 | `GET`, `PATCH` | `/users/me` | Read or partially update the signed-in user's display name, language, and notification preference. |
+| `POST` | `/users/me/password` | Change the signed-in user's password. |
+| `DELETE` | `/users/me` | Delete the signed-in user and associated data. |
+| `GET` | `/app/config` | Return app version policy, maintenance state, announcements, and feature flags. |
+| `GET` | `/localization/{language}` | Return server-controlled strings for a supported language. |
+| `GET`, `POST` | `/habits` | List or create habits. |
+| `PATCH`, `DELETE` | `/habits/{habitId}` | Update completion/frequency data or delete a habit. |
 | `GET` | `/dashboard` | Get project, task, and activity counts. |
 | `GET`, `POST` | `/projects` | List or create projects. |
 | `GET`, `PUT`, `DELETE` | `/projects/{projectId}` | Read, update, or delete a project. |
@@ -246,9 +275,23 @@ The Android client uses `http://10.0.2.2:5263/api/` by default. The base URL is 
 
 Authenticated requests send `Authorization: Bearer <jwt>` automatically.
 
+The separate language client uses `https://api.mymemory.translated.net/get` with `en`, `zu` (isiZulu), and `tn` (Setswana) language codes. Translation responses are optional; the app keeps the selected language usable when the translation service is unavailable.
+
 ### Local data and offline behaviour
 
-Nexus stores a local Room cache for dashboard data, projects, and tasks. When a read request fails, the app can show its cached data when available. Creating, updating, and deleting data still requires a connection; queued offline changes and conflict resolution are planned improvements.
+Nexus stores a local Room cache for dashboard data, projects, tasks, and habits. When a read or habit write request fails, the app uses cached/local habit data and recalculates streaks and points locally. The Node.js + Express backend remains the source of truth when online; a production deployment should add a durable sync queue and conflict policy.
+
+## Online product roadmap
+
+The attached product architecture is being applied in phases so offline use remains reliable:
+
+1. **Current foundation:** Retrofit, JWT, Room cache, local language fallback, online translation, themes, profile/settings, habits, streaks, gamification, CSV export, and account controls.
+2. **Current server-controlled layer:** remote localization bundles, app configuration, feature flags, maintenance mode, and announcements. The Android dashboard consumes maintenance, announcements, and the habits feature flag.
+3. **Next server-controlled layer:** task labels/statuses/priorities and dashboard widget configuration cached in Room.
+4. **Production platform layer:** durable sync queues, cloud database, push notifications through Firebase Cloud Messaging, email verification/password reset, soft deletion, device sessions, crash reporting, and server-side search.
+5. **Later integrations:** calendar, cloud files, collaboration, web client, deep links, Google/Microsoft services, and AI features through the backend only.
+
+Remote services must remain optional for presentation and offline workflows. Secrets and third-party API keys belong on the backend, never in the Android APK.
 
 ## Testing
 

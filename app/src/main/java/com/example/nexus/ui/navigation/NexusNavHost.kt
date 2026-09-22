@@ -14,7 +14,9 @@ import androidx.navigation.navArgument
 import com.example.nexus.auth.AuthSession
 import com.example.nexus.ui.AuthViewModel
 import com.example.nexus.ui.DashboardScreen
+import com.example.nexus.ui.HabitsScreen
 import com.example.nexus.ui.LoginScreen
+import com.example.nexus.ui.ProfileScreen
 import com.example.nexus.ui.RegisterScreen
 import com.example.nexus.ui.SettingsScreen
 import com.example.nexus.ui.SplashIntroScreen
@@ -28,6 +30,8 @@ private object Routes {
     const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
     const val SETTINGS = "settings"
+    const val PROFILE = "profile"
+    const val HABITS = "habits"
     const val PROJECTS = "projects"
     const val PROJECT_DETAIL = "project/{projectId}"
     const val TASKS = "tasks/{projectId}"
@@ -45,15 +49,19 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     val currentRoute = currentBackStackEntry?.destination?.route
 
     LaunchedEffect(isAppAuthenticated, currentRoute) {
-        if (!isAppAuthenticated && currentRoute != Routes.LOGIN && currentRoute != Routes.REGISTER && currentRoute != Routes.SPLASH) {
+        if (
+            currentRoute != null &&
+            !isAppAuthenticated &&
+            currentRoute != Routes.LOGIN &&
+            currentRoute != Routes.REGISTER &&
+            currentRoute != Routes.SPLASH
+        ) {
             navController.navigate(Routes.LOGIN) {
                 popUpTo(0) { inclusive = true }
             }
         } else if (
             isAppAuthenticated &&
-                currentRoute != null &&
-                currentRoute != Routes.SPLASH &&
-                currentRoute != Routes.DASHBOARD
+                (currentRoute == Routes.LOGIN || currentRoute == Routes.REGISTER)
         ) {
             navController.navigate(Routes.DASHBOARD) {
                 popUpTo(Routes.LOGIN) { inclusive = true }
@@ -98,6 +106,8 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             DashboardScreen(
                 onOpenProjects = { navController.navigate(Routes.PROJECTS) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenProfile = { navController.navigate(Routes.PROFILE) },
+                onOpenHabits = { navController.navigate(Routes.HABITS) },
                 onLogout = {
                     AuthSession.clearToken()
                     navController.navigate(Routes.LOGIN) {
@@ -116,6 +126,17 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                     }
                 }
             )
+        }
+
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+            )
+        }
+
+        composable(Routes.HABITS) {
+            HabitsScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Routes.PROJECTS) {

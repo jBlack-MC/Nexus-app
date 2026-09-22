@@ -40,6 +40,8 @@ fun NexusTheme(
     }
 
     val finalColorScheme = colorScheme.copy(
+        background = if (darkTheme) Color(0xFF121214) else Color(0xFFFFFFFF),
+        onBackground = if (darkTheme) Color(0xFFEEEEEE) else Color(0xFF111111),
         surface = if (darkTheme) Color(0xFF121214) else Color(0xFFFFFFFF),
         onSurface = if (darkTheme) Color(0xFFEEEEEE) else Color(0xFF111111),
         surfaceVariant = if (darkTheme) Color(0xFF202024) else Color(0xFFF0F0F4),
