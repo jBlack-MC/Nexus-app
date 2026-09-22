@@ -12,6 +12,7 @@ import com.example.nexus.util.TokenManager
 class NexusApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        instance = this
         AuthSession.initialize(TokenManager(this))
         SettingsSession.initialize(SettingsPreferences(this))
 
@@ -20,6 +21,8 @@ class NexusApp : Application() {
     }
 
     companion object {
+        lateinit var instance: NexusApp
+            private set
         lateinit var repository: NexusRepository
             private set
     }

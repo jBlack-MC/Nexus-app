@@ -16,12 +16,12 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 | ST10462532 | Sibusiso Mabena | Testing |
 
 <p align="center">
-  <a href="app/build/outputs/apk/debug/app-debug.apk" download>
-    <img src="https://img.shields.io/badge/Download-Debug%20APK-6C4DFF?style=for-the-badge&amp;logo=android&amp;logoColor=white" alt="Download Nexus debug APK">
+  <a href="app/release/NexusApp.apk" download>
+    <img src="https://img.shields.io/badge/Download-Nexus%20APK-6C4DFF?style=for-the-badge&amp;logo=android&amp;logoColor=white" alt="Download Nexus APK">
   </a>
 </p>
 
-Build the debug APK first with `./gradlew assembleDebug` (or `./gradlew.bat assembleDebug` on Windows). The button then downloads the APK generated in this project at `app/build/outputs/apk/debug/app-debug.apk`.
+The button downloads the prototype APK from `app/release/NexusApp.apk`.
 
 > Status: active development. The default backend is a local service reachable from the Android emulator at `http://10.0.2.2:5263`.
 
