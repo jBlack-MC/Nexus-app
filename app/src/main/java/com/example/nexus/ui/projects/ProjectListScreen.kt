@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.ListSkeleton
+import com.example.nexus.ui.CompactLanguageMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +32,7 @@ fun ProjectListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
+    var editingProject by remember { mutableStateOf<com.example.nexus.api.Project?>(null) }
 
     Scaffold(
         topBar = {
@@ -51,6 +54,7 @@ fun ProjectListScreen(
                         modifier = Modifier.padding(end = 16.dp),
                         style = MaterialTheme.typography.titleMedium
                     )
+                    CompactLanguageMenu()
                 }
             )
         },
@@ -88,6 +92,7 @@ fun ProjectListScreen(
                         ProjectItem(
                             project = project,
                             onClick = { onOpenProject(project.id) },
+                            onEdit = { editingProject = project },
                             onDelete = { viewModel.deleteProject(project.id) }
                         )
                     }
@@ -119,6 +124,16 @@ fun ProjectListScreen(
                 }
             )
         }
+        editingProject?.let { project ->
+            CreateProjectDialog(
+                initialProject = project,
+                onDismiss = { editingProject = null },
+                onCreate = { name, description ->
+                    viewModel.updateProject(project.id, name, description)
+                    editingProject = null
+                }
+            )
+        }
     }
 }
 
@@ -126,6 +141,7 @@ fun ProjectListScreen(
 fun ProjectItem(
     project: com.example.nexus.api.Project,
     onClick: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     Card(
@@ -149,6 +165,9 @@ fun ProjectItem(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                }
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
@@ -172,15 +191,16 @@ fun ProjectItem(
 
 @Composable
 fun CreateProjectDialog(
+    initialProject: com.example.nexus.api.Project? = null,
     onDismiss: () -> Unit,
     onCreate: (String, String) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var desc by remember { mutableStateOf("") }
+    var name by remember(initialProject?.id) { mutableStateOf(initialProject?.name ?: "") }
+    var desc by remember(initialProject?.id) { mutableStateOf(initialProject?.description ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Project") },
+        title = { Text(if (initialProject == null) "New Project" else "Edit Project") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -203,7 +223,7 @@ fun CreateProjectDialog(
                 onClick = { onCreate(name, desc) },
                 enabled = name.isNotBlank()
             ) {
-                Text("Create")
+                Text(if (initialProject == null) "Create" else "Save")
             }
         },
         dismissButton = {

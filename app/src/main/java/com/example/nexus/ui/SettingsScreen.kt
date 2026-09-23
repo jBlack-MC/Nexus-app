@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.settings.ThemeMode
@@ -247,8 +248,20 @@ private fun PasswordDialog(onDismiss: () -> Unit, onChange: (String, String) -> 
         title = { Text("Change password") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(current, { current = it }, label = { Text("Current password") })
-                OutlinedTextField(newPassword, { newPassword = it }, label = { Text("New password") })
+                OutlinedTextField(
+                    value = current,
+                    onValueChange = { current = it },
+                    label = { Text("Current password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    label = { Text("New password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true
+                )
             }
         },
         confirmButton = { Button(onClick = { onChange(current, newPassword) }) { Text("Save") } },

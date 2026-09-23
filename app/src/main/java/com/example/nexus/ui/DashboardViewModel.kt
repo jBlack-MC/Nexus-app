@@ -37,8 +37,18 @@ class DashboardViewModel(
     fun fetchDashboard() {
         viewModelScope.launch {
             _uiState.value = DashboardState.Loading
-            val cachedData = cachedDashboardLoader()
-            val cachedTasks = cachedTasksLoader()
+            // The cache is best-effort: a failing cache read must never wedge the screen on
+            // Loading. Show what we have (or zeros) while the network load is in flight.
+            val cachedData = try {
+                cachedDashboardLoader()
+            } catch (_: Exception) {
+                null
+            }
+            val cachedTasks = try {
+                cachedTasksLoader()
+            } catch (_: Exception) {
+                emptyList()
+            }
             _uiState.value = DashboardState.Success(cachedData ?: DashboardData(0, 0, 0), cachedTasks)
 
             runCatching {

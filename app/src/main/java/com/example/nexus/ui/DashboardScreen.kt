@@ -34,7 +34,8 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val remoteConfigState by viewModel<RemoteConfigViewModel>().uiState.collectAsState()
+    val remoteConfigViewModel: RemoteConfigViewModel = viewModel()
+    val remoteConfigState by remoteConfigViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -47,6 +48,7 @@ fun DashboardScreen(
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
+                    CompactLanguageMenu()
                 }
             )
         }
@@ -114,17 +116,47 @@ fun DashboardScreen(
                 config.announcements.isNotEmpty() -> "${config.announcements.first().title}: ${config.announcements.first().message}"
                 else -> null
             }
-            if (notice != null) {
-                Surface(
+            val configError = remoteConfigState.errorMessage
+            if (notice != null || (configError != null && !remoteConfigState.isLoading)) {
+                Column(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(12.dp)
                         .fillMaxWidth(),
-                    color = if (config.maintenanceMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = if (config.maintenanceMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer,
-                    shape = MaterialTheme.shapes.medium
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(notice, modifier = Modifier.padding(12.dp))
+                    if (notice != null) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = if (config.maintenanceMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = if (config.maintenanceMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(notice, modifier = Modifier.padding(12.dp))
+                        }
+                    }
+                    if (configError != null && !remoteConfigState.isLoading) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = configError,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                TextButton(onClick = { remoteConfigViewModel.refresh() }) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

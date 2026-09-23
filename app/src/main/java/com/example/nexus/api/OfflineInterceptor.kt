@@ -1,7 +1,6 @@
 package com.example.nexus.api
 
 import com.example.nexus.auth.LocalAccountManager
-import com.example.nexus.auth.LocalUser
 import com.google.gson.Gson
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -42,7 +41,9 @@ class OfflineInterceptor : Interceptor {
                 val regRequest = parseRequestBody<RegisterRequest>(request)
                 if (regRequest != null) {
                     val success = LocalAccountManager.register(
-                        LocalUser(regRequest.email, regRequest.password, regRequest.displayName)
+                        email = regRequest.email,
+                        displayName = regRequest.displayName,
+                        password = regRequest.password
                     )
                     if (success) {
                         successResponse(request, AuthResponse(token = "offline_token_${regRequest.email}"))
@@ -64,17 +65,17 @@ class OfflineInterceptor : Interceptor {
                     displayName = user?.displayName ?: "Offline User"
                 ))
             }
-            url.contains("dashboard") && method == "GET" -> {
-                successResponse(request, DashboardData(projects = 0, tasks = 0, activity = 0))
-            }
-            // For all other POST/PUT/DELETE, just return success to allow the local repository to cache
-            method in listOf("POST", "PUT", "DELETE", "PATCH") -> {
-                successResponse(request, Any()) 
-            }
-            // For other GETs, if they are not caught, they will just fail with the original IOException
-            // unless we want to return empty lists. 
-            // In NexusRepository, GETs for projects/tasks are already wrapped in try-catch to fallback to Room.
-            else -> throw IOException("Offline: No backend connection and no fallback for $url")
+            // Dashboard, project, task and habit reads are deliberately NOT faked. A fabricated
+            // payload is returned as a successful HTTP response, so the repository would cache it -
+            // for example writing zeroed counts over good cached data. Letting the original
+            // IOException surface keeps the cache intact and lets NexusRepository fall back to the
+            // local database.
+            //
+            // Writes are not faked either. Returning a synthetic 200 reported a save that never
+            // reached the server, and the repository then tried to insert a payload with a null id.
+            // Until a real offline write queue exists, writes fail with a clear connection error so
+            // the UI can tell the user the change was not saved.
+            else -> throw IOException("Offline: no backend connection for $method $url")
         }
     }
 

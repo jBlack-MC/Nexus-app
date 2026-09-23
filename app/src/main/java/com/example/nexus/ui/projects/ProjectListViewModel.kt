@@ -6,6 +6,7 @@ import com.example.nexus.NexusApp
 import com.example.nexus.api.ApiError
 import com.example.nexus.api.CreateProjectRequest
 import com.example.nexus.api.Project
+import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
@@ -22,6 +23,7 @@ data class ProjectListUiState(
 class ProjectListViewModel(
     private val projectsLoader: suspend () -> List<Project> = { NexusApp.repository.getProjects() },
     private val projectCreator: suspend (CreateProjectRequest) -> Project = { NexusApp.repository.createProject(it) },
+    private val projectUpdater: suspend (String, UpdateProjectRequest) -> Project = { id, request -> NexusApp.repository.updateProject(id, request) },
     private val projectDeleter: suspend (String) -> Unit = { NexusApp.repository.deleteProject(it) },
     private val clearSession: () -> Unit = { AuthSession.clearToken() }
 ) : ViewModel() {
@@ -69,6 +71,15 @@ class ProjectListViewModel(
             }.onFailure { error ->
                 handleError(error)
             }
+        }
+    }
+
+    fun updateProject(projectId: String, name: String, description: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            runCatching { projectUpdater(projectId, UpdateProjectRequest(name.trim(), description.trim().ifBlank { null })) }
+                .onSuccess { loadProjects() }
+                .onFailure(::handleError)
         }
     }
 

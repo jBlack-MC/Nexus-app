@@ -16,13 +16,12 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 | ST10462532 | Sibusiso Mabena | Testing |
 
 <p align="center">
-  <a href="docs/NexusApp.apk" download>
+  <a href="https://github.com/jBlack-MC/Nexus-app/actions/workflows/android-ci.yml">
     <img src="https://img.shields.io/badge/Download-Nexus%20APK-6C4DFF?style=for-the-badge&amp;logo=android&amp;logoColor=white" alt="Download Nexus APK">
   </a>
 </p>
 
-The button downloads the prototype APK from `docs/NexusApp.apk`.
-press raw when forwarded
+The button opens the Android CI GitHub Actions workflow. Every successful run publishes a downloadable `nexus-debug-apk` artifact. Packaged binaries are no longer committed to this repository.
 > Status: active development. The default backend is a local service reachable from the Android emulator at `http://10.0.2.2:5263`.
 
 ## Contents
@@ -51,20 +50,29 @@ press raw when forwarded
 
 - Register and sign in with a persisted JWT session.
 - View dashboard counts for projects, tasks, and activity.
-- Create, edit, and delete projects and project tasks.
-- Plan tasks with an optional due date, priority, status, labels, and checklist steps.
-- Search, filter, sort, and switch between task list and status-board views.
+- Project, task and habit reads are cached locally and served from the cache when the backend is unreachable.
+- Create, edit and delete projects, tasks and habits while online.
 - Mark tasks as complete.
-- Create, edit, delete, and complete habits with daily, weekly, or custom frequency types.
-- Track current streak, best streak, completion rate, points, levels, badges, and redeemable rewards.
-- Manage profile details, password changes, notifications, theme, language, sync, CSV export, and account deletion from Settings.
-- Choose English, isiZulu, or Setswana before login or from Settings, with an online MyMemory translation API for additional translated content when internet is available.
+- Plan a task with a due date, priority, status, labels and checklist steps, and change any of them
+  later from the task list. The dashboard surfaces overdue, due-today and upcoming work.
+- Generate a CSV export of habit history from Settings.
+- Track current streak, best streak, completion rate, points, levels and badges, computed on the device.
+- Manage profile details, password changes, notifications, theme, language and account deletion from Settings.
+- Localise the sign-in and registration copy into English, isiZulu or Setswana; the remaining screens are English only.
 - Navigate through a single-activity Jetpack Compose UI.
 - Use Material 3 theming, including dynamic color on Android 12 and later.
 
+### In the data model and API, but not yet exposed in the UI
+
+These are deliberately **not** claimed as finished features, because there is currently no way to do them from the app:
+
+- **Task search, filtering, sorting and status-board views.**
+- **Offline writes.** A write attempted while the backend is unreachable fails with a clear connection error so the user knows it was not saved. It is not queued and not applied locally; an offline write queue is planned.
+- **Reward redemption.** Badges are computed on the device, but no reward can actually be redeemed.
+
 ## Splash animation
 
-View the interactive preview in [`docs/nexus-intro.html`](docs/nexus-intro.html). It recreates the Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
+View the animated preview in [`docs/nexus-intro.svg`](docs/nexus-intro.svg). It recreates the Nexus intro: a spinner resolves into connected nodes, then the final monogram and wordmark. The Android implementation lives in [`SplashIntroScreen.kt`](app/src/main/java/com/example/nexus/ui/SplashIntroScreen.kt) and respects Android's system animation setting by showing the completed mark when animations are disabled.
 
 ## Product direction
 
@@ -178,11 +186,13 @@ npm install
 npm start
 ```
 
-Set `JWT_SECRET` before deployment. The Android emulator reaches this service through `http://10.0.2.2:5263/api/`; a physical device needs the host computer's LAN address or a hosted HTTPS URL in `BuildConfig.BASE_URL`.
+`JWT_SECRET` is **required**. The API refuses to start unless it is set to a value of at least 32 characters that is not a known placeholder, because a predictable signing secret would let anyone mint a token for any account. Set it before starting the server, for example `$env:JWT_SECRET = "<a-long-random-string>"` in PowerShell or `export JWT_SECRET="<a-long-random-string>"` in bash. The Android emulator reaches this service through `http://10.0.2.2:5263/api/`; a physical device needs the host computer's LAN address or a hosted HTTPS URL in `BuildConfig.BASE_URL`.
 
 ## Test credentials
 
 The following accounts are reserved for development and verification. You can add them to your local system by running [`docs/seed_test_users.ps1`](docs/seed_test_users.ps1) while the backend is active.
+
+> **Development only.** Never provision these accounts or reuse these passwords in a deployed environment. When the app signs in to them while offline it stores only a salted SHA-256 digest of the password, never the password itself.
 
 | Name | Email | Password | Role / Purpose |
 | --- | --- | --- | --- |
@@ -319,7 +329,7 @@ Add real emulator/device screenshots to `docs/screenshots/` before submission: D
 
 ### Demo video
 
-**Submission link:** _add unlisted video URL after recording_. The narrated sequence should show registration, login, project creation, task creation/completion, Settings, and matching auth-store/PostgreSQL data. A ready-to-read script is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+**Submission link:** _add unlisted video URL after recording_. The narrated sequence should show registration, login, project creation, task creation/completion, and Settings. If stored data is shown, show the API's JSON store at `backend/nexus-data.json` - this project has no PostgreSQL database. A ready-to-read script is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 ### Delivered in this Part 2 pass
 
@@ -358,6 +368,9 @@ app/src/main/
 
 - The development endpoint uses HTTP only for `10.0.2.2`; replace it with an HTTPS endpoint for production and remove the cleartext exception in `res/xml/network_security_config.xml`.
 - HTTP request-body logging is enabled only in debug builds. Keep it disabled in release builds to prevent credentials or tokens reaching logcat.
+- The API requires a strong `JWT_SECRET` and refuses to start without one; never commit the real value.
+- Cached rows are stamped with the signed-in account and the cache is cleared when the session ends, so one account cannot read another account's cached data on a shared device.
+- Offline demo accounts store only a salted SHA-256 digest of the password; no plaintext credential is written to the device.
 - Review the backup and data-extraction rules before release to ensure tokens are excluded from device and cloud backups.
 - Do not commit API keys, keystores, passwords, or other production secrets.
 
