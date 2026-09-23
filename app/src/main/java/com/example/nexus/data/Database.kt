@@ -12,6 +12,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.nexus.api.ChecklistItem
 import com.example.nexus.api.HabitFrequency
 import com.example.nexus.api.TaskPriority
@@ -20,9 +22,15 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * `userId` is the signed-in account's stable cache owner id (see `AuthSession.cacheOwnerId`).
+ * Every row is stamped with it so cached data can never be read across accounts on a shared
+ * device, and so a single account's cache can be purged independently.
+ */
 @Entity(tableName = "projects")
 data class ProjectEntity(
     @PrimaryKey val id: String,
+    val userId: String,
     val name: String,
     val description: String?,
     val createdAt: String?,
@@ -32,6 +40,7 @@ data class ProjectEntity(
 @Entity(tableName = "tasks")
 data class TaskEntity(
     @PrimaryKey val id: String,
+    val userId: String,
     val projectId: String,
     val title: String,
     val description: String?,
@@ -45,9 +54,10 @@ data class TaskEntity(
     val updatedAt: String?
 )
 
-@Entity(tableName = "dashboard")
+/** One dashboard snapshot per account, keyed by the cache owner id. */
+@Entity(tableName = "dashboard", primaryKeys = ["userId"])
 data class DashboardEntity(
-    @PrimaryKey val id: Int = 1,
+    val userId: String,
     val projects: Int,
     val tasks: Int,
     val activity: Int
@@ -56,6 +66,7 @@ data class DashboardEntity(
 @Entity(tableName = "habits")
 data class HabitEntity(
     @PrimaryKey val id: String,
+    val userId: String,
     val name: String,
     val description: String?,
     val frequency: HabitFrequency,
@@ -66,14 +77,14 @@ data class HabitEntity(
 
 @Dao
 interface ProjectDao {
-    @Query("SELECT * FROM projects")
-    fun getProjectsFlow(): Flow<List<ProjectEntity>>
+    @Query("SELECT * FROM projects WHERE userId = :userId")
+    fun getProjectsFlow(userId: String): Flow<List<ProjectEntity>>
 
-    @Query("SELECT * FROM projects")
-    suspend fun getProjects(): List<ProjectEntity>
+    @Query("SELECT * FROM projects WHERE userId = :userId")
+    suspend fun getProjects(userId: String): List<ProjectEntity>
 
-    @Query("SELECT * FROM projects WHERE id = :projectId")
-    suspend fun getProjectById(projectId: String): ProjectEntity?
+    @Query("SELECT * FROM projects WHERE userId = :userId AND id = :projectId")
+    suspend fun getProjectById(userId: String, projectId: String): ProjectEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProjects(projects: List<ProjectEntity>)
@@ -81,8 +92,11 @@ interface ProjectDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProject(project: ProjectEntity)
 
-    @Query("DELETE FROM projects WHERE id = :projectId")
-    suspend fun deleteProjectById(projectId: String)
+    @Query("DELETE FROM projects WHERE userId = :userId AND id = :projectId")
+    suspend fun deleteProjectById(userId: String, projectId: String)
+
+    @Query("DELETE FROM projects WHERE userId = :userId")
+    suspend fun clearForUser(userId: String)
 
     @Query("DELETE FROM projects")
     suspend fun clearAll()
@@ -90,14 +104,14 @@ interface ProjectDao {
 
 @Dao
 interface TaskDao {
-    @Query("SELECT * FROM tasks WHERE projectId = :projectId")
-    fun getTasksFlow(projectId: String): Flow<List<TaskEntity>>
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND projectId = :projectId")
+    fun getTasksFlow(userId: String, projectId: String): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks WHERE projectId = :projectId")
-    suspend fun getTasksByProjectId(projectId: String): List<TaskEntity>
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND projectId = :projectId")
+    suspend fun getTasksByProjectId(userId: String, projectId: String): List<TaskEntity>
 
-    @Query("SELECT * FROM tasks")
-    suspend fun getAllTasks(): List<TaskEntity>
+    @Query("SELECT * FROM tasks WHERE userId = :userId")
+    suspend fun getAllTasks(userId: String): List<TaskEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTasks(tasks: List<TaskEntity>)
@@ -105,11 +119,14 @@ interface TaskDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: TaskEntity)
 
-    @Query("DELETE FROM tasks WHERE id = :taskId")
-    suspend fun deleteTaskById(taskId: String)
+    @Query("DELETE FROM tasks WHERE userId = :userId AND id = :taskId")
+    suspend fun deleteTaskById(userId: String, taskId: String)
 
-    @Query("DELETE FROM tasks WHERE projectId = :projectId")
-    suspend fun deleteTasksByProjectId(projectId: String)
+    @Query("DELETE FROM tasks WHERE userId = :userId AND projectId = :projectId")
+    suspend fun deleteTasksByProjectId(userId: String, projectId: String)
+
+    @Query("DELETE FROM tasks WHERE userId = :userId")
+    suspend fun clearForUser(userId: String)
 
     @Query("DELETE FROM tasks")
     suspend fun clearAll()
@@ -117,17 +134,20 @@ interface TaskDao {
 
 @Dao
 interface DashboardDao {
-    @Query("SELECT * FROM dashboard WHERE id = 1")
-    suspend fun getDashboard(): DashboardEntity?
+    @Query("SELECT * FROM dashboard WHERE userId = :userId")
+    suspend fun getDashboard(userId: String): DashboardEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDashboard(dashboard: DashboardEntity)
+
+    @Query("DELETE FROM dashboard WHERE userId = :userId")
+    suspend fun clearForUser(userId: String)
 }
 
 @Dao
 interface HabitDao {
-    @Query("SELECT * FROM habits ORDER BY name")
-    suspend fun getHabits(): List<HabitEntity>
+    @Query("SELECT * FROM habits WHERE userId = :userId ORDER BY name")
+    suspend fun getHabits(userId: String): List<HabitEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHabits(habits: List<HabitEntity>)
@@ -135,8 +155,11 @@ interface HabitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHabit(habit: HabitEntity)
 
-    @Query("DELETE FROM habits WHERE id = :habitId")
-    suspend fun deleteHabit(habitId: String)
+    @Query("DELETE FROM habits WHERE userId = :userId AND id = :habitId")
+    suspend fun deleteHabit(userId: String, habitId: String)
+
+    @Query("DELETE FROM habits WHERE userId = :userId")
+    suspend fun clearForUser(userId: String)
 }
 
 class TaskConverters {
@@ -156,7 +179,11 @@ class TaskConverters {
 }
 
 @TypeConverters(TaskConverters::class)
-@Database(entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class, HabitEntity::class], version = 3, exportSchema = false)
+@Database(
+    entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class, HabitEntity::class],
+    version = 4,
+    exportSchema = false
+)
 abstract class NexusDatabase : RoomDatabase() {
     abstract fun projectDao(): ProjectDao
     abstract fun taskDao(): TaskDao
@@ -164,6 +191,43 @@ abstract class NexusDatabase : RoomDatabase() {
     abstract fun habitDao(): HabitDao
 
     companion object {
+        /**
+         * Version 4 scopes every cached row to the account that produced it.
+         *
+         * Rows written by version 3 or earlier carry no owner and therefore cannot be attributed
+         * to an account, so they are discarded rather than risk showing one account another
+         * account's data. This database is a read-through cache of server data, so nothing that
+         * exists only on the device is lost.
+         */
+        val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM projects")
+                db.execSQL("DELETE FROM tasks")
+                db.execSQL("DELETE FROM habits")
+                db.execSQL("DROP TABLE IF EXISTS dashboard")
+
+                // SQLite cannot add a NOT NULL column without a default, and Room ignores a
+                // database-side default when the entity declares none.
+                db.execSQL("ALTER TABLE projects ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE tasks ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE habits ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+
+                // The dashboard row is now keyed by account rather than a fixed id of 1, which
+                // changes the primary key and therefore requires a rebuild of the table.
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `dashboard` (" +
+                        "`userId` TEXT NOT NULL, " +
+                        "`projects` INTEGER NOT NULL, " +
+                        "`tasks` INTEGER NOT NULL, " +
+                        "`activity` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`userId`))"
+                )
+            }
+        }
+
+        /** Every known migration. Add a new entry here for each future version bump. */
+        private val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_3_4)
+
         @Volatile
         private var INSTANCE: NexusDatabase? = null
 
@@ -173,7 +237,11 @@ abstract class NexusDatabase : RoomDatabase() {
                     context.applicationContext,
                     NexusDatabase::class.java,
                     "nexus_database"
-                ).fallbackToDestructiveMigration().build()
+                )
+                    // Deliberately no fallbackToDestructiveMigration(): a version bump without a
+                    // matching Migration must fail loudly instead of silently wiping the cache.
+                    .addMigrations(*MIGRATIONS)
+                    .build()
                 INSTANCE = instance
                 instance
             }

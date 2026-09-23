@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.DetailSkeleton
+import com.example.nexus.ui.CompactLanguageMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +55,7 @@ fun ProjectDetailScreen(
                         modifier = Modifier.padding(end = 16.dp),
                         style = MaterialTheme.typography.titleMedium
                     )
+                    CompactLanguageMenu()
                 }
             )
         }

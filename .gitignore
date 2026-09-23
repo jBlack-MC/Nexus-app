@@ -15,3 +15,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Packaged binaries - distribute these through CI artifacts or GitHub Releases, never git
+*.apk
+*.aab
+/app/debug/
+/docs/*.apk
+
+# Backend runtime state and dependencies
+/backend/node_modules/
+/backend/nexus-data.json

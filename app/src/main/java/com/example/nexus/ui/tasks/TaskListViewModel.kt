@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
 import com.example.nexus.api.ApiError
-import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.ChecklistItem
+import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.Task
 import com.example.nexus.api.TaskPriority
 import com.example.nexus.api.TaskStatus
@@ -21,6 +21,20 @@ data class TaskListUiState(
     val isLoading: Boolean = false,
     val tasks: List<Task> = emptyList(),
     val errorMessage: String? = null
+)
+
+/**
+ * The editable fields of a task. Kept separate from [Task] so the editor never has to invent
+ * server-owned values such as the id, the project id or the timestamps.
+ */
+data class TaskDraft(
+    val title: String,
+    val description: String? = null,
+    val dueDate: String? = null,
+    val priority: TaskPriority = TaskPriority.NONE,
+    val status: TaskStatus = TaskStatus.TODO,
+    val labels: List<String> = emptyList(),
+    val checklist: List<ChecklistItem> = emptyList()
 )
 
 class TaskListViewModel : ViewModel() {
@@ -43,15 +57,12 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    fun createTask(title: String, description: String, dueDate: String?, priority: TaskPriority, status: TaskStatus, labels: List<String>, checklist: List<ChecklistItem>) {
+    fun createTask(draft: TaskDraft) {
         val id = projectId ?: return
-        if (title.isBlank()) return
+        if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.createTask(
-                    id,
-                    CreateTaskRequest(title.trim(), description.trim().ifBlank { null }, dueDate, priority, status, labels, checklist)
-                )
+                NexusApp.repository.createTask(id, draft.toCreateRequest())
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
@@ -60,15 +71,12 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    fun updateTask(taskId: String, title: String, description: String, isCompleted: Boolean, dueDate: String? = null, priority: TaskPriority = TaskPriority.NONE, status: TaskStatus = if (isCompleted) TaskStatus.DONE else TaskStatus.TODO, labels: List<String> = emptyList(), checklist: List<ChecklistItem> = emptyList()) {
+    fun updateTask(taskId: String, draft: TaskDraft) {
         val id = projectId ?: return
-        if (title.isBlank()) return
+        if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.updateTask(
-                    taskId,
-                    UpdateTaskRequest(title.trim(), description.trim().ifBlank { null }, isCompleted, dueDate, priority, status, labels, checklist)
-                )
+                NexusApp.repository.updateTask(taskId, draft.toUpdateRequest())
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
@@ -77,17 +85,22 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Flips completion using the same convention as the editor: a task is DONE only while it is
+     * completed, and returns to TODO when it is reopened. Every other field is preserved.
+     */
     fun toggleCompleted(task: Task) {
         updateTask(
             taskId = task.id,
-            title = task.title,
-            description = task.description ?: "",
-            isCompleted = !task.isCompleted,
-            dueDate = task.dueDate,
-            priority = task.priority,
-            status = if (!task.isCompleted) TaskStatus.DONE else TaskStatus.TODO,
-            labels = task.labels,
-            checklist = task.checklist
+            draft = TaskDraft(
+                title = task.title,
+                description = task.description,
+                dueDate = task.dueDate,
+                priority = task.priority,
+                status = if (task.isCompleted) TaskStatus.TODO else TaskStatus.DONE,
+                labels = task.labels,
+                checklist = task.checklist
+            )
         )
     }
 
@@ -103,6 +116,28 @@ class TaskListViewModel : ViewModel() {
             }
         }
     }
+
+    private fun TaskDraft.toCreateRequest() = CreateTaskRequest(
+        title = title.trim(),
+        description = description?.trim()?.ifBlank { null },
+        dueDate = dueDate,
+        priority = priority,
+        status = status,
+        labels = labels,
+        checklist = checklist
+    )
+
+    private fun TaskDraft.toUpdateRequest() = UpdateTaskRequest(
+        title = title.trim(),
+        description = description?.trim()?.ifBlank { null },
+        // Completion and status are two views of the same fact, so they are kept in step.
+        isCompleted = status == TaskStatus.DONE,
+        dueDate = dueDate,
+        priority = priority,
+        status = status,
+        labels = labels,
+        checklist = checklist
+    )
 
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()

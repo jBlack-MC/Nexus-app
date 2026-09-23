@@ -58,108 +58,108 @@ fun RegisterScreen(
                 modifier = Modifier.align(Alignment.Start)
             )
             Text(
-                "Get started with your Nexus profile",
+                copy.registerSubtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.align(Alignment.Start)
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
-            value = displayName,
-            onValueChange = { displayName = it },
-            label = { Text("Display Name") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
+            OutlinedTextField(
+                value = displayName,
+                onValueChange = { displayName = it },
+                label = { Text(copy.displayName) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
             )
-        )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(copy.email) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(copy.email) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
             )
-        )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(copy.password) },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text(copy.password) },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        onRegister(email.trim(), password, displayName.trim())
+                    }
+                )
+            )
+
+            if (!uiState.errorMessage.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = uiState.errorMessage,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
                     focusManager.clearFocus()
                     onRegister(email.trim(), password, displayName.trim())
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank() && displayName.isNotBlank(),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                if (uiState.isLoading) {
+                    Text(copy.creatingAccount, style = MaterialTheme.typography.titleMedium)
+                } else {
+                    Text(
+                        copy.createAccount,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
-            )
-        )
+            }
 
-        if (!uiState.errorMessage.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = MaterialTheme.shapes.small,
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onNavigateToLogin,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = uiState.errorMessage,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(8.dp)
-                )
+                Text(copy.haveAccount)
             }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                focusManager.clearFocus()
-                onRegister(email.trim(), password, displayName.trim())
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank() && displayName.isNotBlank(),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            if (uiState.isLoading) {
-                    Text("Creating account…", style = MaterialTheme.typography.titleMedium)
-            } else {
-                Text(
-                    copy.createAccount,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextButton(
-            onClick = onNavigateToLogin,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Already have an account? Login")
-        }
         }
     }
 }

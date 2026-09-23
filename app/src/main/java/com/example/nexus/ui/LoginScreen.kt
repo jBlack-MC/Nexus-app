@@ -127,7 +127,7 @@ fun LoginScreen(
                 shape = MaterialTheme.shapes.medium
             ) {
                 if (uiState.isLoading) {
-                    Text("Signing in…", style = MaterialTheme.typography.titleMedium)
+                    Text(copy.signingIn, style = MaterialTheme.typography.titleMedium)
                 } else {
                     Text(copy.signIn, style = MaterialTheme.typography.titleMedium)
                 }
@@ -139,7 +139,7 @@ fun LoginScreen(
                 onClick = onNavigateToRegister,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Need an account? Register")
+                Text(copy.needAccount)
             }
         }
     }

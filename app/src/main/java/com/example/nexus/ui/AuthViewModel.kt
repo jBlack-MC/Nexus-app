@@ -4,9 +4,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.nexus.api.LoginRequest
 import com.example.nexus.api.RegisterRequest
 import com.example.nexus.api.RetrofitClient
+import com.example.nexus.api.UpdateProfileRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
+import com.example.nexus.settings.SettingsSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,6 +22,15 @@ data class AuthUiState(
 class AuthViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState
+
+    /**
+     * Language as it stood when this auth flow started. The Login/Register picker can only
+     * change the device-local preference (no token exists yet), so a language the user
+     * picked before authenticating is pushed to the server once a token is available.
+     * Comparing against the start value keeps a fresh "en" default from overwriting a
+     * language the user previously saved from Settings.
+     */
+    private val languageAtStart = SettingsSession.language.value
 
     init {
         viewModelScope.launch {
@@ -45,6 +56,7 @@ class AuthViewModel : ViewModel() {
                 RetrofitClient.instance.login(LoginRequest(email.trim(), password))
             }.onSuccess { response ->
                 AuthSession.saveToken(response.token)
+                syncLanguageIfChanged()
                 _uiState.value = _uiState.value.copy(isLoading = false, isAuthenticated = true)
             }.onFailure { error ->
                 _uiState.value = _uiState.value.copy(
@@ -75,12 +87,29 @@ class AuthViewModel : ViewModel() {
                 RetrofitClient.instance.register(RegisterRequest(email.trim(), password, displayName.trim()))
             }.onSuccess { response ->
                 AuthSession.saveToken(response.token)
+                syncLanguageIfChanged()
                 _uiState.value = _uiState.value.copy(isLoading = false, isAuthenticated = true)
             }.onFailure { error ->
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = error.toApiError().toUserMessage()
                 )
+            }
+        }
+    }
+
+    /**
+     * Best-effort push of a language chosen on the Login/Register screen to the server
+     * via a partial `PATCH /users/me`. Only runs after a token is stored, and only when
+     * the language actually changed during this auth flow. A failure is non-fatal —
+     * opening Settings later re-syncs from the server.
+     */
+    private fun syncLanguageIfChanged() {
+        val selected = SettingsSession.language.value
+        if (selected == languageAtStart) return
+        viewModelScope.launch {
+            runCatching {
+                RetrofitClient.instance.updateProfile(UpdateProfileRequest(language = selected))
             }
         }
     }

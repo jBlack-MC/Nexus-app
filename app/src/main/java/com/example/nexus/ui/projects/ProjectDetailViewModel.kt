@@ -7,6 +7,7 @@ import com.example.nexus.api.ApiError
 import com.example.nexus.api.CreateTaskRequest
 import com.example.nexus.api.Project
 import com.example.nexus.api.Task
+import com.example.nexus.api.TaskStatus
 import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.UpdateTaskRequest
 import com.example.nexus.api.toApiError
@@ -103,7 +104,15 @@ class ProjectDetailViewModel : ViewModel() {
                     UpdateTaskRequest(
                         title = title.trim(),
                         description = description.trim().ifBlank { null },
-                        isCompleted = isCompleted
+                        isCompleted = isCompleted,
+                        // Gson serialises every non-null field, so the planning values must be
+                        // echoed back explicitly; omitting them would reset the task's due date,
+                        // priority, status, labels and checklist on the server.
+                        dueDate = task.dueDate,
+                        priority = task.priority,
+                        status = if (isCompleted) TaskStatus.DONE else TaskStatus.TODO,
+                        labels = task.labels,
+                        checklist = task.checklist
                     )
                 )
             }.onSuccess {
