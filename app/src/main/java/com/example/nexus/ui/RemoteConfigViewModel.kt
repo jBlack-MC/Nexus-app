@@ -1,5 +1,6 @@
 package com.example.nexus.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nexus.NexusApp
@@ -13,6 +14,11 @@ import kotlinx.coroutines.launch
 data class RemoteConfigUiState(
     val config: AppConfig = AppConfig(),
     val isLoading: Boolean = true,
+    /**
+     * Non-null after a failed fetch: [config] then holds last-known/default fallback values, so
+     * this distinguishes a degraded response from a clean default one for UI + QA/debug logs
+     * (see the warning log in [RemoteConfigViewModel.refresh]).
+     */
     val errorMessage: String? = null
 )
 
@@ -31,11 +37,17 @@ class RemoteConfigViewModel : ViewModel() {
                 }
                 .onFailure { error ->
                     // Keep the last successfully loaded config; surface why the refresh failed.
+                    val message = error.toApiError().toUserMessage()
+                    Log.w(TAG, "Remote config fetch failed — serving fallback config: $message", error)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = error.toApiError().toUserMessage()
+                        errorMessage = message
                     )
                 }
         }
+    }
+
+    companion object {
+        private const val TAG = "RemoteConfig"
     }
 }

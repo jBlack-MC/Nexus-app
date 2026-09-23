@@ -19,6 +19,8 @@ import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.SkeletonBlock
 import com.example.nexus.api.Task
+import androidx.compose.ui.res.stringResource
+import com.example.nexus.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,6 +81,20 @@ fun DashboardScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    if (state.isStale) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(R.string.dashboard_stale_banner),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
                     DashboardCard("Projects", state.data.projects.toString())
                     DashboardCard("Tasks", state.data.tasks.toString())
                     DashboardCard("Activity", state.data.activity.toString())

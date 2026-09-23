@@ -8,11 +8,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -74,5 +76,41 @@ class DashboardViewModelTest {
             "No internet connection. Check your network and try again.",
             (viewModel.uiState.value as DashboardState.Error).message
         )
+    }
+
+    @Test fun cachedEmission_marksStateStaleUntilFreshFetchLands() = runTest(scheduler) {
+        val gate = CompletableDeferred<DashboardData>()
+        val viewModel = DashboardViewModel(
+            dashboardLoader = { gate.await() },
+            cachedTasksLoader = { emptyList() },
+            cachedDashboardLoader = { DashboardData(projects = 1, tasks = 2, activity = 3) }
+        )
+
+        advanceUntilIdle() // runs to the cached emission, then parks on the gate
+
+        val cachedState = viewModel.uiState.value as DashboardState.Success
+        assertTrue(cachedState.isStale)
+        assertEquals(1, cachedState.data.projects)
+
+        gate.complete(DashboardData(projects = 9, tasks = 8, activity = 7))
+        advanceUntilIdle()
+
+        val freshState = viewModel.uiState.value as DashboardState.Success
+        assertFalse(freshState.isStale)
+        assertEquals(9, freshState.data.projects)
+    }
+
+    @Test fun failedRefresh_keepsCachedDataAndMarksItStale() = runTest(scheduler) {
+        val viewModel = DashboardViewModel(
+            dashboardLoader = { throw IOException("offline") },
+            cachedTasksLoader = { emptyList() },
+            cachedDashboardLoader = { DashboardData(projects = 4, tasks = 5, activity = 6) }
+        )
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as DashboardState.Success
+        assertTrue(state.isStale)
+        assertEquals(4, state.data.projects)
     }
 }

@@ -17,7 +17,17 @@ import kotlinx.coroutines.launch
 
 sealed class DashboardState {
     data object Loading : DashboardState()
-    data class Success(val data: DashboardData, val cachedTasks: List<Task>) : DashboardState()
+    data class Success(
+        val data: DashboardData,
+        val cachedTasks: List<Task>,
+        /**
+         * True while this payload comes from the local cache instead of a fresh fetch:
+         * either the stale-while-revalidate window before the network lands, or a failed
+         * refresh keeping last-known data. Dashboard shows a "saved data" banner while set;
+         * it clears automatically on the next successful fetch.
+         */
+        val isStale: Boolean = false
+    ) : DashboardState()
     data class Error(val message: String) : DashboardState()
 }
 
@@ -49,7 +59,12 @@ class DashboardViewModel(
             } catch (_: Exception) {
                 emptyList()
             }
-            _uiState.value = DashboardState.Success(cachedData ?: DashboardData(0, 0, 0), cachedTasks)
+            val showingCached = cachedData != null || cachedTasks.isNotEmpty()
+            _uiState.value = DashboardState.Success(
+                cachedData ?: DashboardData(0, 0, 0),
+                cachedTasks,
+                isStale = showingCached
+            )
 
             runCatching {
                 coroutineScope {
@@ -60,6 +75,8 @@ class DashboardViewModel(
             }.onSuccess { (data, tasks) ->
                 _uiState.value = DashboardState.Success(data, tasks)
             }.onFailure { error ->
+                // With cache present the cached Success (isStale = true) is intentionally kept,
+                // so the banner signals last-known data instead of vanishing on a failed refresh.
                 if (cachedData == null) {
                     val apiError = error.toApiError()
                     if (apiError is ApiError.SessionExpired) clearSession()

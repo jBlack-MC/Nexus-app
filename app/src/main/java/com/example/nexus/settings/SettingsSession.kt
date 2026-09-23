@@ -16,6 +16,18 @@ object SettingsSession {
     private val _language = MutableStateFlow("en")
     val language: StateFlow<String> = _language.asStateFlow()
 
+    /**
+     * True when a language chosen in the UI has not yet reached the server (its PATCH failed).
+     * While set, server→local language applies (e.g. Settings' profile load) must not overwrite
+     * the local pick, or the user's choice would silently revert to the previous server value.
+     * Cleared by a successful language push (post-login sync or Settings' language save).
+     */
+    private val _languageSyncPending = MutableStateFlow(false)
+    val languageSyncPending: StateFlow<Boolean> = _languageSyncPending.asStateFlow()
+
+    fun markLanguageSyncPending() { _languageSyncPending.value = true }
+    fun clearLanguageSyncPending() { _languageSyncPending.value = false }
+
     fun initialize(settingsStore: SettingsStore) {
         store = settingsStore
         _themeMode.value = settingsStore.getThemeMode()
