@@ -335,7 +335,7 @@ Add real emulator/device screenshots to `docs/screenshots/` before submission: D
 
 - Settings is reachable from the Dashboard and supports a server-backed display name, language, and notification preference update; its theme preference is persisted locally.
 - Task planning includes due dates, priorities, statuses, labels, checklists, list/board presentation, filtering, and dashboard attention sections.
-- Unit tests cover populated, empty, and failed dashboard/project loading states without a network dependency.
+- Unit tests cover populated, empty, and failed dashboard/project loading states.
 - CI verifies unit tests and produces debug/release APK and AAB artifacts for each qualifying push or pull request.
 
 ### Final PoE scope
