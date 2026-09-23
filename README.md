@@ -47,7 +47,7 @@ press raw when forwarded
 - [Contributing](#contributing)
 - [License](#license)
 
-## Features
+## Features.
 
 - Register and sign in with a persisted JWT session.
 - View dashboard counts for projects, tasks, and activity.
