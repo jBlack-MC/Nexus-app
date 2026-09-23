@@ -30,6 +30,7 @@ import com.example.nexus.ui.CompactLanguageMenu
 fun TaskListScreen(
     projectId: String,
     onBackToProject: () -> Unit,
+    onOpenDetail: (String) -> Unit,
     viewModel: TaskListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -101,10 +102,7 @@ fun TaskListScreen(
                         TaskItem(
                             task = task,
                             onToggle = { viewModel.toggleCompleted(task) },
-                            onEdit = {
-                                editorTask = task
-                                showEditor = true
-                            },
+                            onOpen = { onOpenDetail(task.id) },
                             onDelete = { viewModel.deleteTask(task.id) }
                         )
                     }
@@ -153,7 +151,7 @@ fun TaskListScreen(
 fun TaskItem(
     task: Task,
     onToggle: () -> Unit,
-    onEdit: () -> Unit,
+    onOpen: () -> Unit,
     onDelete: () -> Unit
 ) {
     val overdue = isTaskOverdue(task.dueDate, task.isCompleted)
@@ -170,7 +168,7 @@ fun TaskItem(
             .fillMaxWidth()
             // Tapping the row opens the planning editor, matching the audit's
             // "wire TaskItem so tapping it navigates to the edit screen".
-            .clickable(onClick = onEdit),
+            .clickable(onClick = onOpen),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = if (task.isCompleted) {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
@@ -216,7 +214,7 @@ fun TaskItem(
                     )
                 }
             }
-            IconButton(onClick = onEdit) {
+            IconButton(onClick = onOpen) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit")
             }
             IconButton(onClick = onDelete) {

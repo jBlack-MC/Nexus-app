@@ -22,6 +22,7 @@ import com.example.nexus.ui.SettingsScreen
 import com.example.nexus.ui.SplashIntroScreen
 import com.example.nexus.ui.projects.ProjectDetailScreen
 import com.example.nexus.ui.projects.ProjectListScreen
+import com.example.nexus.ui.tasks.TaskDetailScreen
 import com.example.nexus.ui.tasks.TaskListScreen
 
 private object Routes {
@@ -35,9 +36,11 @@ private object Routes {
     const val PROJECTS = "projects"
     const val PROJECT_DETAIL = "project/{projectId}"
     const val TASKS = "tasks/{projectId}"
+    const val TASK_DETAIL = "task/{projectId}/{taskId}"
 
     fun projectDetail(projectId: String) = "project/$projectId"
     fun tasks(projectId: String) = "tasks/$projectId"
+    fun taskDetail(projectId: String, taskId: String) = "task/$projectId/$taskId"
 }
 
 @Composable
@@ -165,7 +168,26 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
             TaskListScreen(
                 projectId = projectId,
-                onBackToProject = { navController.popBackStack() }
+                onBackToProject = { navController.popBackStack() },
+                onOpenDetail = { taskId ->
+                    navController.navigate(Routes.taskDetail(projectId, taskId))
+                }
+            )
+        }
+
+        composable(
+            route = Routes.TASK_DETAIL,
+            arguments = listOf(
+                navArgument("projectId") { type = NavType.StringType },
+                navArgument("taskId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
+            TaskDetailScreen(
+                projectId = projectId,
+                taskId = taskId,
+                onBack = { navController.popBackStack() }
             )
         }
     }
