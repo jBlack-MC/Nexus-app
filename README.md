@@ -22,7 +22,6 @@ Today, Nexus provides a secure foundation: account access, a project dashboard, 
 </p>
 
 The button opens the GitHub Actions workflow. Every successful run publishes a downloadable `nexus-debug-apk` artifact. Packaged binaries are no longer committed to this repository.
-
 > Status: active development. The default backend is a local service reachable from the Android emulator at `http://10.0.2.2:5263`.
 
 ## Contents
