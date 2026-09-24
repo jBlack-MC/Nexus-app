@@ -26,7 +26,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val language by SettingsSession.language.collectAsState()
-    val copy = getAuthCopy(language)
+    val copy = authCopy(language)
 
     Surface(
         modifier = Modifier
@@ -42,6 +42,8 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             NexusLogo(iconSize = 80.dp, textSize = 42)
+            // Pre-auth pick: local-only by design (no bearer token to PATCH with yet); AuthViewModel
+            // pushes the chosen language to the server right after login/register succeeds.
             LanguagePicker(
                 selectedLanguage = language,
                 onLanguageSelected = SettingsSession::setLanguage,

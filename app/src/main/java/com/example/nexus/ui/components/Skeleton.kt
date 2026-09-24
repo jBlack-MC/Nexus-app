@@ -10,8 +10,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -20,11 +27,26 @@ fun SkeletonBlock(
     modifier: Modifier = Modifier,
     height: androidx.compose.ui.unit.Dp = 18.dp
 ) {
+    // Shimmer-style alpha pulse; held static when the system has animations disabled.
+    val reduceMotion = rememberReduceMotion()
+    val alpha = if (reduceMotion) {
+        0.7f
+    } else {
+        rememberInfiniteTransition(label = "skeleton").animateFloat(
+            initialValue = 0.45f,
+            targetValue = 0.85f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "skeletonAlpha"
+        ).value
+    }
     Spacer(
         modifier = modifier
             .height(height)
             .background(
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha),
                 RoundedCornerShape(8.dp)
             )
     )

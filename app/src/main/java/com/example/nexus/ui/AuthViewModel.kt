@@ -101,15 +101,19 @@ class AuthViewModel : ViewModel() {
     /**
      * Best-effort push of a language chosen on the Login/Register screen to the server
      * via a partial `PATCH /users/me`. Only runs after a token is stored, and only when
-     * the language actually changed during this auth flow. A failure is non-fatal —
-     * opening Settings later re-syncs from the server.
+     * the language actually changed during this auth flow. A failure is non-fatal: the pick
+     * stays flagged in SettingsSession.languageSyncPending so a later server→local sync
+     * (e.g. opening Settings) cannot silently revert it; the next successful push clears it.
      */
     private fun syncLanguageIfChanged() {
         val selected = SettingsSession.language.value
         if (selected == languageAtStart) return
+        SettingsSession.markLanguageSyncPending()
         viewModelScope.launch {
             runCatching {
                 RetrofitClient.instance.updateProfile(UpdateProfileRequest(language = selected))
+            }.onSuccess {
+                SettingsSession.clearLanguageSyncPending()
             }
         }
     }

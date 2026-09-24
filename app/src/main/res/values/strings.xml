@@ -1,3 +1,32 @@
 <resources>
     <string name="app_name">Nexus</string>
+
+    <!-- Auth copy (Login/Register) — English source of truth, read via stringResource in
+         LanguageSupport.authCopy(). TODO(i18n): add values-zu (isiZulu) and values-tn
+         (Setswana) variants once locale-aware resource loading is wired up; until then those
+         translations live in LanguageSupport.kt because the pre-auth language picker drives
+         SettingsSession.language independently of the system locale stringResource observes. -->
+    <string name="auth_welcome">Welcome Back</string>
+    <string name="login_subtitle">Sign in to continue to Nexus</string>
+    <string name="register_subtitle">Get started with your Nexus profile</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_create_account">Create Account</string>
+    <string name="auth_display_name">Display Name</string>
+    <string name="auth_signing_in">Signing in…</string>
+    <string name="auth_creating_account">Creating account…</string>
+    <string name="login_prompt_register">Need an account? Register</string>
+    <string name="register_prompt_login">Already have an account? Login</string>
+
+    <string name="language_picker_label">Language</string>
+
+    <!-- Dashboard top-bar action descriptions for screen-reader users.
+         TODO(i18n): translate into values-zu/values-tn. -->
+    <string name="action_profile">Profile</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Dashboard stale-data banner: shown while counts are served from cache instead of a
+         fresh fetch. TODO(i18n): translate into values-zu/values-tn. -->
+    <string name="dashboard_stale_banner">Showing saved data</string>
 </resources>

@@ -55,11 +55,16 @@ class SettingsViewModel : ViewModel() {
             runCatching {
                 NexusApp.repository.getProfile()
             }.onSuccess { profile ->
-                SettingsSession.setLanguage(profile.language)
+                // A pre-auth language pick whose server push failed is still pending; applying
+                // profile.language now would silently revert the user's choice, so keep local.
+                val languageSyncPending = SettingsSession.languageSyncPending.value
+                if (!languageSyncPending) {
+                    SettingsSession.setLanguage(profile.language)
+                }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     profile = profile,
-                    selectedLanguage = profile.language,
+                    selectedLanguage = if (languageSyncPending) SettingsSession.language.value else profile.language,
                     notificationsEnabled = profile.notificationsEnabled
                 )
             }.onFailure { error ->
@@ -75,7 +80,11 @@ class SettingsViewModel : ViewModel() {
             runCatching {
                 NexusApp.repository.updateProfile(UpdateProfileRequest(displayName = displayName.trim()))
             }.onSuccess { profile ->
-                SettingsSession.setLanguage(profile.language)
+                // Same guard as loadProfile: don't let the response's language revert a
+                // pending pre-auth pick.
+                if (!SettingsSession.languageSyncPending.value) {
+                    SettingsSession.setLanguage(profile.language)
+                }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     profile = profile,
@@ -161,12 +170,23 @@ class SettingsViewModel : ViewModel() {
                     UpdateProfileRequest(language = language, notificationsEnabled = notificationsEnabled)
                 )
             }.onSuccess { profile ->
+                if (language != null) {
+                    // Server accepted the local pick — nothing pending anymore.
+                    SettingsSession.clearLanguageSyncPending()
+                }
+                val languageSyncPending = SettingsSession.languageSyncPending.value
                 _uiState.value = _uiState.value.copy(
                     profile = profile,
-                    selectedLanguage = profile.language,
+                    selectedLanguage = if (languageSyncPending) SettingsSession.language.value else profile.language,
                     notificationsEnabled = profile.notificationsEnabled
                 )
-            }.onFailure(::handleError)
+            }.onFailure { error ->
+                if (language != null) {
+                    // Push failed: flag it so loadProfile/updateProfile won't revert the pick.
+                    SettingsSession.markLanguageSyncPending()
+                }
+                handleError(error)
+            }
         }
     }
 }

@@ -4,6 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -14,6 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -23,6 +31,8 @@ import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.ListSkeleton
+import com.example.nexus.ui.components.Motion
+import com.example.nexus.ui.components.rememberReduceMotion
 import com.example.nexus.ui.CompactLanguageMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,11 +40,13 @@ import com.example.nexus.ui.CompactLanguageMenu
 fun TaskListScreen(
     projectId: String,
     onBackToProject: () -> Unit,
+    onOpenDetail: (String) -> Unit,
     viewModel: TaskListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showEditor by remember { mutableStateOf(false) }
     var editorTask by remember { mutableStateOf<Task?>(null) }
+    val reduceMotion = rememberReduceMotion()
 
     LaunchedEffect(projectId) {
         viewModel.loadTasks(projectId)
@@ -101,11 +113,18 @@ fun TaskListScreen(
                         TaskItem(
                             task = task,
                             onToggle = { viewModel.toggleCompleted(task) },
-                            onEdit = {
-                                editorTask = task
-                                showEditor = true
-                            },
-                            onDelete = { viewModel.deleteTask(task.id) }
+                            onOpen = { onOpenDetail(task.id) },
+                            onDelete = { viewModel.deleteTask(task.id) },
+                            // Add/remove/move animation for the row; instant under reduced motion.
+                            modifier = if (reduceMotion) {
+                                Modifier
+                            } else {
+                                Modifier.animateItem(
+                                    fadeInSpec = tween(Motion.fadeMs),
+                                    placementSpec = tween(Motion.itemMs, easing = FastOutSlowInEasing),
+                                    fadeOutSpec = tween(Motion.fadeMs)
+                                )
+                            }
                         )
                     }
                 }
@@ -151,11 +170,26 @@ fun TaskListScreen(
 
 @Composable
 fun TaskItem(
+    modifier: Modifier = Modifier,
     task: Task,
     onToggle: () -> Unit,
-    onEdit: () -> Unit,
+    onOpen: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val reduceMotion = rememberReduceMotion()
+    val haptics = LocalHapticFeedback.current
+    val checkScale = remember { Animatable(1f) }
+    var firstComposition by remember(task.id) { mutableStateOf(true) }
+    LaunchedEffect(task.isCompleted) {
+        if (firstComposition) {
+            firstComposition = false
+        } else if (!reduceMotion) {
+            // Completion feedback: brief checkbox scale bounce + haptic, skipped under reduced motion.
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            checkScale.animateTo(1.18f, tween(90, easing = FastOutLinearInEasing))
+            checkScale.animateTo(1f, tween(140, easing = LinearOutSlowInEasing))
+        }
+    }
     val overdue = isTaskOverdue(task.dueDate, task.isCompleted)
     val metaParts = buildList {
         if (task.priority != TaskPriority.NONE) add(task.priority.displayName())
@@ -166,11 +200,11 @@ fun TaskItem(
         }
     }
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             // Tapping the row opens the planning editor, matching the audit's
             // "wire TaskItem so tapping it navigates to the edit screen".
-            .clickable(onClick = onEdit),
+            .clickable(onClick = onOpen),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = if (task.isCompleted) {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
@@ -186,7 +220,11 @@ fun TaskItem(
         ) {
             Checkbox(
                 checked = task.isCompleted,
-                onCheckedChange = { onToggle() }
+                onCheckedChange = { onToggle() },
+                modifier = Modifier.graphicsLayer {
+                    scaleX = checkScale.value
+                    scaleY = checkScale.value
+                }
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -216,7 +254,7 @@ fun TaskItem(
                     )
                 }
             }
-            IconButton(onClick = onEdit) {
+            IconButton(onClick = onOpen) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit")
             }
             IconButton(onClick = onDelete) {

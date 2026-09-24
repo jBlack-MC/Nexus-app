@@ -27,7 +27,7 @@ fun RegisterScreen(
     var displayName by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val language by SettingsSession.language.collectAsState()
-    val copy = getAuthCopy(language)
+    val copy = authCopy(language)
 
     Surface(
         modifier = Modifier
@@ -43,6 +43,8 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             NexusLogo(iconSize = 80.dp, textSize = 42)
+            // Pre-auth pick: local-only by design (no bearer token to PATCH with yet); AuthViewModel
+            // pushes the chosen language to the server right after register/login succeeds.
             LanguagePicker(
                 selectedLanguage = language,
                 onLanguageSelected = SettingsSession::setLanguage,

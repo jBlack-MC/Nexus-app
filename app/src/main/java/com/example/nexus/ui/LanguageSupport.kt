@@ -14,8 +14,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.nexus.R
 
 val supportedLanguages = listOf("en" to "English", "zu" to "isiZulu", "tn" to "Setswana")
 
@@ -33,7 +43,7 @@ fun LanguagePicker(
             value = label,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Language") },
+            label = { Text(stringResource(R.string.language_picker_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier.menuAnchor().then(modifier)
         )
@@ -72,8 +82,71 @@ fun CompactLanguageMenu(modifier: Modifier = Modifier) {
     }
 }
 
-fun getAuthCopy(code: String): AuthCopy = when (code) {
-    "zu" -> AuthCopy(
+@Composable
+fun LanguagePill(modifier: Modifier = Modifier) {
+    val currentLanguage by com.example.nexus.settings.SettingsSession.language.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    val code = (supportedLanguages.firstOrNull { it.first == currentLanguage }?.first ?: "en").uppercase()
+    Box(modifier) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(percent = 50))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(percent = 50))
+                .clickable { expanded = true }
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = code,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            supportedLanguages.forEach { (lcode, name) ->
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = {
+                        com.example.nexus.settings.SettingsSession.setLanguage(lcode)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Auth UI copy for the in-app language [code].
+ *
+ * English resolves from res/values/strings.xml via [stringResource] so it participates in the
+ * app's Android localization setup. isiZulu/Setswana stay as in-code bundles for now because the
+ * pre-auth LanguagePicker drives SettingsSession.language directly — independent of the system
+ * locale that [stringResource] observes — and no values-zu/values-tn variants exist yet.
+ * TODO(i18n): move these bundles into values-zu/ and values-tn/ strings.xml once locale-aware
+ * resource loading (createConfigurationContext) is wired up.
+ */
+@Composable
+fun authCopy(code: String): AuthCopy = when (code) {
+    "zu" -> isiZuluAuthCopy()
+    "tn" -> setswanaAuthCopy()
+    else -> AuthCopy(
+        welcome = stringResource(R.string.auth_welcome),
+        subtitle = stringResource(R.string.login_subtitle),
+        email = stringResource(R.string.auth_email),
+        password = stringResource(R.string.auth_password),
+        signIn = stringResource(R.string.auth_sign_in),
+        createAccount = stringResource(R.string.auth_create_account),
+        registerSubtitle = stringResource(R.string.register_subtitle),
+        displayName = stringResource(R.string.auth_display_name),
+        signingIn = stringResource(R.string.auth_signing_in),
+        creatingAccount = stringResource(R.string.auth_creating_account),
+        needAccount = stringResource(R.string.login_prompt_register),
+        haveAccount = stringResource(R.string.register_prompt_login)
+    )
+}
+
+private fun isiZuluAuthCopy(): AuthCopy = AuthCopy(
         welcome = "Siyakwamukela",
         subtitle = "Ngena ukuze uqhubeke ku-Nexus",
         email = "I-imeyili",
@@ -87,7 +160,7 @@ fun getAuthCopy(code: String): AuthCopy = when (code) {
         needAccount = "Udinga i-akhawunti? Yenza",
         haveAccount = "Une-akhawunti? Ngena"
     )
-    "tn" -> AuthCopy(
+private fun setswanaAuthCopy(): AuthCopy = AuthCopy(
         welcome = "Re a go amogela",
         subtitle = "Tsena go tswelela mo Nexus",
         email = "Imeile",
@@ -101,21 +174,7 @@ fun getAuthCopy(code: String): AuthCopy = when (code) {
         needAccount = "O tlhoka akhaonto? Tlhama",
         haveAccount = "O na le akhaonto? Tsena"
     )
-    else -> AuthCopy(
-        welcome = "Welcome Back",
-        subtitle = "Sign in to continue to Nexus",
-        email = "Email",
-        password = "Password",
-        signIn = "Sign In",
-        createAccount = "Create Account",
-        registerSubtitle = "Get started with your Nexus profile",
-        displayName = "Display Name",
-        signingIn = "Signing in…",
-        creatingAccount = "Creating account…",
-        needAccount = "Need an account? Register",
-        haveAccount = "Already have an account? Login"
-    )
-}
+
 
 data class AuthCopy(
     val welcome: String,

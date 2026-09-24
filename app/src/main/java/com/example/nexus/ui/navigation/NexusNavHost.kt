@@ -4,6 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -13,6 +21,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.nexus.auth.AuthSession
 import com.example.nexus.ui.AuthViewModel
+import com.example.nexus.ui.components.Motion
+import com.example.nexus.ui.components.rememberReduceMotion
 import com.example.nexus.ui.DashboardScreen
 import com.example.nexus.ui.HabitsScreen
 import com.example.nexus.ui.LoginScreen
@@ -22,6 +32,7 @@ import com.example.nexus.ui.SettingsScreen
 import com.example.nexus.ui.SplashIntroScreen
 import com.example.nexus.ui.projects.ProjectDetailScreen
 import com.example.nexus.ui.projects.ProjectListScreen
+import com.example.nexus.ui.tasks.TaskDetailScreen
 import com.example.nexus.ui.tasks.TaskListScreen
 
 private object Routes {
@@ -35,9 +46,11 @@ private object Routes {
     const val PROJECTS = "projects"
     const val PROJECT_DETAIL = "project/{projectId}"
     const val TASKS = "tasks/{projectId}"
+    const val TASK_DETAIL = "task/{projectId}/{taskId}"
 
     fun projectDetail(projectId: String) = "project/$projectId"
     fun tasks(projectId: String) = "tasks/$projectId"
+    fun taskDetail(projectId: String, taskId: String) = "task/$projectId/$taskId"
 }
 
 @Composable
@@ -69,9 +82,33 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 
+    val reduceMotion = rememberReduceMotion()
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH
+        startDestination = Routes.SPLASH,
+        // Shared-axis style: forward slides left-to-right into place, back mirrors it, both
+        // with a short fade (220ms enter / 180ms exit, FastOutSlowIn). Collapses to instant
+        // transitions when the system has animations disabled (reduced motion).
+        enterTransition = {
+            if (reduceMotion) EnterTransition.None
+            else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { it / 4 } +
+                fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+        },
+        exitTransition = {
+            if (reduceMotion) ExitTransition.None
+            else slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { -it / 4 } +
+                fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+        },
+        popEnterTransition = {
+            if (reduceMotion) EnterTransition.None
+            else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { -it / 4 } +
+                fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+        },
+        popExitTransition = {
+            if (reduceMotion) ExitTransition.None
+            else slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { it / 4 } +
+                fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+        }
     ) {
         composable(Routes.SPLASH) {
             SplashIntroScreen(
@@ -165,7 +202,26 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
             TaskListScreen(
                 projectId = projectId,
-                onBackToProject = { navController.popBackStack() }
+                onBackToProject = { navController.popBackStack() },
+                onOpenDetail = { taskId ->
+                    navController.navigate(Routes.taskDetail(projectId, taskId))
+                }
+            )
+        }
+
+        composable(
+            route = Routes.TASK_DETAIL,
+            arguments = listOf(
+                navArgument("projectId") { type = NavType.StringType },
+                navArgument("taskId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
+            TaskDetailScreen(
+                projectId = projectId,
+                taskId = taskId,
+                onBack = { navController.popBackStack() }
             )
         }
     }
