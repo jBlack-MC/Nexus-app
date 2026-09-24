@@ -14,7 +14,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.example.nexus.R
@@ -66,6 +74,40 @@ fun CompactLanguageMenu(modifier: Modifier = Modifier) {
                     text = { Text(name) },
                     onClick = {
                         com.example.nexus.settings.SettingsSession.setLanguage(code)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LanguagePill(modifier: Modifier = Modifier) {
+    val currentLanguage by com.example.nexus.settings.SettingsSession.language.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    val code = (supportedLanguages.firstOrNull { it.first == currentLanguage }?.first ?: "en").uppercase()
+    Box(modifier) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(percent = 50))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(percent = 50))
+                .clickable { expanded = true }
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = code,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            supportedLanguages.forEach { (lcode, name) ->
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = {
+                        com.example.nexus.settings.SettingsSession.setLanguage(lcode)
                         expanded = false
                     }
                 )

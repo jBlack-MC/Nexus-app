@@ -21,6 +21,11 @@
 
     <string name="language_picker_label">Language</string>
 
+    <!-- Dashboard top-bar action descriptions for screen-reader users.
+         TODO(i18n): translate into values-zu/values-tn. -->
+    <string name="action_profile">Profile</string>
+    <string name="action_settings">Settings</string>
+
     <!-- Dashboard stale-data banner: shown while counts are served from cache instead of a
          fresh fetch. TODO(i18n): translate into values-zu/values-tn. -->
     <string name="dashboard_stale_banner">Showing saved data</string>

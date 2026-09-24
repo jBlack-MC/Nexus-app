@@ -44,9 +44,22 @@ class DashboardViewModel(
         fetchDashboard()
     }
 
-    fun fetchDashboard() {
+    /**
+     * Loads the dashboard counts (plus the cached tasks behind the schedule cards).
+     *
+     * @param softRefresh keeps the current [DashboardState.Success] on screen while the network
+     *   call runs — used when the screen is re-entered, so coming back from Projects/Tasks
+     *   refreshes silently instead of flashing the loading skeleton. A failed soft refresh keeps
+     *   the last-known data with [DashboardState.Success.isStale] set.
+     */
+    fun fetchDashboard(softRefresh: Boolean = false) {
         viewModelScope.launch {
-            _uiState.value = DashboardState.Loading
+            // Captured before the in-flight placeholder so a soft refresh can keep showing the
+            // payload the user is already looking at.
+            val previousState = _uiState.value
+            if (!softRefresh) {
+                _uiState.value = DashboardState.Loading
+            }
             // The cache is best-effort: a failing cache read must never wedge the screen on
             // Loading. Show what we have (or zeros) while the network load is in flight.
             val cachedData = try {
@@ -60,11 +73,17 @@ class DashboardViewModel(
                 emptyList()
             }
             val showingCached = cachedData != null || cachedTasks.isNotEmpty()
-            _uiState.value = DashboardState.Success(
-                cachedData ?: DashboardData(0, 0, 0),
-                cachedTasks,
-                isStale = showingCached
-            )
+            if (softRefresh && previousState is DashboardState.Success) {
+                // A re-entry refresh must not blank the counts to zero while the network call is in
+                // flight: keep the visible payload and let the stale banner mark it as refreshing.
+                _uiState.value = previousState.copy(isStale = true)
+            } else {
+                _uiState.value = DashboardState.Success(
+                    cachedData ?: DashboardData(0, 0, 0),
+                    cachedTasks,
+                    isStale = showingCached
+                )
+            }
 
             runCatching {
                 coroutineScope {
@@ -75,11 +94,14 @@ class DashboardViewModel(
             }.onSuccess { (data, tasks) ->
                 _uiState.value = DashboardState.Success(data, tasks)
             }.onFailure { error ->
-                // With cache present the cached Success (isStale = true) is intentionally kept,
-                // so the banner signals last-known data instead of vanishing on a failed refresh.
-                if (cachedData == null) {
-                    val apiError = error.toApiError()
-                    if (apiError is ApiError.SessionExpired) clearSession()
+                val apiError = error.toApiError()
+                if (apiError is ApiError.SessionExpired) clearSession()
+                // With cache present — or with a payload already on screen during a soft refresh —
+                // the last-known Success (isStale = true) is intentionally kept, so the banner
+                // signals saved data instead of the screen vanishing on a failed refresh.
+                val keepingVisibleData =
+                    cachedData != null || (softRefresh && previousState is DashboardState.Success)
+                if (!keepingVisibleData) {
                     _uiState.value = DashboardState.Error(apiError.toUserMessage())
                 }
             }

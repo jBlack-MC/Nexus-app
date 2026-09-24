@@ -4,6 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -13,6 +21,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.nexus.auth.AuthSession
 import com.example.nexus.ui.AuthViewModel
+import com.example.nexus.ui.components.Motion
+import com.example.nexus.ui.components.rememberReduceMotion
 import com.example.nexus.ui.DashboardScreen
 import com.example.nexus.ui.HabitsScreen
 import com.example.nexus.ui.LoginScreen
@@ -72,9 +82,33 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 
+    val reduceMotion = rememberReduceMotion()
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH
+        startDestination = Routes.SPLASH,
+        // Shared-axis style: forward slides left-to-right into place, back mirrors it, both
+        // with a short fade (220ms enter / 180ms exit, FastOutSlowIn). Collapses to instant
+        // transitions when the system has animations disabled (reduced motion).
+        enterTransition = {
+            if (reduceMotion) EnterTransition.None
+            else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { it / 4 } +
+                fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+        },
+        exitTransition = {
+            if (reduceMotion) ExitTransition.None
+            else slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { -it / 4 } +
+                fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+        },
+        popEnterTransition = {
+            if (reduceMotion) EnterTransition.None
+            else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { -it / 4 } +
+                fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+        },
+        popExitTransition = {
+            if (reduceMotion) ExitTransition.None
+            else slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { it / 4 } +
+                fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+        }
     ) {
         composable(Routes.SPLASH) {
             SplashIntroScreen(
