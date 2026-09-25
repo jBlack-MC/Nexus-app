@@ -25,3 +25,12 @@ local.properties
 # Backend runtime state and dependencies
 /backend/node_modules/
 /backend/nexus-data.json
+
+# AI assistant artifacts
+/.artifacts/
+
+# Environment files
+.env
+.env.local
+.env.*
+

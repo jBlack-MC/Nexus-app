@@ -11,6 +11,32 @@ permissions:
   contents: read
 
 jobs:
+  backend-test:
+    name: Backend API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run backend tests
+        run: npm test
+        working-directory: backend
+        env:
+          JWT_SECRET: "this-is-a-very-secure-test-jwt-secret-of-at-least-32-characters"
+
   build:
     name: Build Android app
     runs-on: ubuntu-latest

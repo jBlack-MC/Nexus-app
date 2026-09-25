@@ -2,6 +2,7 @@ package com.example.nexus.ui.projects
 
 import android.os.Looper
 import com.example.nexus.api.Project
+import com.example.nexus.fakes.FakeProjectRepository
 import java.io.IOException
 import io.mockk.every
 import io.mockk.mockk
@@ -36,7 +37,8 @@ class ProjectListViewModelTest {
 
     @Test fun successfulLoad_exposesProjects() = runTest(scheduler) {
         val project = Project(id = "project-1", name = "PoE")
-        val viewModel = ProjectListViewModel(projectsLoader = { listOf(project) })
+        val fakeProjectRepo = FakeProjectRepository(initialProjects = listOf(project))
+        val viewModel = ProjectListViewModel(projectRepository = fakeProjectRepo)
 
         advanceUntilIdle()
 
@@ -45,7 +47,8 @@ class ProjectListViewModelTest {
     }
 
     @Test fun emptyLoad_exposesEmptyProjectList() = runTest(scheduler) {
-        val viewModel = ProjectListViewModel(projectsLoader = { emptyList() })
+        val fakeProjectRepo = FakeProjectRepository(initialProjects = emptyList())
+        val viewModel = ProjectListViewModel(projectRepository = fakeProjectRepo)
 
         advanceUntilIdle()
 
@@ -54,7 +57,8 @@ class ProjectListViewModelTest {
     }
 
     @Test fun failedLoad_exposesFriendlyError() = runTest(scheduler) {
-        val viewModel = ProjectListViewModel(projectsLoader = { throw IOException("offline") })
+        val fakeProjectRepo = FakeProjectRepository(projectsError = IOException("offline"))
+        val viewModel = ProjectListViewModel(projectRepository = fakeProjectRepo)
 
         advanceUntilIdle()
 

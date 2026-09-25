@@ -36,7 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.api.Task
-import com.example.nexus.ui.CompactLanguageMenu
+import com.example.nexus.ui.settings.CompactLanguageMenu
 import com.example.nexus.ui.components.DetailSkeleton
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState

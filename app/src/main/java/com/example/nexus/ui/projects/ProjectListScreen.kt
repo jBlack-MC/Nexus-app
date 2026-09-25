@@ -21,7 +21,7 @@ import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.ListSkeleton
-import com.example.nexus.ui.CompactLanguageMenu
+import com.example.nexus.ui.settings.CompactLanguageMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

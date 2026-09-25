@@ -10,6 +10,7 @@ import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
+import com.example.nexus.data.ProjectRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -21,10 +22,11 @@ data class ProjectListUiState(
 )
 
 class ProjectListViewModel(
-    private val projectsLoader: suspend () -> List<Project> = { NexusApp.repository.getProjects() },
-    private val projectCreator: suspend (CreateProjectRequest) -> Project = { NexusApp.repository.createProject(it) },
-    private val projectUpdater: suspend (String, UpdateProjectRequest) -> Project = { id, request -> NexusApp.repository.updateProject(id, request) },
-    private val projectDeleter: suspend (String) -> Unit = { NexusApp.repository.deleteProject(it) },
+    private val projectRepository: ProjectRepository? = null,
+    private val projectsLoader: suspend () -> List<Project> = { (projectRepository ?: NexusApp.projectRepository).getProjects() },
+    private val projectCreator: suspend (CreateProjectRequest) -> Project = { (projectRepository ?: NexusApp.projectRepository).createProject(it) },
+    private val projectUpdater: suspend (String, UpdateProjectRequest) -> Project = { id, request -> (projectRepository ?: NexusApp.projectRepository).updateProject(id, request) },
+    private val projectDeleter: suspend (String) -> Unit = { id -> (projectRepository ?: NexusApp.projectRepository).deleteProject(id) },
     private val clearSession: () -> Unit = { AuthSession.clearToken() }
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProjectListUiState(isLoading = true))

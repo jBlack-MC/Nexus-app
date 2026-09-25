@@ -1,9 +1,5 @@
 package com.example.nexus.ui.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -12,45 +8,46 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.example.nexus.auth.AuthSession
-import com.example.nexus.ui.AuthViewModel
+import com.example.nexus.ui.auth.AuthViewModel
+import com.example.nexus.ui.auth.LoginScreen
+import com.example.nexus.ui.auth.RegisterScreen
 import com.example.nexus.ui.components.Motion
 import com.example.nexus.ui.components.rememberReduceMotion
-import com.example.nexus.ui.DashboardScreen
-import com.example.nexus.ui.HabitsScreen
-import com.example.nexus.ui.LoginScreen
-import com.example.nexus.ui.ProfileScreen
-import com.example.nexus.ui.RegisterScreen
-import com.example.nexus.ui.SettingsScreen
-import com.example.nexus.ui.SplashIntroScreen
+import com.example.nexus.ui.dashboard.DashboardScreen
+import com.example.nexus.ui.habits.HabitsScreen
+import com.example.nexus.ui.profile.ProfileScreen
 import com.example.nexus.ui.projects.ProjectDetailScreen
 import com.example.nexus.ui.projects.ProjectListScreen
+import com.example.nexus.ui.settings.SettingsScreen
+import com.example.nexus.ui.splash.SplashIntroScreen
 import com.example.nexus.ui.tasks.TaskDetailScreen
 import com.example.nexus.ui.tasks.TaskListScreen
+import kotlinx.serialization.Serializable
 
-private object Routes {
-    const val SPLASH = "splash"
-    const val LOGIN = "login"
-    const val REGISTER = "register"
-    const val DASHBOARD = "dashboard"
-    const val SETTINGS = "settings"
-    const val PROFILE = "profile"
-    const val HABITS = "habits"
-    const val PROJECTS = "projects"
-    const val PROJECT_DETAIL = "project/{projectId}"
-    const val TASKS = "tasks/{projectId}"
-    const val TASK_DETAIL = "task/{projectId}/{taskId}"
-
-    fun projectDetail(projectId: String) = "project/$projectId"
-    fun tasks(projectId: String) = "tasks/$projectId"
-    fun taskDetail(projectId: String, taskId: String) = "task/$projectId/$taskId"
+sealed interface Route {
+    @Serializable data object Splash : Route
+    @Serializable data object Login : Route
+    @Serializable data object Register : Route
+    @Serializable data object Dashboard : Route
+    @Serializable data object Settings : Route
+    @Serializable data object Profile : Route
+    @Serializable data object Habits : Route
+    @Serializable data object Projects : Route
+    @Serializable data class ProjectDetail(val projectId: String) : Route
+    @Serializable data class Tasks(val projectId: String) : Route
+    @Serializable data class TaskDetail(val projectId: String, val taskId: String) : Route
 }
 
 @Composable
@@ -59,25 +56,21 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     val authState by authViewModel.uiState.collectAsState()
     val isAppAuthenticated by AuthSession.isAuthenticated.collectAsState()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
+    val currentDestination = currentBackStackEntry?.destination
 
-    LaunchedEffect(isAppAuthenticated, currentRoute) {
-        if (
-            currentRoute != null &&
-            !isAppAuthenticated &&
-            currentRoute != Routes.LOGIN &&
-            currentRoute != Routes.REGISTER &&
-            currentRoute != Routes.SPLASH
-        ) {
-            navController.navigate(Routes.LOGIN) {
+    LaunchedEffect(isAppAuthenticated, currentDestination) {
+        if (currentDestination == null) return@LaunchedEffect
+        val isUnauthAllowed = currentDestination.hasRoute<Route.Login>() ||
+                currentDestination.hasRoute<Route.Register>() ||
+                currentDestination.hasRoute<Route.Splash>()
+
+        if (!isAppAuthenticated && !isUnauthAllowed) {
+            navController.navigate(Route.Login) {
                 popUpTo(0) { inclusive = true }
             }
-        } else if (
-            isAppAuthenticated &&
-                (currentRoute == Routes.LOGIN || currentRoute == Routes.REGISTER)
-        ) {
-            navController.navigate(Routes.DASHBOARD) {
-                popUpTo(Routes.LOGIN) { inclusive = true }
+        } else if (isAppAuthenticated && (currentDestination.hasRoute<Route.Login>() || currentDestination.hasRoute<Route.Register>())) {
+            navController.navigate(Route.Dashboard) {
+                popUpTo<Route.Login> { inclusive = true }
             }
         }
     }
@@ -85,10 +78,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     val reduceMotion = rememberReduceMotion()
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH,
-        // Shared-axis style: forward slides left-to-right into place, back mirrors it, both
-        // with a short fade (220ms enter / 180ms exit, FastOutSlowIn). Collapses to instant
-        // transitions when the system has animations disabled (reduced motion).
+        startDestination = Route.Splash,
         enterTransition = {
             if (reduceMotion) EnterTransition.None
             else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { it / 4 } +
@@ -110,26 +100,26 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                 fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
         }
     ) {
-        composable(Routes.SPLASH) {
+        composable<Route.Splash> {
             SplashIntroScreen(
                 onFinished = {
-                    val nextRoute = if (isAppAuthenticated) Routes.DASHBOARD else Routes.LOGIN
+                    val nextRoute: Route = if (isAppAuthenticated) Route.Dashboard else Route.Login
                     navController.navigate(nextRoute) {
-                        popUpTo(Routes.SPLASH) { inclusive = true }
+                        popUpTo<Route.Splash> { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(Routes.LOGIN) {
+        composable<Route.Login> {
             LoginScreen(
                 uiState = authState,
                 onLogin = { email, password -> authViewModel.login(email, password) },
-                onNavigateToRegister = { navController.navigate(Routes.REGISTER) }
+                onNavigateToRegister = { navController.navigate(Route.Register) }
             )
         }
 
-        composable(Routes.REGISTER) {
+        composable<Route.Register> {
             RegisterScreen(
                 uiState = authState,
                 onRegister = { email, password, displayName ->
@@ -139,91 +129,77 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             )
         }
 
-        composable(Routes.DASHBOARD) {
+        composable<Route.Dashboard> {
             DashboardScreen(
-                onOpenProjects = { navController.navigate(Routes.PROJECTS) },
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
-                onOpenProfile = { navController.navigate(Routes.PROFILE) },
-                onOpenHabits = { navController.navigate(Routes.HABITS) },
+                onOpenProjects = { navController.navigate(Route.Projects) },
+                onOpenSettings = { navController.navigate(Route.Settings) },
+                onOpenProfile = { navController.navigate(Route.Profile) },
+                onOpenHabits = { navController.navigate(Route.Habits) },
                 onLogout = {
                     AuthSession.clearToken()
-                    navController.navigate(Routes.LOGIN) {
+                    navController.navigate(Route.Login) {
                         popUpTo(0)
                     }
                 }
             )
         }
 
-        composable(Routes.SETTINGS) {
+        composable<Route.Settings> {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onLoggedOut = {
-                    navController.navigate(Routes.LOGIN) {
+                    navController.navigate(Route.Login) {
                         popUpTo(0)
                     }
                 }
             )
         }
 
-        composable(Routes.PROFILE) {
+        composable<Route.Profile> {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                onOpenSettings = { navController.navigate(Route.Settings) }
             )
         }
 
-        composable(Routes.HABITS) {
+        composable<Route.Habits> {
             HabitsScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(Routes.PROJECTS) {
+        composable<Route.Projects> {
             ProjectListScreen(
                 onBackToDashboard = { navController.popBackStack() },
-                onOpenProject = { projectId -> navController.navigate(Routes.projectDetail(projectId)) }
+                onOpenProject = { projectId -> navController.navigate(Route.ProjectDetail(projectId)) }
             )
         }
 
-        composable(
-            route = Routes.PROJECT_DETAIL,
-            arguments = listOf(navArgument("projectId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+        composable<Route.ProjectDetail> { backStackEntry ->
+            val args = backStackEntry.toRoute<Route.ProjectDetail>()
             ProjectDetailScreen(
-                projectId = projectId,
+                projectId = args.projectId,
                 onBackToProjects = { navController.popBackStack() },
-                onOpenTasks = { id -> navController.navigate(Routes.tasks(id)) }
+                onOpenTasks = { id -> navController.navigate(Route.Tasks(id)) }
             )
         }
 
-        composable(
-            route = Routes.TASKS,
-            arguments = listOf(navArgument("projectId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+        composable<Route.Tasks> { backStackEntry ->
+            val args = backStackEntry.toRoute<Route.Tasks>()
             TaskListScreen(
-                projectId = projectId,
+                projectId = args.projectId,
                 onBackToProject = { navController.popBackStack() },
                 onOpenDetail = { taskId ->
-                    navController.navigate(Routes.taskDetail(projectId, taskId))
+                    navController.navigate(Route.TaskDetail(args.projectId, taskId))
                 }
             )
         }
 
-        composable(
-            route = Routes.TASK_DETAIL,
-            arguments = listOf(
-                navArgument("projectId") { type = NavType.StringType },
-                navArgument("taskId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
-            val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
+        composable<Route.TaskDetail> { backStackEntry ->
+            val args = backStackEntry.toRoute<Route.TaskDetail>()
             TaskDetailScreen(
-                projectId = projectId,
-                taskId = taskId,
+                projectId = args.projectId,
+                taskId = args.taskId,
                 onBack = { navController.popBackStack() }
             )
         }
     }
 }
-

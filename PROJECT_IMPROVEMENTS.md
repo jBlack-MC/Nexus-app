@@ -2,6 +2,29 @@
 
 This file records meaningful project changes and keeps planned work separate from features that are already delivered. Add a new dated section whenever a feature, technical improvement, or release-quality change is completed.
 
+## 2026-09-24
+
+### Android Structural Remediation Pass Delivered
+
+Full structural remediation of the Android codebase covering architecture, repository separation, dependency injection, domain logic isolation, package organization, navigation safety, and testing infrastructure:
+
+- **AuthViewModel Repository Bypass Resolution:** Fixed the repository bypass in `AuthViewModel` by routing all authentication workflows (`login`, `register`, `updateProfile`) through `UserRepository` instead of making direct network or token calls.
+- **Monolithic Repository Separation:** Disassembled the monolithic repository into six single-responsibility repositories (`ProjectRepository`, `TaskRepository`, `HabitRepository`, `DashboardRepository`, `UserRepository`, `ConfigRepository`) in `com.example.nexus.data`, cleanly decoupling data access concerns across domain entities.
+- **Dependency Injection Standardization & Hilt Evaluation:** Conducted an architectural evaluation of Hilt vs. Manual DI (Step 3b). Retained the lightweight, application-level manual DI container in `NexusApp` (`projectRepository`, `taskRepository`, `habitRepository`, `dashboardRepository`, `userRepository`, `configRepository`) and standardized constructor injection with default parameter fallbacks across all ViewModels, eliminating direct instance instantiations in ViewModels while enabling deterministic test overrides.
+- **Business Logic Relocation:** Relocated streak scoring, bonus points, level calculations, and badge entitlement rules out of ViewModels/UI into a pure domain layer (`com.example.nexus.domain.HabitScoring`), backed by dedicated unit test coverage (`HabitScoringTest`).
+- **Feature-Based Package Reorganization:** Restructured the flat UI package layout into feature-focused subpackages under `com.example.nexus.ui` (`auth`, `components`, `dashboard`, `habits`, `navigation`, `profile`, `projects`, `settings`, `splash`, `tasks`, `theme`), establishing clean structural boundaries between user interface components and core architectural layers (`api`, `auth`, `data`, `domain`, `settings`, `util`).
+- **Type-Safe Navigation Migration:** Replaced legacy string-based route paths with Navigation Compose 2.8.0 Kotlin Serialization `@Serializable` type-safe routes (`Route.Splash`, `Route.Login`, `Route.Register`, `Route.Dashboard`, `Route.Projects`, `Route.ProjectDetail`, `Route.Tasks`, `Route.TaskDetail`, `Route.Habits`, `Route.Settings`, `Route.Profile`) defined in `NexusNavHost.kt`.
+- **Consolidated Shared Test Fakes:** Standardized testing infrastructure by consolidating ad-hoc test doubles into a central set of shared fakes under `app/src/test/java/com/example/nexus/fakes/` (`FakeProjectRepository`, `FakeTaskRepository`, `FakeHabitRepository`, `FakeDashboardRepository`, `FakeUserRepository`, `FakeConfigRepository`, `FakeAuthSession`, `FakeSettingsSession`), eliminating duplication across unit tests.
+
+## 2026-09-23
+
+### Backend Remediation Pass Delivered
+
+- **Write-Locking & Atomic Persistence:** Implemented an in-process `AsyncMutex` queue to serialize all read/write operations against `nexus-data.json` and added atomic file persistence (writing to `.tmp` then performing `rename()`) to eliminate data-loss race conditions and file corruption during concurrent operations or process crashes.
+- **Strict Input Validation:** Integrated strict Zod validation schemas for all user registration, profile update, password change, project, task, and habit endpoints, rejecting malformed or unvalidated payloads with clear validation error codes before store access.
+- **Authentication Security & Rate Limiting:** Enforced strict startup validation for `JWT_SECRET` (requiring at least 32 non-placeholder characters), configured 24-hour JWT expiry, secured password hashing with bcrypt (work factor 12), and added `express-rate-limit` throttling (10 requests per 15 minutes per IP) on `/auth/register` and `/auth/login` to prevent brute-force attacks.
+- **Observability and Liveness Probes:** Added unauthenticated `GET /health` and `GET /api/health` endpoints returning process uptime, and integrated structured logging via Pino with automatic redaction of sensitive fields (passwords, tokens, auth headers) and request correlation ID tracking.
+
 ## 2026-09-22
 
 ### Delivered today
@@ -50,6 +73,10 @@ The first product milestone should be delivered as a vertical slice: API contrac
 - Room schema changes require a proper migration for existing users. Do not rely on destructive migration for a production release.
 - Push notifications require a notification provider, backend device-token registration, notification permissions, and user preferences.
 - Collaboration requires server-side authorization and audit rules; it must not be implemented only in the client.
+
+### Database Persistence Roadmap Evaluation
+
+Although Nexus's JSON-file persistence (`nexus-data.json`) has been successfully hardened with thread-safe write-locking (`AsyncMutex`) and atomic file writes (`.tmp` + `rename`), it remains an in-memory document store bounded by single-threaded write serialization. For the project's current test volume (<50 users, <10,000 total tasks), this approach is genuinely sufficient and operationally zero-config. However, as advanced task-planning features (due dates, priorities, labels, and complex queries) are introduced in the next milestone, file-based persistence should be migrated to embedded SQLite via `better-sqlite3` to ensure ACID compliance, relational integrity, and scalable indexing without introducing a separate database server process.
 
 ### Quality checklist for every feature
 

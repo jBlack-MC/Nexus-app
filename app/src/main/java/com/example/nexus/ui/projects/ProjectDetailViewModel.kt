@@ -13,6 +13,8 @@ import com.example.nexus.api.UpdateTaskRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
+import com.example.nexus.data.ProjectRepository
+import com.example.nexus.data.TaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -25,7 +27,18 @@ data class ProjectDetailUiState(
     val isDeleted: Boolean = false
 )
 
-class ProjectDetailViewModel : ViewModel() {
+class ProjectDetailViewModel(
+    private val projectRepository: ProjectRepository? = null,
+    private val taskRepository: TaskRepository? = null,
+    private val projectLoader: suspend (String) -> Project = { (projectRepository ?: NexusApp.projectRepository).getProject(it) },
+    private val tasksLoader: suspend (String) -> List<Task> = { (taskRepository ?: NexusApp.taskRepository).getTasks(it) },
+    private val projectUpdater: suspend (String, UpdateProjectRequest) -> Project = { id, req -> (projectRepository ?: NexusApp.projectRepository).updateProject(id, req) },
+    private val projectDeleter: suspend (String) -> Unit = { (projectRepository ?: NexusApp.projectRepository).deleteProject(it) },
+    private val taskCreator: suspend (String, CreateTaskRequest) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).createTask(id, req) },
+    private val taskUpdater: suspend (String, UpdateTaskRequest) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).updateTask(id, req) },
+    private val taskDeleter: suspend (String) -> Unit = { (taskRepository ?: NexusApp.taskRepository).deleteTask(it) },
+    private val clearSession: () -> Unit = { AuthSession.clearToken() }
+) : ViewModel() {
     private val _uiState = MutableStateFlow(ProjectDetailUiState(isLoading = true))
     val uiState: StateFlow<ProjectDetailUiState> = _uiState
 
@@ -38,8 +51,8 @@ class ProjectDetailViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                val project = NexusApp.repository.getProject(projectId)
-                val tasks = NexusApp.repository.getTasks(projectId)
+                val project = projectLoader(projectId)
+                val tasks = tasksLoader(projectId)
                 project to tasks
             }.onSuccess { (project, tasks) ->
                 _uiState.value = ProjectDetailUiState(project = project, tasks = tasks)
@@ -53,7 +66,7 @@ class ProjectDetailViewModel : ViewModel() {
         val id = projectId ?: return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.getTasks(id)
+                tasksLoader(id)
             }.onSuccess { tasks ->
                 _uiState.value = _uiState.value.copy(tasks = tasks, errorMessage = null)
             }.onFailure { error ->
@@ -67,7 +80,7 @@ class ProjectDetailViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                NexusApp.repository.updateProject(
+                projectUpdater(
                     id,
                     UpdateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null })
                 )
@@ -84,7 +97,7 @@ class ProjectDetailViewModel : ViewModel() {
         if (title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.createTask(
+                taskCreator(
                     id,
                     CreateTaskRequest(title = title.trim(), description = description.trim().ifBlank { null })
                 )
@@ -99,15 +112,12 @@ class ProjectDetailViewModel : ViewModel() {
     fun updateTask(task: Task, title: String, description: String, isCompleted: Boolean) {
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.updateTask(
+                taskUpdater(
                     task.id,
                     UpdateTaskRequest(
                         title = title.trim(),
                         description = description.trim().ifBlank { null },
                         isCompleted = isCompleted,
-                        // Gson serialises every non-null field, so the planning values must be
-                        // echoed back explicitly; omitting them would reset the task's due date,
-                        // priority, status, labels and checklist on the server.
                         dueDate = task.dueDate,
                         priority = task.priority,
                         status = if (isCompleted) TaskStatus.DONE else TaskStatus.TODO,
@@ -126,7 +136,7 @@ class ProjectDetailViewModel : ViewModel() {
     fun deleteTask(taskId: String) {
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.deleteTask(taskId)
+                taskDeleter(taskId)
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
@@ -139,7 +149,7 @@ class ProjectDetailViewModel : ViewModel() {
         val id = projectId ?: return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.deleteProject(id)
+                projectDeleter(id)
             }.onSuccess {
                 _uiState.value = _uiState.value.copy(isDeleted = true)
             }.onFailure { error ->
@@ -151,7 +161,7 @@ class ProjectDetailViewModel : ViewModel() {
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()
         if (apiError is ApiError.SessionExpired) {
-            AuthSession.clearToken()
+            clearSession()
         }
         _uiState.value = _uiState.value.copy(
             isLoading = false,

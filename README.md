@@ -136,12 +136,12 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 | --- | --- |
 | Language | Kotlin 2.2.10 |
 | UI | Jetpack Compose and Material 3 |
-| Architecture | Single activity with MVVM, `ViewModel`, and `StateFlow` |
-| Navigation | Navigation Compose |
+| Architecture | Single activity with MVVM, `ViewModel`, `StateFlow`, manual DI container (`NexusApp`), and domain layer |
+| Navigation | Navigation Compose 2.8.0 with type-safe `kotlinx.serialization` routes |
 | Network | Retrofit, Gson, and OkHttp |
 | Session storage | AndroidX Security Crypto |
-| Local cache | Room database for projects, tasks, dashboard data, and habits |
-| Habit engine | Kotlin streak calculation with points, levels, badges, and rewards |
+| Local cache & Repositories | Room database with split repositories (`ProjectRepository`, `TaskRepository`, `HabitRepository`, `DashboardRepository`, `UserRepository`, `ConfigRepository`) |
+| Habit engine | Kotlin domain streak calculation (`HabitScoring`) with points, levels, badges, and rewards |
 | Translation | MyMemory online translation API (`en`, `zu`, `tn`) |
 | Backend | Node.js + Express REST API with JWT authentication |
 | Build | Gradle 9.5 and Android Gradle Plugin 9.3.1 |
@@ -158,6 +158,12 @@ Feature status is intentional: the roadmap is proposed work, while [the improvem
 **Streak and gamification rules.** A completed habit records an ISO date. Current streak counts consecutive dates ending today; best streak is the longest consecutive run. Each completion awards 10 points and each best-streak day awards 5 bonus points. Every 100 points advances a level. Three-day and seven-day streaks and an 80% completion rate unlock badges, with rewards available for redemption in the Habits screen.
 
 **Languages.** The language selector is available on Login, Register, and Settings. It persists locally before authentication, then synchronizes the preference to `/users/me` after login. English (`en`), isiZulu (`zu`), and Setswana (`tn`) are included. The optional translation client uses MyMemory's public endpoint and fails back to local copy when the device is offline; no API key or user credential is sent to the translation service.
+
+**Write-locking and atomic persistence.** An in-process `AsyncMutex` serializes all read-modify-write and read operations against the JSON data store (`nexus-data.json`). Database writes are executed atomically by writing to a temporary file (`.tmp`) and performing an atomic `rename()`, preventing file corruption or data loss during concurrent requests or abrupt process termination.
+
+**Strict validation and rate limiting.** All incoming requests to task, project, and user endpoints are validated against strict Zod schemas before touching disk storage. Authentication endpoints (`/auth/register`, `/auth/login`) are protected by a rate limiter (`express-rate-limit`, limiting to 10 requests per 15 minutes per IP). JWTs are signed with a 24-hour expiration (`expiresIn: "24h"`), and the server validates `JWT_SECRET` at startup, refusing to start if the secret is missing, shorter than 32 characters, or set to a known placeholder.
+
+**Security hardening and observability.** The API uses Helmet for baseline security headers, explicit CORS configuration, and structured logging via Pino with sensitive fields (passwords, tokens, authorization headers) automatically redacted. Unauthenticated liveness endpoints (`GET /health` and `GET /api/health`) provide process uptime checks.
 
 ## Requirements
 
@@ -264,10 +270,11 @@ See [PROJECT_IMPROVEMENTS.md](PROJECT_IMPROVEMENTS.md) for a dated record of del
 
 ## Backend API
 
-The Android client uses `http://10.0.2.2:5263/api/` by default. The base URL is defined in `RetrofitClient.kt`.
+The Android client uses `http://10.0.2.2:5263/api/` by default. The base URL is defined in `RetrofitClient.kt`. The backend enforces Zod request validation across all endpoints, write-locking via `AsyncMutex`, atomic file persistence (`.tmp` + `rename`), authentication rate limiting (10 requests per 15 minutes per IP), strict 24-hour JWT expiration, and structured request logging with Pino.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
+| `GET` | `/health` (or `/api/health`) | Return server liveness status and process uptime (unauthenticated). |
 | `POST` | `/auth/register` | Create an account with email, password, and display name. |
 | `POST` | `/auth/login` | Sign in and receive a JWT. |
 | `GET`, `PATCH` | `/users/me` | Read or partially update the signed-in user's display name, language, and notification preference. |
@@ -351,14 +358,32 @@ Add real emulator/device screenshots to `docs/screenshots/` before submission: D
 app/src/main/
 |- AndroidManifest.xml
 |- java/com/example/nexus/
-|  |- api/           # Retrofit service, API models, and client
-|  |- auth/          # Session state and secure token storage
-|  |- data/          # Room entities, DAOs, database, and repository
-|  |- ui/            # Compose screens, ViewModels, navigation, and theme
-|  |- util/          # Shared utilities
+|  |- api/           # Retrofit service, API models, DTOs, and client
+|  |- auth/          # Session state, account management, and secure token storage
+|  |- data/          # Room database, DAOs, and split repositories (Project, Task, Habit, Dashboard, User, Config)
+|  |- domain/        # Pure domain business logic (HabitScoring)
+|  |- settings/      # Settings preferences, session, and local key-value store
+|  |- ui/            # Feature-based Compose UI, ViewModels, navigation, and theme
+|  |  |- auth/       # Login and Register screens, AuthViewModel
+|  |  |- components/ # Reusable UI components (FeedbackState, Motion, Logo, Skeleton)
+|  |  |- dashboard/  # Dashboard screen and DashboardViewModel
+|  |  |- habits/     # Habits screen and HabitsViewModel
+|  |  |- navigation/ # Type-safe Navigation Compose host (NexusNavHost, Route)
+|  |  |- profile/    # Profile management screen
+|  |  |- projects/   # Project list and detail screens & ViewModels
+|  |  |- settings/   # Settings screen, SettingsViewModel, RemoteConfigViewModel
+|  |  |- splash/     # Animated intro splash screen
+|  |  |- tasks/      # Task list, detail, editor dialog & TaskListViewModel
+|  |  `- theme/      # Material 3 colors, typography, and theme setup
+|  |- util/          # Shared utilities (TokenManager)
 |  |- MainActivity.kt
-|  `- NexusApp.kt
+|  `- NexusApp.kt    # Application subclass & central DI container
 `- res/              # Resources, icons, themes, and XML configuration
+
+app/src/test/java/com/example/nexus/
+|- domain/           # Unit tests for domain logic (HabitScoringTest)
+|- fakes/            # Consolidated shared test fakes (FakeProjectRepository, FakeUserRepository, etc.)
+`- ui/               # ViewModel unit tests (AuthViewModelTest, DashboardViewModelTest, etc.)
 
 .github/workflows/
 `- android-ci.yml    # GitHub Actions build and artifact workflow
