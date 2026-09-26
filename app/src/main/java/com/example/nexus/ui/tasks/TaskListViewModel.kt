@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 data class TaskListUiState(
     val isLoading: Boolean = false,
     val tasks: List<Task> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )
 
 data class TaskDraft(
@@ -31,16 +31,22 @@ data class TaskDraft(
     val priority: TaskPriority = TaskPriority.NONE,
     val status: TaskStatus = TaskStatus.TODO,
     val labels: List<String> = emptyList(),
-    val checklist: List<ChecklistItem> = emptyList()
+    val checklist: List<ChecklistItem> = emptyList(),
 )
 
 class TaskListViewModel(
     private val taskRepository: TaskRepository? = null,
     private val tasksLoader: suspend (String) -> List<Task> = { (taskRepository ?: NexusApp.taskRepository).getTasks(it) },
-    private val taskCreator: suspend (String, CreateTaskRequest) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).createTask(id, req) },
-    private val taskUpdater: suspend (String, UpdateTaskRequest) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).updateTask(id, req) },
+    private val taskCreator: suspend (
+        String,
+        CreateTaskRequest,
+    ) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).createTask(id, req) },
+    private val taskUpdater: suspend (
+        String,
+        UpdateTaskRequest,
+    ) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).updateTask(id, req) },
     private val taskDeleter: suspend (String) -> Unit = { id -> (taskRepository ?: NexusApp.taskRepository).deleteTask(id) },
-    private val clearSession: () -> Unit = { AuthSession.clearToken() }
+    private val clearSession: () -> Unit = { AuthSession.clearToken() },
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskListUiState(isLoading = true))
     val uiState: StateFlow<TaskListUiState> = _uiState
@@ -75,7 +81,10 @@ class TaskListViewModel(
         }
     }
 
-    fun updateTask(taskId: String, draft: TaskDraft) {
+    fun updateTask(
+        taskId: String,
+        draft: TaskDraft,
+    ) {
         val id = projectId ?: return
         if (draft.title.isBlank()) return
         viewModelScope.launch {
@@ -92,15 +101,16 @@ class TaskListViewModel(
     fun toggleCompleted(task: Task) {
         updateTask(
             taskId = task.id,
-            draft = TaskDraft(
-                title = task.title,
-                description = task.description,
-                dueDate = task.dueDate,
-                priority = task.priority,
-                status = if (task.isCompleted) TaskStatus.TODO else TaskStatus.DONE,
-                labels = task.labels,
-                checklist = task.checklist
-            )
+            draft =
+                TaskDraft(
+                    title = task.title,
+                    description = task.description,
+                    dueDate = task.dueDate,
+                    priority = task.priority,
+                    status = if (task.isCompleted) TaskStatus.TODO else TaskStatus.DONE,
+                    labels = task.labels,
+                    checklist = task.checklist,
+                ),
         )
     }
 
@@ -117,35 +127,38 @@ class TaskListViewModel(
         }
     }
 
-    private fun TaskDraft.toCreateRequest() = CreateTaskRequest(
-        title = title.trim(),
-        description = description?.trim()?.ifBlank { null },
-        dueDate = dueDate,
-        priority = priority,
-        status = status,
-        labels = labels,
-        checklist = checklist
-    )
+    private fun TaskDraft.toCreateRequest() =
+        CreateTaskRequest(
+            title = title.trim(),
+            description = description?.trim()?.ifBlank { null },
+            dueDate = dueDate,
+            priority = priority,
+            status = status,
+            labels = labels,
+            checklist = checklist,
+        )
 
-    private fun TaskDraft.toUpdateRequest() = UpdateTaskRequest(
-        title = title.trim(),
-        description = description?.trim()?.ifBlank { null },
-        isCompleted = status == TaskStatus.DONE,
-        dueDate = dueDate,
-        priority = priority,
-        status = status,
-        labels = labels,
-        checklist = checklist
-    )
+    private fun TaskDraft.toUpdateRequest() =
+        UpdateTaskRequest(
+            title = title.trim(),
+            description = description?.trim()?.ifBlank { null },
+            isCompleted = status == TaskStatus.DONE,
+            dueDate = dueDate,
+            priority = priority,
+            status = status,
+            labels = labels,
+            checklist = checklist,
+        )
 
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()
         if (apiError is ApiError.SessionExpired) {
             clearSession()
         }
-        _uiState.value = _uiState.value.copy(
-            isLoading = false,
-            errorMessage = apiError.toUserMessage()
-        )
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                errorMessage = apiError.toUserMessage(),
+            )
     }
 }

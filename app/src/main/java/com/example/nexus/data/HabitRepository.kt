@@ -8,12 +8,23 @@ import com.example.nexus.api.UpdateHabitRequest
 open class HabitRepository(
     private val database: NexusDatabase? = null,
     private val apiService: ApiService? = null,
-    private val cacheOwner: () -> String? = { null }
+    private val cacheOwner: () -> String? = { null },
 ) {
     private fun owner(): String? = cacheOwner()?.takeIf { it.isNotBlank() }
 
     private fun HabitEntity.toModel() = Habit(id, name, description, frequency, targetDays, completedDates, createdAt)
-    private fun Habit.toEntity(userId: String) = HabitEntity(id, userId, name, description, frequency, targetDays, completedDates, createdAt)
+
+    private fun Habit.toEntity(userId: String) =
+        HabitEntity(
+            id,
+            userId,
+            name,
+            description,
+            frequency,
+            targetDays,
+            completedDates,
+            createdAt,
+        )
 
     open suspend fun getHabits(): List<Habit> {
         val db = database ?: return apiService?.getHabits() ?: emptyList()

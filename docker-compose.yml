@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexus-backend
+    ports:
+      - "${PORT:-5263}:5263"
+    environment:
+      - PORT=5263
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - DATABASE_PATH=/usr/src/app/nexus-data.json
+    volumes:
+      - ./backend/nexus-data.json:/usr/src/app/nexus-data.json
+    restart: unless-stopped

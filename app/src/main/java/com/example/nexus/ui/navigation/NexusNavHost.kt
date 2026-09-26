@@ -38,15 +38,25 @@ import kotlinx.serialization.Serializable
 
 sealed interface Route {
     @Serializable data object Splash : Route
+
     @Serializable data object Login : Route
+
     @Serializable data object Register : Route
+
     @Serializable data object Dashboard : Route
+
     @Serializable data object Settings : Route
+
     @Serializable data object Profile : Route
+
     @Serializable data object Habits : Route
+
     @Serializable data object Projects : Route
+
     @Serializable data class ProjectDetail(val projectId: String) : Route
+
     @Serializable data class Tasks(val projectId: String) : Route
+
     @Serializable data class TaskDetail(val projectId: String, val taskId: String) : Route
 }
 
@@ -60,7 +70,8 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
 
     LaunchedEffect(isAppAuthenticated, currentDestination) {
         if (currentDestination == null) return@LaunchedEffect
-        val isUnauthAllowed = currentDestination.hasRoute<Route.Login>() ||
+        val isUnauthAllowed =
+            currentDestination.hasRoute<Route.Login>() ||
                 currentDestination.hasRoute<Route.Register>() ||
                 currentDestination.hasRoute<Route.Splash>()
 
@@ -80,25 +91,37 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
         navController = navController,
         startDestination = Route.Splash,
         enterTransition = {
-            if (reduceMotion) EnterTransition.None
-            else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { it / 4 } +
-                fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+            if (reduceMotion) {
+                EnterTransition.None
+            } else {
+                slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { it / 4 } +
+                    fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+            }
         },
         exitTransition = {
-            if (reduceMotion) ExitTransition.None
-            else slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { -it / 4 } +
-                fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+            if (reduceMotion) {
+                ExitTransition.None
+            } else {
+                slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { -it / 4 } +
+                    fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+            }
         },
         popEnterTransition = {
-            if (reduceMotion) EnterTransition.None
-            else slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { -it / 4 } +
-                fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+            if (reduceMotion) {
+                EnterTransition.None
+            } else {
+                slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { -it / 4 } +
+                    fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+            }
         },
         popExitTransition = {
-            if (reduceMotion) ExitTransition.None
-            else slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { it / 4 } +
-                fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
-        }
+            if (reduceMotion) {
+                ExitTransition.None
+            } else {
+                slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { it / 4 } +
+                    fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+            }
+        },
     ) {
         composable<Route.Splash> {
             SplashIntroScreen(
@@ -107,7 +130,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                     navController.navigate(nextRoute) {
                         popUpTo<Route.Splash> { inclusive = true }
                     }
-                }
+                },
             )
         }
 
@@ -115,7 +138,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             LoginScreen(
                 uiState = authState,
                 onLogin = { email, password -> authViewModel.login(email, password) },
-                onNavigateToRegister = { navController.navigate(Route.Register) }
+                onNavigateToRegister = { navController.navigate(Route.Register) },
             )
         }
 
@@ -125,7 +148,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                 onRegister = { email, password, displayName ->
                     authViewModel.register(email, password, displayName)
                 },
-                onNavigateToLogin = { navController.popBackStack() }
+                onNavigateToLogin = { navController.popBackStack() },
             )
         }
 
@@ -140,7 +163,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                     navController.navigate(Route.Login) {
                         popUpTo(0)
                     }
-                }
+                },
             )
         }
 
@@ -151,14 +174,14 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                     navController.navigate(Route.Login) {
                         popUpTo(0)
                     }
-                }
+                },
             )
         }
 
         composable<Route.Profile> {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
-                onOpenSettings = { navController.navigate(Route.Settings) }
+                onOpenSettings = { navController.navigate(Route.Settings) },
             )
         }
 
@@ -169,7 +192,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
         composable<Route.Projects> {
             ProjectListScreen(
                 onBackToDashboard = { navController.popBackStack() },
-                onOpenProject = { projectId -> navController.navigate(Route.ProjectDetail(projectId)) }
+                onOpenProject = { projectId -> navController.navigate(Route.ProjectDetail(projectId)) },
             )
         }
 
@@ -178,7 +201,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             ProjectDetailScreen(
                 projectId = args.projectId,
                 onBackToProjects = { navController.popBackStack() },
-                onOpenTasks = { id -> navController.navigate(Route.Tasks(id)) }
+                onOpenTasks = { id -> navController.navigate(Route.Tasks(id)) },
             )
         }
 
@@ -189,7 +212,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                 onBackToProject = { navController.popBackStack() },
                 onOpenDetail = { taskId ->
                     navController.navigate(Route.TaskDetail(args.projectId, taskId))
-                }
+                },
             )
         }
 
@@ -198,7 +221,7 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
             TaskDetailScreen(
                 projectId = args.projectId,
                 taskId = args.taskId,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
             )
         }
     }

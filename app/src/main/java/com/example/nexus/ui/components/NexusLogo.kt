@@ -21,6 +21,7 @@ import com.example.nexus.R
 import com.example.nexus.ui.theme.BrandGreen
 import com.example.nexus.ui.theme.BrandIconBg
 import com.example.nexus.ui.theme.BrandPurple
+import com.example.nexus.ui.theme.Spacing
 
 @Composable
 fun NexusLogo(
@@ -28,37 +29,39 @@ fun NexusLogo(
     iconSize: Dp = 40.dp,
     textSize: Int = 28,
     showText: Boolean = true,
-    isDark: Boolean = true
+    isDark: Boolean = true,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier
-                .size(iconSize)
-                .clip(RoundedCornerShape(iconSize * 0.25f))
-                .background(if (isDark) BrandIconBg else Color.Transparent),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(iconSize)
+                    .clip(RoundedCornerShape(iconSize * 0.25f))
+                    .background(if (isDark) BrandIconBg else Color.Transparent),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "Nexus Logo",
                 tint = Color.Unspecified,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
         if (showText) {
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(Spacing.mdCompact))
             Text(
                 text = "Nexus",
-                style = TextStyle(
-                    brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
-                    fontSize = textSize.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.5).sp
-                )
+                style =
+                    TextStyle(
+                        brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
+                        fontSize = textSize.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.5).sp,
+                    ),
             )
         }
     }

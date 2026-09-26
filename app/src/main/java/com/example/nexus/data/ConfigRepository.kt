@@ -5,7 +5,7 @@ import com.example.nexus.api.AppConfig
 import com.example.nexus.api.LocalizationBundle
 
 open class ConfigRepository(
-    private val apiService: ApiService? = null
+    private val apiService: ApiService? = null,
 ) {
     open suspend fun getAppConfig(): AppConfig = apiService?.getAppConfig() ?: AppConfig()
 

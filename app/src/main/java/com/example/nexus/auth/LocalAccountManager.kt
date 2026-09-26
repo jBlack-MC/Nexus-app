@@ -19,7 +19,7 @@ data class LocalUser(
     val email: String,
     val displayName: String,
     val passwordSalt: String,
-    val passwordHash: String
+    val passwordHash: String,
 )
 
 object LocalAccountManager {
@@ -33,42 +33,51 @@ object LocalAccountManager {
      * matching passwords are documented in README.md under "Test credentials" and are for local
      * development only. These accounts must never be provisioned in a production environment.
      */
-    private val preSeededUsers = listOf(
-        LocalUser(
-            email = "admin@nexus-app.com",
-            displayName = "Nexus Admin",
-            passwordSalt = "nexus-dev-salt-admin",
-            passwordHash = "c87da66703560c8a3d05da1a92471860ca9bc7b20694f23afaba2c62cd08891c"
-        ),
-        LocalUser(
-            email = "jane.doe@nexus-app.com",
-            displayName = "Jane Doe",
-            passwordSalt = "nexus-dev-salt-jane",
-            passwordHash = "2ad6bb1ca442f3477ae75720bc8b8c5f0344039955163fb7ed0e7fdbc2dfc8b9"
-        ),
-        LocalUser(
-            email = "test.user@nexus-app.com",
-            displayName = "Test User",
-            passwordSalt = "nexus-dev-salt-test",
-            passwordHash = "875ede86093ee2e16031c4f99607ed98d10ea151b0a672b420eb972065daadc4"
+    private val preSeededUsers =
+        listOf(
+            LocalUser(
+                email = "admin@nexus-app.com",
+                displayName = "Nexus Admin",
+                passwordSalt = "nexus-dev-salt-admin",
+                passwordHash = "c87da66703560c8a3d05da1a92471860ca9bc7b20694f23afaba2c62cd08891c",
+            ),
+            LocalUser(
+                email = "jane.doe@nexus-app.com",
+                displayName = "Jane Doe",
+                passwordSalt = "nexus-dev-salt-jane",
+                passwordHash = "2ad6bb1ca442f3477ae75720bc8b8c5f0344039955163fb7ed0e7fdbc2dfc8b9",
+            ),
+            LocalUser(
+                email = "test.user@nexus-app.com",
+                displayName = "Test User",
+                passwordSalt = "nexus-dev-salt-test",
+                passwordHash = "875ede86093ee2e16031c4f99607ed98d10ea151b0a672b420eb972065daadc4",
+            ),
         )
-    )
 
     private val prefs by lazy {
         NexusApp.instance.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    fun authenticate(email: String, password: String): LocalUser? {
+    fun authenticate(
+        email: String,
+        password: String,
+    ): LocalUser? {
         val normalizedEmail = email.trim().lowercase()
-        val candidate = preSeededUsers.find { it.email.lowercase() == normalizedEmail }
-            ?: getCustomUsers().find { it.email.lowercase() == normalizedEmail }
-            ?: return null
+        val candidate =
+            preSeededUsers.find { it.email.lowercase() == normalizedEmail }
+                ?: getCustomUsers().find { it.email.lowercase() == normalizedEmail }
+                ?: return null
 
         // Constant-time comparison avoids leaking how much of a digest matched.
         return candidate.takeIf { MessageDigest.isEqual(it.passwordHash.toByteArray(), hash(password, it.passwordSalt).toByteArray()) }
     }
 
-    fun register(email: String, displayName: String, password: String): Boolean {
+    fun register(
+        email: String,
+        displayName: String,
+        password: String,
+    ): Boolean {
         val normalizedEmail = email.trim().lowercase()
         // Ensure no duplicates in pre-seeded or custom users
         if (preSeededUsers.any { it.email.lowercase() == normalizedEmail }) return false
@@ -82,8 +91,8 @@ object LocalAccountManager {
                 email = normalizedEmail,
                 displayName = displayName.trim(),
                 passwordSalt = salt,
-                passwordHash = hash(password, salt)
-            )
+                passwordHash = hash(password, salt),
+            ),
         )
         prefs.edit().putString(KEY_USERS, gson.toJson(currentUsers)).apply()
         return true
@@ -101,7 +110,10 @@ object LocalAccountManager {
         return bytes.joinToString("") { "%02x".format(it) }
     }
 
-    private fun hash(password: String, salt: String): String =
+    private fun hash(
+        password: String,
+        salt: String,
+    ): String =
         MessageDigest.getInstance("SHA-256")
             .digest((salt + password).toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it) }

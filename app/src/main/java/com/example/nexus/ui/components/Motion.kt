@@ -12,15 +12,20 @@ import androidx.compose.runtime.remember
 object Motion {
     /** Forward screen enter (slide + fade). */
     const val screenEnterMs = 220
+
     /** Screen exit (keeps enter/exit asymmetrical but consistent). */
     const val screenExitMs = 180
+
     /** Lazy list item placement/reflow. */
     const val itemMs = 220
+
     /** Lazy list item fade in/out. */
     const val fadeMs = 150
+
     /** Checkbox completion bounce (90ms pop + 140ms settle). */
     const val bouncePopMs = 90
     const val bounceSettleMs = 140
+
     /** Task-created success checkmark. */
     const val successMs = 260
 }

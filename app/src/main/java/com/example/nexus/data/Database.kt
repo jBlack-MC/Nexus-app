@@ -34,7 +34,7 @@ data class ProjectEntity(
     val name: String,
     val description: String?,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
 )
 
 @Entity(tableName = "tasks")
@@ -51,7 +51,7 @@ data class TaskEntity(
     val labels: List<String>,
     val checklist: List<ChecklistItem>,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
 )
 
 /** One dashboard snapshot per account, keyed by the cache owner id. */
@@ -60,7 +60,7 @@ data class DashboardEntity(
     val userId: String,
     val projects: Int,
     val tasks: Int,
-    val activity: Int
+    val activity: Int,
 )
 
 @Entity(tableName = "habits")
@@ -72,7 +72,7 @@ data class HabitEntity(
     val frequency: HabitFrequency,
     val targetDays: List<Int>,
     val completedDates: List<String>,
-    val createdAt: String?
+    val createdAt: String?,
 )
 
 @Dao
@@ -84,7 +84,10 @@ interface ProjectDao {
     suspend fun getProjects(userId: String): List<ProjectEntity>
 
     @Query("SELECT * FROM projects WHERE userId = :userId AND id = :projectId")
-    suspend fun getProjectById(userId: String, projectId: String): ProjectEntity?
+    suspend fun getProjectById(
+        userId: String,
+        projectId: String,
+    ): ProjectEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProjects(projects: List<ProjectEntity>)
@@ -93,7 +96,10 @@ interface ProjectDao {
     suspend fun insertProject(project: ProjectEntity)
 
     @Query("DELETE FROM projects WHERE userId = :userId AND id = :projectId")
-    suspend fun deleteProjectById(userId: String, projectId: String)
+    suspend fun deleteProjectById(
+        userId: String,
+        projectId: String,
+    )
 
     @Query("DELETE FROM projects WHERE userId = :userId")
     suspend fun clearForUser(userId: String)
@@ -105,10 +111,16 @@ interface ProjectDao {
 @Dao
 interface TaskDao {
     @Query("SELECT * FROM tasks WHERE userId = :userId AND projectId = :projectId")
-    fun getTasksFlow(userId: String, projectId: String): Flow<List<TaskEntity>>
+    fun getTasksFlow(
+        userId: String,
+        projectId: String,
+    ): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE userId = :userId AND projectId = :projectId")
-    suspend fun getTasksByProjectId(userId: String, projectId: String): List<TaskEntity>
+    suspend fun getTasksByProjectId(
+        userId: String,
+        projectId: String,
+    ): List<TaskEntity>
 
     @Query("SELECT * FROM tasks WHERE userId = :userId")
     suspend fun getAllTasks(userId: String): List<TaskEntity>
@@ -120,10 +132,16 @@ interface TaskDao {
     suspend fun insertTask(task: TaskEntity)
 
     @Query("DELETE FROM tasks WHERE userId = :userId AND id = :taskId")
-    suspend fun deleteTaskById(userId: String, taskId: String)
+    suspend fun deleteTaskById(
+        userId: String,
+        taskId: String,
+    )
 
     @Query("DELETE FROM tasks WHERE userId = :userId AND projectId = :projectId")
-    suspend fun deleteTasksByProjectId(userId: String, projectId: String)
+    suspend fun deleteTasksByProjectId(
+        userId: String,
+        projectId: String,
+    )
 
     @Query("DELETE FROM tasks WHERE userId = :userId")
     suspend fun clearForUser(userId: String)
@@ -156,7 +174,10 @@ interface HabitDao {
     suspend fun insertHabit(habit: HabitEntity)
 
     @Query("DELETE FROM habits WHERE userId = :userId AND id = :habitId")
-    suspend fun deleteHabit(userId: String, habitId: String)
+    suspend fun deleteHabit(
+        userId: String,
+        habitId: String,
+    )
 
     @Query("DELETE FROM habits WHERE userId = :userId")
     suspend fun clearForUser(userId: String)
@@ -166,15 +187,20 @@ class TaskConverters {
     private val gson = Gson()
 
     @TypeConverter fun labelsToString(value: List<String>): String = gson.toJson(value)
-    @TypeConverter fun stringToLabels(value: String): List<String> =
-        gson.fromJson(value, object : TypeToken<List<String>>() {}.type) ?: emptyList()
+
+    @TypeConverter fun stringToLabels(value: String): List<String> = gson.fromJson(value, object : TypeToken<List<String>>() {}.type) ?: emptyList()
+
     @TypeConverter fun checklistToString(value: List<ChecklistItem>): String = gson.toJson(value)
+
     @TypeConverter fun stringToChecklist(value: String): List<ChecklistItem> =
         gson.fromJson(value, object : TypeToken<List<ChecklistItem>>() {}.type) ?: emptyList()
+
     @TypeConverter fun intListToString(value: List<Int>): String = gson.toJson(value)
-    @TypeConverter fun stringToIntList(value: String): List<Int> =
-        gson.fromJson(value, object : TypeToken<List<Int>>() {}.type) ?: emptyList()
+
+    @TypeConverter fun stringToIntList(value: String): List<Int> = gson.fromJson(value, object : TypeToken<List<Int>>() {}.type) ?: emptyList()
+
     @TypeConverter fun frequencyToString(value: HabitFrequency): String = value.name
+
     @TypeConverter fun stringToFrequency(value: String): HabitFrequency = HabitFrequency.valueOf(value)
 }
 
@@ -182,12 +208,15 @@ class TaskConverters {
 @Database(
     entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class, HabitEntity::class],
     version = 4,
-    exportSchema = false
+    exportSchema = false,
 )
 abstract class NexusDatabase : RoomDatabase() {
     abstract fun projectDao(): ProjectDao
+
     abstract fun taskDao(): TaskDao
+
     abstract fun dashboardDao(): DashboardDao
+
     abstract fun habitDao(): HabitDao
 
     companion object {
@@ -199,31 +228,32 @@ abstract class NexusDatabase : RoomDatabase() {
          * account's data. This database is a read-through cache of server data, so nothing that
          * exists only on the device is lost.
          */
-        val MIGRATION_3_4: Migration = object : Migration(3, 4) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("DELETE FROM projects")
-                db.execSQL("DELETE FROM tasks")
-                db.execSQL("DELETE FROM habits")
-                db.execSQL("DROP TABLE IF EXISTS dashboard")
+        val MIGRATION_3_4: Migration =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("DELETE FROM projects")
+                    db.execSQL("DELETE FROM tasks")
+                    db.execSQL("DELETE FROM habits")
+                    db.execSQL("DROP TABLE IF EXISTS dashboard")
 
-                // SQLite cannot add a NOT NULL column without a default, and Room ignores a
-                // database-side default when the entity declares none.
-                db.execSQL("ALTER TABLE projects ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
-                db.execSQL("ALTER TABLE tasks ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
-                db.execSQL("ALTER TABLE habits ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                    // SQLite cannot add a NOT NULL column without a default, and Room ignores a
+                    // database-side default when the entity declares none.
+                    db.execSQL("ALTER TABLE projects ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                    db.execSQL("ALTER TABLE tasks ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                    db.execSQL("ALTER TABLE habits ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
 
-                // The dashboard row is now keyed by account rather than a fixed id of 1, which
-                // changes the primary key and therefore requires a rebuild of the table.
-                db.execSQL(
-                    "CREATE TABLE IF NOT EXISTS `dashboard` (" +
-                        "`userId` TEXT NOT NULL, " +
-                        "`projects` INTEGER NOT NULL, " +
-                        "`tasks` INTEGER NOT NULL, " +
-                        "`activity` INTEGER NOT NULL, " +
-                        "PRIMARY KEY(`userId`))"
-                )
+                    // The dashboard row is now keyed by account rather than a fixed id of 1, which
+                    // changes the primary key and therefore requires a rebuild of the table.
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `dashboard` (" +
+                            "`userId` TEXT NOT NULL, " +
+                            "`projects` INTEGER NOT NULL, " +
+                            "`tasks` INTEGER NOT NULL, " +
+                            "`activity` INTEGER NOT NULL, " +
+                            "PRIMARY KEY(`userId`))",
+                    )
+                }
             }
-        }
 
         /** Every known migration. Add a new entry here for each future version bump. */
         private val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_3_4)
@@ -233,15 +263,16 @@ abstract class NexusDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): NexusDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    NexusDatabase::class.java,
-                    "nexus_database"
-                )
-                    // Deliberately no fallbackToDestructiveMigration(): a version bump without a
-                    // matching Migration must fail loudly instead of silently wiping the cache.
-                    .addMigrations(*MIGRATIONS)
-                    .build()
+                val instance =
+                    Room.databaseBuilder(
+                        context.applicationContext,
+                        NexusDatabase::class.java,
+                        "nexus_database",
+                    )
+                        // Deliberately no fallbackToDestructiveMigration(): a version bump without a
+                        // matching Migration must fail loudly instead of silently wiping the cache.
+                        .addMigrations(*MIGRATIONS)
+                        .build()
                 INSTANCE = instance
                 instance
             }

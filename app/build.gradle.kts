@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -22,7 +24,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         buildConfigField("String", "BASE_URL", "\"https://api.nexus-app.com/api/\"")
     }
 
@@ -35,7 +37,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -45,6 +47,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    kotlin {
+        jvmToolchain(17)
     }
     buildFeatures {
         compose = true
@@ -109,6 +114,10 @@ detekt {
     source.setFrom("src/main/java")
 }
 
+tasks.withType<Detekt>().configureEach {
+    jvmTarget = "17"
+}
+
 kover {
     reports {
         total {
@@ -121,4 +130,3 @@ kover {
         }
     }
 }
-

@@ -15,6 +15,7 @@ import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
 import com.example.nexus.data.ProjectRepository
 import com.example.nexus.data.TaskRepository
+import com.example.nexus.ui.tasks.TaskDraft
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ data class ProjectDetailUiState(
     val project: Project? = null,
     val tasks: List<Task> = emptyList(),
     val errorMessage: String? = null,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
 )
 
 class ProjectDetailViewModel(
@@ -32,12 +33,21 @@ class ProjectDetailViewModel(
     private val taskRepository: TaskRepository? = null,
     private val projectLoader: suspend (String) -> Project = { (projectRepository ?: NexusApp.projectRepository).getProject(it) },
     private val tasksLoader: suspend (String) -> List<Task> = { (taskRepository ?: NexusApp.taskRepository).getTasks(it) },
-    private val projectUpdater: suspend (String, UpdateProjectRequest) -> Project = { id, req -> (projectRepository ?: NexusApp.projectRepository).updateProject(id, req) },
+    private val projectUpdater: suspend (
+        String,
+        UpdateProjectRequest,
+    ) -> Project = { id, req -> (projectRepository ?: NexusApp.projectRepository).updateProject(id, req) },
     private val projectDeleter: suspend (String) -> Unit = { (projectRepository ?: NexusApp.projectRepository).deleteProject(it) },
-    private val taskCreator: suspend (String, CreateTaskRequest) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).createTask(id, req) },
-    private val taskUpdater: suspend (String, UpdateTaskRequest) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).updateTask(id, req) },
+    private val taskCreator: suspend (
+        String,
+        CreateTaskRequest,
+    ) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).createTask(id, req) },
+    private val taskUpdater: suspend (
+        String,
+        UpdateTaskRequest,
+    ) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).updateTask(id, req) },
     private val taskDeleter: suspend (String) -> Unit = { (taskRepository ?: NexusApp.taskRepository).deleteTask(it) },
-    private val clearSession: () -> Unit = { AuthSession.clearToken() }
+    private val clearSession: () -> Unit = { AuthSession.clearToken() },
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProjectDetailUiState(isLoading = true))
     val uiState: StateFlow<ProjectDetailUiState> = _uiState
@@ -75,14 +85,17 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun updateProject(name: String, description: String) {
+    fun updateProject(
+        name: String,
+        description: String,
+    ) {
         val id = projectId ?: return
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
                 projectUpdater(
                     id,
-                    UpdateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null })
+                    UpdateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null }),
                 )
             }.onSuccess { project ->
                 _uiState.value = _uiState.value.copy(isLoading = false, project = project)
@@ -92,15 +105,12 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun createTask(title: String, description: String) {
+    fun createTask(draft: TaskDraft) {
         val id = projectId ?: return
-        if (title.isBlank()) return
+        if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                taskCreator(
-                    id,
-                    CreateTaskRequest(title = title.trim(), description = description.trim().ifBlank { null })
-                )
+                taskCreator(id, draft.toCreateRequest())
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
@@ -109,28 +119,47 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun updateTask(task: Task, title: String, description: String, isCompleted: Boolean) {
+    fun createTask(
+        title: String,
+        description: String,
+    ) {
+        createTask(TaskDraft(title = title, description = description))
+    }
+
+    fun updateTask(
+        taskId: String,
+        draft: TaskDraft,
+    ) {
+        if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                taskUpdater(
-                    task.id,
-                    UpdateTaskRequest(
-                        title = title.trim(),
-                        description = description.trim().ifBlank { null },
-                        isCompleted = isCompleted,
-                        dueDate = task.dueDate,
-                        priority = task.priority,
-                        status = if (isCompleted) TaskStatus.DONE else TaskStatus.TODO,
-                        labels = task.labels,
-                        checklist = task.checklist
-                    )
-                )
+                taskUpdater(taskId, draft.toUpdateRequest())
             }.onSuccess {
                 refreshTasks()
             }.onFailure { error ->
                 handleError(error)
             }
         }
+    }
+
+    fun updateTask(
+        task: Task,
+        title: String,
+        description: String,
+        isCompleted: Boolean,
+    ) {
+        updateTask(
+            task.id,
+            TaskDraft(
+                title = title,
+                description = description,
+                status = if (isCompleted) TaskStatus.DONE else TaskStatus.TODO,
+                dueDate = task.dueDate,
+                priority = task.priority,
+                labels = task.labels,
+                checklist = task.checklist,
+            ),
+        )
     }
 
     fun deleteTask(taskId: String) {
@@ -158,14 +187,38 @@ class ProjectDetailViewModel(
         }
     }
 
+    private fun TaskDraft.toCreateRequest() =
+        CreateTaskRequest(
+            title = title.trim(),
+            description = description?.trim()?.ifBlank { null },
+            dueDate = dueDate,
+            priority = priority,
+            status = status,
+            labels = labels,
+            checklist = checklist,
+        )
+
+    private fun TaskDraft.toUpdateRequest() =
+        UpdateTaskRequest(
+            title = title.trim(),
+            description = description?.trim()?.ifBlank { null },
+            isCompleted = status == TaskStatus.DONE,
+            dueDate = dueDate,
+            priority = priority,
+            status = status,
+            labels = labels,
+            checklist = checklist,
+        )
+
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()
         if (apiError is ApiError.SessionExpired) {
             clearSession()
         }
-        _uiState.value = _uiState.value.copy(
-            isLoading = false,
-            errorMessage = apiError.toUserMessage()
-        )
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                errorMessage = apiError.toUserMessage(),
+            )
     }
 }

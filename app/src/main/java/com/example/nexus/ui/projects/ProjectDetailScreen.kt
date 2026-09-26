@@ -7,12 +7,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.nexus.ui.components.ErrorState
-import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.api.Task
+import com.example.nexus.api.TaskStatus
 import com.example.nexus.ui.components.DetailSkeleton
+import com.example.nexus.ui.components.ErrorState
+import com.example.nexus.ui.components.NexusDestructiveButton
+import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.NexusPrimaryButton
+import com.example.nexus.ui.components.NexusSecondaryButton
 import com.example.nexus.ui.settings.CompactLanguageMenu
+import com.example.nexus.ui.tasks.TaskDraft
+import com.example.nexus.ui.tasks.TaskEditorDialog
+import com.example.nexus.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +29,7 @@ fun ProjectDetailScreen(
     projectId: String,
     onBackToProjects: () -> Unit,
     onOpenTasks: (String) -> Unit,
-    viewModel: ProjectDetailViewModel = viewModel()
+    viewModel: ProjectDetailViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -38,46 +47,47 @@ fun ProjectDetailScreen(
     var projectName by remember(project?.id) { mutableStateOf(project?.name ?: "") }
     var projectDescription by remember(project?.id) { mutableStateOf(project?.description ?: "") }
 
-    var taskTitle by remember { mutableStateOf("") }
-    var taskDescription by remember { mutableStateOf("") }
-    var editingTaskId by remember { mutableStateOf<String?>(null) }
-    var editingTaskCompleted by remember { mutableStateOf(false) }
+    var showTaskEditor by remember { mutableStateOf(false) }
+    var editingTask by remember { mutableStateOf<Task?>(null) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    NexusLogo(iconSize = 32.dp, textSize = 22)
+                    NexusLogo(iconSize = Spacing.TopBarLogoSize, textSize = Spacing.TopBarLogoTextSize)
                 },
                 actions = {
                     Text(
                         "Details",
-                        modifier = Modifier.padding(end = 16.dp),
-                        style = MaterialTheme.typography.titleMedium
+                        modifier = Modifier.padding(end = Spacing.md),
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     CompactLanguageMenu()
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
         ) {
             if (uiState.isLoading && project == null) {
                 DetailSkeleton()
             } else if (!uiState.errorMessage.isNullOrBlank() && project == null) {
                 ErrorState(
                     message = uiState.errorMessage!!,
-                    onRetry = { viewModel.loadProject(projectId) }
+                    onRetry = { viewModel.loadProject(projectId) },
                 )
             } else {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .testTag("project_detail_content")
+                            .padding(Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                 ) {
                     if (project != null) {
                         OutlinedTextField(
@@ -85,109 +95,103 @@ fun ProjectDetailScreen(
                             onValueChange = { projectName = it },
                             label = { Text("Project name") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
                         )
                         OutlinedTextField(
                             value = projectDescription,
                             onValueChange = { projectDescription = it },
                             label = { Text("Description") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
                         )
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { viewModel.updateProject(projectName, projectDescription) }) {
-                                Text("Save Project")
-                            }
-                            Button(onClick = { onOpenTasks(project.id) }) {
-                                Text("Open Tasks Screen")
-                            }
-                            Button(onClick = { viewModel.deleteProject() }) {
-                                Text("Delete Project")
-                            }
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                            NexusPrimaryButton(
+                                text = "Save Project",
+                                onClick = { viewModel.updateProject(projectName, projectDescription) },
+                            )
+                            NexusSecondaryButton(
+                                text = "Open Tasks Screen",
+                                onClick = { onOpenTasks(project.id) },
+                            )
+                            NexusDestructiveButton(
+                                text = "Delete Project",
+                                onClick = { viewModel.deleteProject() },
+                            )
                         }
 
-                        Text("Tasks", style = MaterialTheme.typography.titleMedium)
-
-                        OutlinedTextField(
-                            value = taskTitle,
-                            onValueChange = { taskTitle = it },
-                            label = { Text("Task title") },
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-                        OutlinedTextField(
-                            value = taskDescription,
-                            onValueChange = { taskDescription = it },
-                            label = { Text("Task description") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = {
-                                val editingTask = uiState.tasks.firstOrNull { it.id == editingTaskId }
-                                if (editingTask != null) {
-                                    viewModel.updateTask(
-                                        task = editingTask,
-                                        title = taskTitle,
-                                        description = taskDescription,
-                                        isCompleted = editingTaskCompleted
-                                    )
-                                } else {
-                                    viewModel.createTask(taskTitle, taskDescription)
-                                }
-                                taskTitle = ""
-                                taskDescription = ""
-                                editingTaskId = null
-                                editingTaskCompleted = false
-                            }) {
-                                Text(if (editingTaskId == null) "Create Task" else "Save Task")
-                            }
-                            if (editingTaskId != null) {
-                                Button(onClick = {
-                                    taskTitle = ""
-                                    taskDescription = ""
-                                    editingTaskId = null
-                                    editingTaskCompleted = false
-                                }) {
-                                    Text("Cancel")
-                                }
-                            }
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("Tasks", style = MaterialTheme.typography.titleMedium)
+                            NexusPrimaryButton(
+                                text = "Add Task",
+                                onClick = {
+                                    editingTask = null
+                                    showTaskEditor = true
+                                },
+                            )
                         }
 
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(uiState.tasks, key = { it.id }) { task ->
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(text = task.title, style = MaterialTheme.typography.titleSmall)
-                                    Text(text = task.description ?: "No description")
-                                    Text(text = if (task.isCompleted) "Done" else "Open")
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Button(onClick = {
-                                            editingTaskId = task.id
-                                            taskTitle = task.title
-                                            taskDescription = task.description ?: ""
-                                            editingTaskCompleted = task.isCompleted
-                                        }) {
-                                            Text("Edit")
-                                        }
-                                        Button(onClick = {
-                                            viewModel.updateTask(
-                                                task = task,
-                                                title = task.title,
-                                                description = task.description ?: "",
-                                                isCompleted = !task.isCompleted
-                                            )
-                                        }) {
-                                            Text(if (task.isCompleted) "Mark Open" else "Complete")
-                                        }
-                                        Button(onClick = { viewModel.deleteTask(task.id) }) {
-                                            Text("Delete")
+                        if (uiState.tasks.isEmpty()) {
+                            Text(
+                                text = "No tasks in this project yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = Spacing.sm),
+                            )
+                        } else {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                modifier = Modifier.weight(1f, fill = false),
+                            ) {
+                                items(uiState.tasks, key = { it.id }) { task ->
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                                    ) {
+                                        Column(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(Spacing.sm),
+                                            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                        ) {
+                                            Text(text = task.title, style = MaterialTheme.typography.titleSmall)
+                                            Text(text = task.description ?: "No description")
+                                            Text(text = if (task.isCompleted) "Done" else "Open")
+                                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                                NexusSecondaryButton(
+                                                    text = "Edit",
+                                                    onClick = {
+                                                        editingTask = task
+                                                        showTaskEditor = true
+                                                    },
+                                                )
+                                                NexusPrimaryButton(
+                                                    text = if (task.isCompleted) "Mark Open" else "Complete",
+                                                    onClick = {
+                                                        viewModel.updateTask(
+                                                            task.id,
+                                                            TaskDraft(
+                                                                title = task.title,
+                                                                description = task.description,
+                                                                dueDate = task.dueDate,
+                                                                priority = task.priority,
+                                                                status = if (task.isCompleted) TaskStatus.TODO else TaskStatus.DONE,
+                                                                labels = task.labels,
+                                                                checklist = task.checklist,
+                                                            ),
+                                                        )
+                                                    },
+                                                )
+                                                NexusDestructiveButton(
+                                                    text = "Delete",
+                                                    onClick = { viewModel.deleteTask(task.id) },
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -195,26 +199,48 @@ fun ProjectDetailScreen(
                         }
                     }
 
-                    Button(onClick = onBackToProjects) {
-                        Text("Back")
-                    }
+                    NexusSecondaryButton(
+                        text = "Back",
+                        onClick = onBackToProjects,
+                    )
                 }
             }
 
             if (!uiState.errorMessage.isNullOrBlank() && project != null) {
                 Snackbar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.loadProject(projectId) }) {
                             Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
                         }
-                    }
+                    },
                 ) {
                     Text(uiState.errorMessage!!)
                 }
             }
+        }
+
+        if (showTaskEditor) {
+            val editing = editingTask
+            TaskEditorDialog(
+                task = editing,
+                onDismiss = {
+                    showTaskEditor = false
+                    editingTask = null
+                },
+                onSave = { draft ->
+                    if (editing == null) {
+                        viewModel.createTask(draft)
+                    } else {
+                        viewModel.updateTask(editing.id, draft)
+                    }
+                    showTaskEditor = false
+                    editingTask = null
+                },
+            )
         }
     }
 }

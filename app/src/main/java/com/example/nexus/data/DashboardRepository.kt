@@ -6,7 +6,7 @@ import com.example.nexus.api.DashboardData
 open class DashboardRepository(
     private val database: NexusDatabase? = null,
     private val apiService: ApiService? = null,
-    private val cacheOwner: () -> String? = { null }
+    private val cacheOwner: () -> String? = { null },
 ) {
     private fun owner(): String? = cacheOwner()?.takeIf { it.isNotBlank() }
 
@@ -26,8 +26,8 @@ open class DashboardRepository(
                     userId = userId,
                     projects = networkData.projects,
                     tasks = networkData.tasks,
-                    activity = networkData.activity
-                )
+                    activity = networkData.activity,
+                ),
             )
             networkData
         } catch (e: Exception) {
