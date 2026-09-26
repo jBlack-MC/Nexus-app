@@ -40,11 +40,12 @@ class OfflineInterceptor : Interceptor {
             url.contains("auth/register") && method == "POST" -> {
                 val regRequest = parseRequestBody<RegisterRequest>(request)
                 if (regRequest != null) {
-                    val success = LocalAccountManager.register(
-                        email = regRequest.email,
-                        displayName = regRequest.displayName,
-                        password = regRequest.password
-                    )
+                    val success =
+                        LocalAccountManager.register(
+                            email = regRequest.email,
+                            displayName = regRequest.displayName,
+                            password = regRequest.password,
+                        )
                     if (success) {
                         successResponse(request, AuthResponse(token = "offline_token_${regRequest.email}"))
                     } else {
@@ -60,10 +61,13 @@ class OfflineInterceptor : Interceptor {
                 val authHeader = request.header("Authorization")
                 val email = authHeader?.substringAfter("offline_token_") ?: "unknown@nexus-app.com"
                 val user = LocalAccountManager.getUserByEmail(email)
-                successResponse(request, UserProfile(
-                    email = user?.email ?: email,
-                    displayName = user?.displayName ?: "Offline User"
-                ))
+                successResponse(
+                    request,
+                    UserProfile(
+                        email = user?.email ?: email,
+                        displayName = user?.displayName ?: "Offline User",
+                    ),
+                )
             }
             // Dashboard, project, task and habit reads are deliberately NOT faked. A fabricated
             // payload is returned as a successful HTTP response, so the repository would cache it -
@@ -89,7 +93,10 @@ class OfflineInterceptor : Interceptor {
         }
     }
 
-    private fun successResponse(request: Request, data: Any): Response {
+    private fun successResponse(
+        request: Request,
+        data: Any,
+    ): Response {
         val json = gson.toJson(data)
         return Response.Builder()
             .request(request)
@@ -100,7 +107,11 @@ class OfflineInterceptor : Interceptor {
             .build()
     }
 
-    private fun errorResponse(request: Request, code: Int, message: String): Response {
+    private fun errorResponse(
+        request: Request,
+        code: Int,
+        message: String,
+    ): Response {
         return Response.Builder()
             .request(request)
             .protocol(Protocol.HTTP_1_1)

@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.nexus.auth.AuthSession
@@ -18,7 +19,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class SplashIntroScreenTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -86,6 +86,43 @@ class SplashIntroScreenTest {
             // the Retry button uniquely identifies that the DashboardScreen was successfully navigated to.
             composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
         }
+    }
+
+    @Test
+    fun testLogoutRequiresConfirmationOnDashboard() {
+        AuthSession.saveToken("mocked_authenticated_jwt_token")
+
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            NexusNavHost()
+        }
+
+        composeTestRule.mainClock.advanceTimeBy(4000L)
+        composeTestRule.mainClock.autoAdvance = true
+
+        // Tap Log Out button on Dashboard
+        composeTestRule.onNodeWithText("Log Out").performClick()
+
+        // Verify confirmation dialog appears
+        composeTestRule.onNodeWithText("Log out?").assertIsDisplayed()
+        composeTestRule.onNodeWithText("You'll need to sign in again to continue.").assertIsDisplayed()
+
+        // Click Cancel inside dialog
+        composeTestRule.onNodeWithText("Cancel").performClick()
+
+        // Dialog should be dismissed, user remains on Dashboard
+        composeTestRule.onNodeWithText("Log out?").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Log Out").assertIsDisplayed()
+
+        // Tap Log Out button again
+        composeTestRule.onNodeWithText("Log Out").performClick()
+
+        // Confirm logout inside dialog
+        composeTestRule.onNodeWithText("Log out").performClick()
+
+        // User should now be logged out and navigated to LoginScreen
+        composeTestRule.onNodeWithText("Welcome Back").assertIsDisplayed()
     }
 
     @Test

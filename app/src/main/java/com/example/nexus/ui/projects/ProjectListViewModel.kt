@@ -10,6 +10,7 @@ import com.example.nexus.api.UpdateProjectRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
+import com.example.nexus.data.ProjectRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,15 +18,21 @@ import kotlinx.coroutines.launch
 data class ProjectListUiState(
     val isLoading: Boolean = false,
     val projects: List<Project> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )
 
 class ProjectListViewModel(
-    private val projectsLoader: suspend () -> List<Project> = { NexusApp.repository.getProjects() },
-    private val projectCreator: suspend (CreateProjectRequest) -> Project = { NexusApp.repository.createProject(it) },
-    private val projectUpdater: suspend (String, UpdateProjectRequest) -> Project = { id, request -> NexusApp.repository.updateProject(id, request) },
-    private val projectDeleter: suspend (String) -> Unit = { NexusApp.repository.deleteProject(it) },
-    private val clearSession: () -> Unit = { AuthSession.clearToken() }
+    private val projectRepository: ProjectRepository? = null,
+    private val projectsLoader: suspend () -> List<Project> = { (projectRepository ?: NexusApp.projectRepository).getProjects() },
+    private val projectCreator: suspend (
+        CreateProjectRequest,
+    ) -> Project = { (projectRepository ?: NexusApp.projectRepository).createProject(it) },
+    private val projectUpdater: suspend (
+        String,
+        UpdateProjectRequest,
+    ) -> Project = { id, request -> (projectRepository ?: NexusApp.projectRepository).updateProject(id, request) },
+    private val projectDeleter: suspend (String) -> Unit = { id -> (projectRepository ?: NexusApp.projectRepository).deleteProject(id) },
+    private val clearSession: () -> Unit = { AuthSession.clearToken() },
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProjectListUiState(isLoading = true))
     val uiState: StateFlow<ProjectListUiState> = _uiState
@@ -47,12 +54,15 @@ class ProjectListViewModel(
         }
     }
 
-    fun createProject(name: String, description: String) {
+    fun createProject(
+        name: String,
+        description: String,
+    ) {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching {
                 projectCreator(
-                    CreateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null })
+                    CreateProjectRequest(name = name.trim(), description = description.trim().ifBlank { null }),
                 )
             }.onSuccess {
                 loadProjects()
@@ -74,7 +84,11 @@ class ProjectListViewModel(
         }
     }
 
-    fun updateProject(projectId: String, name: String, description: String) {
+    fun updateProject(
+        projectId: String,
+        name: String,
+        description: String,
+    ) {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching { projectUpdater(projectId, UpdateProjectRequest(name.trim(), description.trim().ifBlank { null })) }
@@ -88,9 +102,10 @@ class ProjectListViewModel(
         if (apiError is ApiError.SessionExpired) {
             clearSession()
         }
-        _uiState.value = _uiState.value.copy(
-            isLoading = false,
-            errorMessage = apiError.toUserMessage()
-        )
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                errorMessage = apiError.toUserMessage(),
+            )
     }
 }

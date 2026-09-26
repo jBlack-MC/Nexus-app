@@ -13,6 +13,7 @@ import com.example.nexus.api.UpdateTaskRequest
 import com.example.nexus.api.toApiError
 import com.example.nexus.api.toUserMessage
 import com.example.nexus.auth.AuthSession
+import com.example.nexus.data.TaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,13 +21,9 @@ import kotlinx.coroutines.launch
 data class TaskListUiState(
     val isLoading: Boolean = false,
     val tasks: List<Task> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )
 
-/**
- * The editable fields of a task. Kept separate from [Task] so the editor never has to invent
- * server-owned values such as the id, the project id or the timestamps.
- */
 data class TaskDraft(
     val title: String,
     val description: String? = null,
@@ -34,10 +31,23 @@ data class TaskDraft(
     val priority: TaskPriority = TaskPriority.NONE,
     val status: TaskStatus = TaskStatus.TODO,
     val labels: List<String> = emptyList(),
-    val checklist: List<ChecklistItem> = emptyList()
+    val checklist: List<ChecklistItem> = emptyList(),
 )
 
-class TaskListViewModel : ViewModel() {
+class TaskListViewModel(
+    private val taskRepository: TaskRepository? = null,
+    private val tasksLoader: suspend (String) -> List<Task> = { (taskRepository ?: NexusApp.taskRepository).getTasks(it) },
+    private val taskCreator: suspend (
+        String,
+        CreateTaskRequest,
+    ) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).createTask(id, req) },
+    private val taskUpdater: suspend (
+        String,
+        UpdateTaskRequest,
+    ) -> Task = { id, req -> (taskRepository ?: NexusApp.taskRepository).updateTask(id, req) },
+    private val taskDeleter: suspend (String) -> Unit = { id -> (taskRepository ?: NexusApp.taskRepository).deleteTask(id) },
+    private val clearSession: () -> Unit = { AuthSession.clearToken() },
+) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskListUiState(isLoading = true))
     val uiState: StateFlow<TaskListUiState> = _uiState
 
@@ -48,7 +58,7 @@ class TaskListViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                NexusApp.repository.getTasks(projectId)
+                tasksLoader(projectId)
             }.onSuccess { tasks ->
                 _uiState.value = TaskListUiState(tasks = tasks)
             }.onFailure { error ->
@@ -62,7 +72,7 @@ class TaskListViewModel : ViewModel() {
         if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.createTask(id, draft.toCreateRequest())
+                taskCreator(id, draft.toCreateRequest())
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
@@ -71,12 +81,15 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    fun updateTask(taskId: String, draft: TaskDraft) {
+    fun updateTask(
+        taskId: String,
+        draft: TaskDraft,
+    ) {
         val id = projectId ?: return
         if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.updateTask(taskId, draft.toUpdateRequest())
+                taskUpdater(taskId, draft.toUpdateRequest())
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
@@ -85,22 +98,19 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Flips completion using the same convention as the editor: a task is DONE only while it is
-     * completed, and returns to TODO when it is reopened. Every other field is preserved.
-     */
     fun toggleCompleted(task: Task) {
         updateTask(
             taskId = task.id,
-            draft = TaskDraft(
-                title = task.title,
-                description = task.description,
-                dueDate = task.dueDate,
-                priority = task.priority,
-                status = if (task.isCompleted) TaskStatus.TODO else TaskStatus.DONE,
-                labels = task.labels,
-                checklist = task.checklist
-            )
+            draft =
+                TaskDraft(
+                    title = task.title,
+                    description = task.description,
+                    dueDate = task.dueDate,
+                    priority = task.priority,
+                    status = if (task.isCompleted) TaskStatus.TODO else TaskStatus.DONE,
+                    labels = task.labels,
+                    checklist = task.checklist,
+                ),
         )
     }
 
@@ -108,7 +118,7 @@ class TaskListViewModel : ViewModel() {
         val id = projectId ?: return
         viewModelScope.launch {
             runCatching {
-                NexusApp.repository.deleteTask(taskId)
+                taskDeleter(taskId)
             }.onSuccess {
                 loadTasks(id)
             }.onFailure { error ->
@@ -117,36 +127,38 @@ class TaskListViewModel : ViewModel() {
         }
     }
 
-    private fun TaskDraft.toCreateRequest() = CreateTaskRequest(
-        title = title.trim(),
-        description = description?.trim()?.ifBlank { null },
-        dueDate = dueDate,
-        priority = priority,
-        status = status,
-        labels = labels,
-        checklist = checklist
-    )
+    private fun TaskDraft.toCreateRequest() =
+        CreateTaskRequest(
+            title = title.trim(),
+            description = description?.trim()?.ifBlank { null },
+            dueDate = dueDate,
+            priority = priority,
+            status = status,
+            labels = labels,
+            checklist = checklist,
+        )
 
-    private fun TaskDraft.toUpdateRequest() = UpdateTaskRequest(
-        title = title.trim(),
-        description = description?.trim()?.ifBlank { null },
-        // Completion and status are two views of the same fact, so they are kept in step.
-        isCompleted = status == TaskStatus.DONE,
-        dueDate = dueDate,
-        priority = priority,
-        status = status,
-        labels = labels,
-        checklist = checklist
-    )
+    private fun TaskDraft.toUpdateRequest() =
+        UpdateTaskRequest(
+            title = title.trim(),
+            description = description?.trim()?.ifBlank { null },
+            isCompleted = status == TaskStatus.DONE,
+            dueDate = dueDate,
+            priority = priority,
+            status = status,
+            labels = labels,
+            checklist = checklist,
+        )
 
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()
         if (apiError is ApiError.SessionExpired) {
-            AuthSession.clearToken()
+            clearSession()
         }
-        _uiState.value = _uiState.value.copy(
-            isLoading = false,
-            errorMessage = apiError.toUserMessage()
-        )
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                errorMessage = apiError.toUserMessage(),
+            )
     }
 }

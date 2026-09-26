@@ -25,8 +25,13 @@ object SettingsSession {
     private val _languageSyncPending = MutableStateFlow(false)
     val languageSyncPending: StateFlow<Boolean> = _languageSyncPending.asStateFlow()
 
-    fun markLanguageSyncPending() { _languageSyncPending.value = true }
-    fun clearLanguageSyncPending() { _languageSyncPending.value = false }
+    fun markLanguageSyncPending() {
+        _languageSyncPending.value = true
+    }
+
+    fun clearLanguageSyncPending() {
+        _languageSyncPending.value = false
+    }
 
     fun initialize(settingsStore: SettingsStore) {
         store = settingsStore

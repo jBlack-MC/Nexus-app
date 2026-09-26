@@ -5,17 +5,17 @@ data class Project(
     val name: String,
     val description: String? = null,
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
 )
 
 data class CreateProjectRequest(
     val name: String,
-    val description: String? = null
+    val description: String? = null,
 )
 
 data class UpdateProjectRequest(
     val name: String,
-    val description: String? = null
+    val description: String? = null,
 )
 
 data class Task(
@@ -31,16 +31,17 @@ data class Task(
     val labels: List<String> = emptyList(),
     val checklist: List<ChecklistItem> = emptyList(),
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
 )
 
 enum class TaskPriority { NONE, LOW, MEDIUM, HIGH }
+
 enum class TaskStatus { TODO, IN_PROGRESS, DONE }
 
 data class ChecklistItem(
     val id: String,
     val title: String,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = false,
 )
 
 data class CreateTaskRequest(
@@ -50,7 +51,7 @@ data class CreateTaskRequest(
     val priority: TaskPriority = TaskPriority.NONE,
     val status: TaskStatus = TaskStatus.TODO,
     val labels: List<String> = emptyList(),
-    val checklist: List<ChecklistItem> = emptyList()
+    val checklist: List<ChecklistItem> = emptyList(),
 )
 
 data class UpdateTaskRequest(
@@ -61,6 +62,5 @@ data class UpdateTaskRequest(
     val priority: TaskPriority = TaskPriority.NONE,
     val status: TaskStatus = TaskStatus.TODO,
     val labels: List<String> = emptyList(),
-    val checklist: List<ChecklistItem> = emptyList()
+    val checklist: List<ChecklistItem> = emptyList(),
 )
-

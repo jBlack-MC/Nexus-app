@@ -15,7 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,14 +31,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nexus.api.Task
-import com.example.nexus.ui.CompactLanguageMenu
 import com.example.nexus.ui.components.DetailSkeleton
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
+import com.example.nexus.ui.components.NexusPrimaryButton
+import com.example.nexus.ui.settings.CompactLanguageMenu
+import com.example.nexus.ui.theme.Spacing
 
 /**
  * Task detail destination for the `task/{projectId}/{taskId}` route.
@@ -54,7 +56,7 @@ fun TaskDetailScreen(
     projectId: String,
     taskId: String,
     onBack: () -> Unit,
-    viewModel: TaskListViewModel = viewModel()
+    viewModel: TaskListViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showEditor by remember { mutableStateOf(false) }
@@ -74,26 +76,29 @@ fun TaskDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = { CompactLanguageMenu() }
+                actions = { CompactLanguageMenu() },
             )
-        }
+        },
     ) { paddingValues ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
         ) {
             when {
                 task == null && uiState.isLoading -> DetailSkeleton()
-                task == null && !uiState.errorMessage.isNullOrBlank() -> ErrorState(
-                    message = uiState.errorMessage!!,
-                    onRetry = { viewModel.loadTasks(projectId) }
-                )
-                task == null -> EmptyState(
-                    message = "This task no longer exists.",
-                    onAction = onBack,
-                    actionLabel = "Go back"
-                )
+                task == null && !uiState.errorMessage.isNullOrBlank() ->
+                    ErrorState(
+                        message = uiState.errorMessage!!,
+                        onRetry = { viewModel.loadTasks(projectId) },
+                    )
+                task == null ->
+                    EmptyState(
+                        message = "This task no longer exists.",
+                        onAction = onBack,
+                        actionLabel = "Go back",
+                    )
                 else -> TaskDetailContent(task = task, onEdit = { showEditor = true })
             }
         }
@@ -106,7 +111,7 @@ fun TaskDetailScreen(
             onSave = { draft ->
                 viewModel.updateTask(task.id, draft)
                 showEditor = false
-            }
+            },
         )
     }
 }
@@ -114,15 +119,17 @@ fun TaskDetailScreen(
 @Composable
 private fun TaskDetailContent(
     task: Task,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
 ) {
     val overdue = isTaskOverdue(task.dueDate, task.isCompleted)
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .testTag("task_detail_content")
+                .verticalScroll(rememberScrollState())
+                .padding(Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         Text(text = task.title, style = MaterialTheme.typography.headlineSmall)
 
@@ -131,21 +138,22 @@ private fun TaskDetailContent(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             MetaChip(
-                text = when {
-                    task.dueDate == null -> "No due date"
-                    overdue -> "Overdue \u00b7 due ${task.dueDate}"
-                    else -> "Due ${task.dueDate}"
-                },
-                emphasized = overdue
+                text =
+                    when {
+                        task.dueDate == null -> "No due date"
+                        overdue -> "Overdue \u00b7 due ${task.dueDate}"
+                        else -> "Due ${task.dueDate}"
+                    },
+                emphasized = overdue,
             )
             MetaChip(text = "Priority \u00b7 ${task.priority.displayName()}")
             MetaChip(text = "Status \u00b7 ${task.status.displayName()}")
@@ -155,7 +163,7 @@ private fun TaskDetailContent(
             Text("Labels", style = MaterialTheme.typography.titleMedium)
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
             ) {
                 task.labels.forEach { label -> MetaChip(text = label) }
             }
@@ -171,34 +179,40 @@ private fun TaskDetailContent(
             }
         }
 
-        Button(onClick = onEdit) {
-            Icon(Icons.Default.Edit, contentDescription = null)
-            Text("Edit task")
-        }
+        NexusPrimaryButton(
+            text = "Edit task",
+            icon = Icons.Default.Edit,
+            onClick = onEdit,
+        )
     }
 }
 
 @Composable
-private fun MetaChip(text: String, emphasized: Boolean = false) {
+private fun MetaChip(
+    text: String,
+    emphasized: Boolean = false,
+) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = if (emphasized) {
-            MaterialTheme.colorScheme.errorContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        }
+        color =
+            if (emphasized) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = Spacing.mdCompact, vertical = Spacing.smCompact),
             style = MaterialTheme.typography.labelMedium,
-            color = if (emphasized) {
-                MaterialTheme.colorScheme.onErrorContainer
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
+            color =
+                if (emphasized) {
+                    MaterialTheme.colorScheme.onErrorContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

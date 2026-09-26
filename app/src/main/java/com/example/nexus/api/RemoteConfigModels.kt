@@ -7,17 +7,17 @@ data class AppConfig(
     val maintenanceMessage: String = "",
     val registrationEnabled: Boolean = true,
     val featureFlags: Map<String, Boolean> = emptyMap(),
-    val announcements: List<Announcement> = emptyList()
+    val announcements: List<Announcement> = emptyList(),
 )
 
 data class Announcement(
     val id: String,
     val title: String,
     val message: String,
-    val date: String
+    val date: String,
 )
 
 data class LocalizationBundle(
     val language: String,
-    val strings: Map<String, String> = emptyMap()
+    val strings: Map<String, String> = emptyMap(),
 )

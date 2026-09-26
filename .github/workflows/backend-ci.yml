@@ -1,0 +1,78 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, master, 'release/**']
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-ci:
+    name: Backend Test, Docker Build & Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run backend unit and integration tests
+        run: npm test
+        working-directory: backend
+        env:
+          JWT_SECRET: "this-is-a-very-secure-test-jwt-secret-of-at-least-32-characters"
+
+      - name: Build Docker image
+        run: docker build -t nexus-backend:latest ./backend
+
+      - name: Run Docker container for smoke test
+        run: |
+          docker run -d \
+            --name nexus-backend-test \
+            -p 5263:5263 \
+            -e JWT_SECRET="this-is-a-very-secure-test-jwt-secret-of-at-least-32-characters" \
+            -e NODE_ENV=production \
+            nexus-backend:latest
+
+      - name: Wait for container and perform smoke test on /health
+        run: |
+          echo "Waiting for container to start..."
+          sleep 3
+          
+          echo "Testing /health endpoint..."
+          response=$(curl --write-out "%{http_code}" --silent --output /dev/null http://localhost:5263/health)
+          echo "HTTP Status: $response"
+          
+          if [ "$response" -eq 200 ]; then
+            echo "Health check passed!"
+          else
+            echo "Health check failed with status $response"
+            docker logs nexus-backend-test
+            exit 1
+          fi
+
+      - name: Clean up container
+        if: always()
+        run: docker rm -f nexus-backend-test || true
+    

@@ -62,13 +62,15 @@ object AuthSession {
         }
         // Server JWTs carry a stable account id in the "sub" claim. The signature is intentionally
         // not verified here: this value only scopes a local cache and is never trusted as auth.
-        val subject = runCatching {
-            val payload = token.split('.').getOrNull(1) ?: return@runCatching null
-            val json = String(
-                Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-            )
-            JsonParser.parseString(json).asJsonObject.get("sub")?.asString
-        }.getOrNull()
+        val subject =
+            runCatching {
+                val payload = token.split('.').getOrNull(1) ?: return@runCatching null
+                val json =
+                    String(
+                        Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING),
+                    )
+                JsonParser.parseString(json).asJsonObject.get("sub")?.asString
+            }.getOrNull()
         return subject?.takeIf { it.isNotBlank() } ?: token.hashCode().toString()
     }
 }

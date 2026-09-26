@@ -2,7 +2,7 @@ package com.example.nexus.ui.projects
 
 import android.os.Looper
 import com.example.nexus.api.Project
-import java.io.IOException
+import com.example.nexus.fakes.FakeProjectRepository
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -15,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProjectListViewModelTest {
@@ -34,33 +35,39 @@ class ProjectListViewModelTest {
         unmockkAll()
     }
 
-    @Test fun successfulLoad_exposesProjects() = runTest(scheduler) {
-        val project = Project(id = "project-1", name = "PoE")
-        val viewModel = ProjectListViewModel(projectsLoader = { listOf(project) })
+    @Test fun successfulLoad_exposesProjects() =
+        runTest(scheduler) {
+            val project = Project(id = "project-1", name = "PoE")
+            val fakeProjectRepo = FakeProjectRepository(initialProjects = listOf(project))
+            val viewModel = ProjectListViewModel(projectRepository = fakeProjectRepo)
 
-        advanceUntilIdle()
+            advanceUntilIdle()
 
-        assertEquals(listOf(project), viewModel.uiState.value.projects)
-        assertTrue(!viewModel.uiState.value.isLoading)
-    }
+            assertEquals(listOf(project), viewModel.uiState.value.projects)
+            assertTrue(!viewModel.uiState.value.isLoading)
+        }
 
-    @Test fun emptyLoad_exposesEmptyProjectList() = runTest(scheduler) {
-        val viewModel = ProjectListViewModel(projectsLoader = { emptyList() })
+    @Test fun emptyLoad_exposesEmptyProjectList() =
+        runTest(scheduler) {
+            val fakeProjectRepo = FakeProjectRepository(initialProjects = emptyList())
+            val viewModel = ProjectListViewModel(projectRepository = fakeProjectRepo)
 
-        advanceUntilIdle()
+            advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.projects.isEmpty())
-        assertEquals(null, viewModel.uiState.value.errorMessage)
-    }
+            assertTrue(viewModel.uiState.value.projects.isEmpty())
+            assertEquals(null, viewModel.uiState.value.errorMessage)
+        }
 
-    @Test fun failedLoad_exposesFriendlyError() = runTest(scheduler) {
-        val viewModel = ProjectListViewModel(projectsLoader = { throw IOException("offline") })
+    @Test fun failedLoad_exposesFriendlyError() =
+        runTest(scheduler) {
+            val fakeProjectRepo = FakeProjectRepository(projectsError = IOException("offline"))
+            val viewModel = ProjectListViewModel(projectRepository = fakeProjectRepo)
 
-        advanceUntilIdle()
+            advanceUntilIdle()
 
-        assertEquals(
-            "No internet connection. Check your network and try again.",
-            viewModel.uiState.value.errorMessage
-        )
-    }
+            assertEquals(
+                "No internet connection. Check your network and try again.",
+                viewModel.uiState.value.errorMessage,
+            )
+        }
 }
