@@ -9,8 +9,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -28,12 +30,10 @@ import com.example.nexus.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProjectListScreen(
-    onBackToDashboard: () -> Unit,
-    onOpenProject: (String) -> Unit,
-    viewModel: ProjectListViewModel = viewModel(),
-) {
+fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> Unit, viewModel: ProjectListViewModel = viewModel(),) {
     val uiState by viewModel.uiState.collectAsState()
+    var query by rememberSaveable { mutableStateOf("") }
+    val visibleProjects = uiState.projects.filter { it.name.contains(query, true) || it.description.orEmpty().contains(query, true) }
     var showCreateDialog by remember { mutableStateOf(false) }
     var editingProject by remember { mutableStateOf<Project?>(null) }
 
@@ -69,9 +69,9 @@ fun ProjectListScreen(
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
             if (uiState.isLoading && uiState.projects.isEmpty()) {
                 Box(modifier = Modifier.testTag("project_list_skeleton")) {
@@ -93,10 +93,22 @@ fun ProjectListScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(Spacing.md),
+                            contentPadding = PaddingValues(start = Spacing.md, end = Spacing.md, top = Spacing.md, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(Spacing.smd),
                         ) {
-                            items(uiState.projects, key = { it.id }) { project ->
+                            item {
+                                Text("Your workspace", style = MaterialTheme.typography.headlineMedium)
+                                Text("${uiState.projects.size} projects ? one clear next step", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            item {
+                                OutlinedTextField(value = query, onValueChange = {
+                                    query = it
+                                }, label = {
+                                    Text("Search projects")
+                                }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            }
+                            if (visibleProjects.isEmpty()) item { Text("No projects match your search.") }
+                            items(visibleProjects, key = { it.id }) { project ->
                                 ProjectItem(
                                     project = project,
                                     onClick = { onOpenProject(project.id) },
@@ -112,9 +124,9 @@ fun ProjectListScreen(
             if (!uiState.errorMessage.isNullOrBlank() && uiState.projects.isNotEmpty()) {
                 Snackbar(
                     modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(Spacing.md),
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.loadProjects() }) {
                             Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
@@ -149,24 +161,19 @@ fun ProjectListScreen(
 }
 
 @Composable
-fun ProjectItem(
-    project: Project,
-    onClick: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-) {
+fun ProjectItem(project: Project, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit,) {
     Card(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick),
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier =
-                Modifier
-                    .padding(Spacing.md)
-                    .fillMaxWidth(),
+            Modifier
+                .padding(Spacing.md)
+                .fillMaxWidth(),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -175,6 +182,9 @@ fun ProjectItem(
             ) {
                 Text(
                     text = project.name,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )

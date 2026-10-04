@@ -13,7 +13,7 @@ object RetrofitClient {
 
     private val logging =
         HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
         }
 
     private val authInterceptor =
@@ -32,7 +32,8 @@ object RetrofitClient {
     private val httpClient =
         OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
-            .addInterceptor(OfflineInterceptor())
+            .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+            .callTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
             .addInterceptor(logging)
             .build()
 

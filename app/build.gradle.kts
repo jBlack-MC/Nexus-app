@@ -12,6 +12,13 @@ plugins {
     id("org.jetbrains.kotlinx.kover")
 }
 
+val nexusApiUrl = providers.gradleProperty("NEXUS_API_URL")
+    .orElse(providers.environmentVariable("NEXUS_API_URL"))
+    .getOrElse("http://10.0.2.2:5263/api/")
+require(nexusApiUrl.matches(Regex("https?://[A-Za-z0-9.:-]+(/[A-Za-z0-9._~/-]*)?/"))) {
+    "NEXUS_API_URL must be an HTTP(S) base URL ending with /"
+}
+
 android {
     namespace = "com.example.nexus"
     compileSdk = 37
@@ -25,12 +32,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"https://api.nexus-app.com/api/\"")
+        buildConfigField("String", "BASE_URL", "\"$nexusApiUrl\"")
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:5263/api/\"")
+            buildConfigField("String", "BASE_URL", "\"$nexusApiUrl\"")
         }
         release {
             isMinifyEnabled = true
@@ -127,6 +134,15 @@ kover {
             html {
                 onCheck = true
             }
+        }
+    }
+}
+
+// Never produce a release that silently points at an emulator or an invented host.
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    doFirst {
+        require(nexusApiUrl.startsWith("https://")) {
+            "Release builds require -PNEXUS_API_URL=https://your-host/api/"
         }
     }
 }

@@ -1,30 +1,10 @@
-# Multi-stage build for Node.js Express backend
-FROM node:20-alpine AS builder
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-
-FROM node:20-alpine AS production
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY --from=builder /usr/src/app/server.js ./
-
-# Ensure data file placeholder exists for volume mounting
-RUN touch nexus-data.json
-
+FROM node:22-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && mkdir /data && chown node:node /data
+COPY server.js ./
+ENV NODE_ENV=production PORT=5263 DATABASE_PATH=/data/nexus-data.json
 USER node
-
 EXPOSE 5263
-
-ENV PORT=5263
-ENV NODE_ENV=production
-
+HEALTHCHECK --interval=30s --timeout=5s CMD node -e "fetch('http://127.0.0.1:5263/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "server.js"]

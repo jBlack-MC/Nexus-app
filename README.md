@@ -25,6 +25,14 @@
   </a>
 </p>
 
+
+## Online/offline update
+
+Project, task and habit changes now save locally before uploading to the included API. This update adds persistent sync status, retry and conflict controls, shared navigation, project search, task status/priority/label filtering, and keyboard-friendly sign-in screens. Resource-backed copy follows the selected English, isiZulu or Setswana language.
+
+See [Online/offline setup](docs/ONLINE_OFFLINE.md) for emulator, phone and HTTPS deployment instructions, sync behavior and a verification checklist. Public deployment still needs a hosted API URL; the former production hostname was not a configured service.
+
+
 ---
 
 ## 🏷️ Topic Tags

@@ -368,6 +368,58 @@ app.get("/api/dashboard", withAuthAndDb((req, res) => {
   res.json({ projects: userProjects.length, tasks: userTasks.length, activity: userTasks.filter((task) => task.isCompleted).length });
 }));
 
+// Durable, account-scoped operation receipts make retries safe after a lost response.
+const syncSchema = z.object({
+  operationId: z.string().uuid(),
+  resource: z.enum(["projects", "tasks", "habits"]),
+  entityId: z.string().uuid(),
+  action: z.enum(["create", "update", "delete"]),
+  payload: z.record(z.unknown())
+}).strict();
+
+app.post("/api/sync", validate(syncSchema), withAuthAndDb(async (req, res, next) => {
+  const { operationId, resource, entityId, action, payload } = req.body;
+  const receipts = req.user.syncOperations || [];
+  if (receipts.includes(operationId)) return res.status(204).end();
+  const store = { projects, tasks, habits }[resource];
+  const previous = store.get(req.user.id) || [];
+  const index = previous.findIndex(item => item.id === entityId);
+  let nextRows = [...previous];
+  if (action === "delete") {
+    nextRows = nextRows.filter(item => item.id !== entityId);
+  } else {
+    const schema = { projects: projectSchema, tasks: taskSchema.extend({ projectId: z.string().uuid() }), habits: habitSchema }[resource];
+    const parsed = schema.safeParse(payload);
+    if (!parsed.success) return next(new AppError("Invalid sync payload", 400, "VALIDATION_ERROR"));
+    if (action === "update" && index < 0) return next(new AppError("Item was deleted on another device", 409, "SYNC_CONFLICT"));
+    if (action === "create" && index >= 0) return next(new AppError("Item already exists", 409, "SYNC_CONFLICT"));
+    if (resource === "tasks" && !(projects.get(req.user.id) || []).some(p => p.id === parsed.data.projectId)) {
+      return next(new AppError("Project no longer exists", 409, "SYNC_CONFLICT"));
+    }
+    const now = new Date().toISOString();
+    const defaults = resource === "tasks" ? { priority: "NONE", status: "TODO", labels: [], checklist: [], dueDate: null }
+      : resource === "habits" ? { frequency: "DAILY", targetDays: [], completedDates: [] } : {};
+    const row = { ...defaults, ...(previous[index] || {}), ...parsed.data, id: entityId, createdAt: previous[index]?.createdAt || now, updatedAt: now };
+    if (resource === "tasks") row.isCompleted = row.status === "DONE";
+    if (index < 0) nextRows.push(row); else nextRows[index] = row;
+  }
+  const previousTasks = tasks.get(req.user.id);
+  store.set(req.user.id, nextRows);
+  if (resource === "projects" && action === "delete") tasks.set(req.user.id, (previousTasks || []).filter(t => t.projectId !== entityId));
+  req.user.syncOperations = [...receipts, operationId];
+  try {
+    await saveDatabase();
+  } catch (error) {
+    store.set(req.user.id, previous);
+    if (resource === "projects" && action === "delete") {
+      if (previousTasks) tasks.set(req.user.id, previousTasks); else tasks.delete(req.user.id);
+    }
+    req.user.syncOperations = receipts;
+    throw error;
+  }
+  res.status(204).end();
+}));
+
 app.get("/api/projects", withAuthAndDb((req, res) => res.json(projects.get(req.user.id) || [])));
 app.post("/api/projects", validate(projectSchema), withAuthAndDb(async (req, res) => {
   const userProjects = projects.get(req.user.id) || [];
@@ -400,9 +452,15 @@ app.delete("/api/projects/:projectId", withAuthAndDb(async (req, res) => {
 app.get("/api/projects/:projectId/tasks", withAuthAndDb((req, res) => {
   res.json((tasks.get(req.user.id) || []).filter((task) => task.projectId === req.params.projectId));
 }));
-app.post("/api/projects/:projectId/tasks", validate(taskSchema), withAuthAndDb(async (req, res) => {
+app.post("/api/projects/:projectId/tasks", validate(taskSchema), withAuthAndDb(async (req, res, next) => {
+  if (!(projects.get(req.user.id) || []).some(p => p.id === req.params.projectId)) return next(new AppError("Project not found", 404, "PROJECT_NOT_FOUND"));
   const userTasks = tasks.get(req.user.id) || [];
   const task = { ...req.body, id: randomUUID(), projectId: req.params.projectId, isCompleted: req.body.isCompleted || false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  task.status = req.body.status || (req.body.isCompleted ? "DONE" : "TODO");
+  task.isCompleted = task.status === "DONE";
+  task.priority ??= "NONE";
+  task.labels ??= [];
+  task.checklist ??= [];
   userTasks.push(task);
   tasks.set(req.user.id, userTasks);
   await saveDatabase();
@@ -414,6 +472,8 @@ app.put("/api/tasks/:taskId", validate(taskSchema), withAuthAndDb(async (req, re
   if (index < 0) return next(new AppError("Task not found", 404, "TASK_NOT_FOUND"));
   const { id: _id, projectId: _projectId, createdAt: _createdAt, ...updates } = req.body;
   userTasks[index] = { ...userTasks[index], ...updates, updatedAt: new Date().toISOString() };
+  userTasks[index].status = updates.status || (updates.isCompleted === undefined ? userTasks[index].status : updates.isCompleted ? "DONE" : "TODO");
+  userTasks[index].isCompleted = userTasks[index].status === "DONE";
   await saveDatabase();
   res.json(userTasks[index]);
 }));

@@ -1,8 +1,10 @@
 package com.example.nexus.ui.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -26,11 +28,7 @@ import com.example.nexus.ui.settings.authCopy
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun LoginScreen(
-    uiState: AuthUiState,
-    onLogin: (String, String) -> Unit,
-    onNavigateToRegister: () -> Unit,
-) {
+fun LoginScreen(uiState: AuthUiState, onLogin: (String, String) -> Unit, onNavigateToRegister: () -> Unit,) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
@@ -39,17 +37,19 @@ fun LoginScreen(
 
     Surface(
         modifier =
-            Modifier
-                .fillMaxSize(),
+        Modifier
+            .fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
     ) {
         Column(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .testTag("login_content")
-                    .padding(Spacing.lg),
+            Modifier
+                .fillMaxSize()
+                .testTag("login_content")
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(Spacing.lg),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -83,10 +83,10 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions =
-                    KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next,
-                    ),
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                ),
             )
 
             Spacer(modifier = Modifier.height(Spacing.smd))
@@ -99,17 +99,17 @@ fun LoginScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 keyboardOptions =
-                    KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done,
-                    ),
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
                 keyboardActions =
-                    KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            onLogin(email.trim(), password)
-                        },
-                    ),
+                KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        onLogin(email.trim(), password)
+                    },
+                ),
             )
 
             if (!uiState.errorMessage.isNullOrBlank()) {

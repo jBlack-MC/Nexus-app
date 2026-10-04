@@ -24,8 +24,17 @@ class MainActivity : ComponentActivity() {
                     ThemeMode.LIGHT -> false
                     ThemeMode.DARK -> true
                 }
-            NexusTheme(darkTheme = darkTheme) {
-                NexusNavHost()
+            val language by SettingsSession.language.collectAsState()
+            val localizedContext = androidx.compose.runtime.remember(language) {
+                val config = android.content.res.Configuration(resources.configuration)
+                config.setLocale(java.util.Locale.forLanguageTag(language))
+                createConfigurationContext(config)
+            }
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalContext provides localizedContext,
+                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration,
+            ) {
+                NexusTheme(darkTheme = darkTheme) { NexusNavHost() }
             }
         }
     }

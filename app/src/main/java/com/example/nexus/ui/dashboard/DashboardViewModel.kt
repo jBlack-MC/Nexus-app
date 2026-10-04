@@ -79,7 +79,10 @@ class DashboardViewModel(
             runCatching {
                 coroutineScope {
                     val dashboard = async { dashboardLoader() }
-                    val tasks = async { cachedTasksLoader() }
+                    val tasks = async {
+                        dashboard.await()
+                        cachedTasksLoader()
+                    }
                     dashboard.await() to tasks.await()
                 }
             }.onSuccess { (data, tasks) ->

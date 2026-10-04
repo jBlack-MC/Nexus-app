@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    ports:
+      - "5263:5263"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set a persistent random JWT_SECRET of at least 32 characters}
+    volumes:
+      - nexus-data:/data
+    restart: unless-stopped
+volumes:
+  nexus-data:
