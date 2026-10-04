@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="auth_welcome">Siyakwamukela</string>
+  <string name="login_subtitle">Ngena ukuze uqhubeke ku-Nexus</string>
+  <string name="auth_email">I-imeyili</string>
+  <string name="auth_password">Iphasiwedi</string>
+  <string name="auth_sign_in">Ngena</string>
+  <string name="auth_create_account">Dala i-akhawunti</string>
+  <string name="register_subtitle">Qala iphrofayela yakho ye-Nexus</string>
+  <string name="auth_display_name">Igama lokubonisa</string>
+  <string name="auth_signing_in">Kungenwa…</string>
+  <string name="auth_creating_account">Kudalwa i-akhawunti…</string>
+  <string name="login_prompt_register">Udinga i-akhawunti? Yenza</string>
+  <string name="register_prompt_login">Une-akhawunti? Ngena</string>
+  <string name="language_picker_label">Ulimi</string>
+  <string name="action_profile">Iphrofayela</string>
+  <string name="action_settings">Izilungiselelo</string>
+  <string name="dashboard_stale_banner">Kuboniswa idatha egciniwe</string>
+</resources>

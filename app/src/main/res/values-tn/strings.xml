@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="auth_welcome">Re a go amogela</string>
+  <string name="login_subtitle">Tsena go tswelela mo Nexus</string>
+  <string name="auth_email">Imeile</string>
+  <string name="auth_password">Khunololamorago</string>
+  <string name="auth_sign_in">Tsena</string>
+  <string name="auth_create_account">Tlhama akhaonto</string>
+  <string name="register_subtitle">Tlhamo profaele ya gago ya Nexus</string>
+  <string name="auth_display_name">Leina la go bontšha</string>
+  <string name="auth_signing_in">Go tsena…</string>
+  <string name="auth_creating_account">Go tlhama akhaonto…</string>
+  <string name="login_prompt_register">O tlhoka akhaonto? Tlhama</string>
+  <string name="register_prompt_login">O na le akhaonto? Tsena</string>
+  <string name="language_picker_label">Puo</string>
+  <string name="action_profile">Porofaele</string>
+  <string name="action_settings">Dipeakanyo</string>
+  <string name="dashboard_stale_banner">Go bontshiwa tshedimosetso e e bolokilweng</string>
+</resources>

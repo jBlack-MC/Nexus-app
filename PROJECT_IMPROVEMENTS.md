@@ -2,6 +2,26 @@
 
 This file records meaningful project changes and keeps planned work separate from features that are already delivered. Add a new dated section whenever a feature, technical improvement, or release-quality change is completed.
 
+## 2026-10-04
+
+### Delivered: offline saves, API sync and UI usability
+
+- Atomic Room saves plus an account-scoped persistent upload queue for project, task and habit creation, edits and deletion; migration 4 to 5 preserves existing cached data.
+- Ordered API replay with durable duplicate-operation receipts, ownership checks and conflicts for edits to remotely deleted items. Existing-item conflicts use last-upload-wins semantics.
+- Sync status, manual retry, conflict review, reconnect retry and process-lifetime periodic retry. Unsent changes survive sign-out; explicit account deletion purges owned local data.
+- Removed synthetic offline authentication. Real sign-in requires the API; persisted sessions and cached profiles work offline.
+- Shared primary navigation, calmer surfaces, consistent shapes, accessible fallback brand colors, project search and task filters for status, high priority and label text. Auth forms scroll above the keyboard.
+- Dashboard refresh downloads project tasks for Today and offline access without visiting every project.
+- Added isiZulu and Setswana Android resources and applied the selected language to Compose resource lookup, completing the resource TODOs. Feature screens still contain English-only strings.
+- Configurable NEXUS_API_URL, HTTPS-only releases, persistent container storage and [setup documentation](docs/ONLINE_OFFLINE.md). No public service has been provisioned.
+- Backend sync tests, Android retry unit tests and an instrumented Room persistence test.
+
+### Roadmap reconciliation
+
+The September milestone table below is historical: task due dates, priority, status, labels and checklists were already implemented in API models and editors. Search/filtering and the offline upload queue are now implemented. Theme controls and habit CSV export also already existed.
+
+Still planned: board/calendar/timeline views, recurring tasks and reminders, attachments/templates/archive, collaboration/roles/comments/mentions, account recovery, general import/export, widgets, complete feature-screen localization and tablet-specific layouts. Push and account recovery also require delivery-provider configuration. The JSON backend remains a single-instance store; SQLite migration is not included.
+
 ## 2026-09-24
 
 ### Android Structural Remediation Pass Delivered

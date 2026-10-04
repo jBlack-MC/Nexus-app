@@ -6,23 +6,26 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +50,17 @@ fun TaskListScreen(
     viewModel: TaskListViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var query by rememberSaveable { mutableStateOf("") }
+    var filter by rememberSaveable { mutableStateOf("All") }
+    var highPriority by rememberSaveable { mutableStateOf(false) }
+    val visibleTasks = uiState.tasks.filter { task ->
+        (task.title.contains(query, true) || task.description.orEmpty().contains(query, true) || task.labels.any { it.contains(query, true) }) &&
+            (
+                filter == "All" || (filter == "Open" && !task.isCompleted) || (filter == "Done" && task.isCompleted) ||
+                    (filter == "In progress" && task.status == com.example.nexus.api.TaskStatus.IN_PROGRESS)
+                ) &&
+            (!highPriority || task.priority == TaskPriority.HIGH)
+    }.sortedWith(compareBy<Task> { it.isCompleted }.thenBy { it.dueDate ?: "9999" }.thenByDescending { it.priority.ordinal })
     var showEditor by remember { mutableStateOf(false) }
     var editorTask by remember { mutableStateOf<Task?>(null) }
     val reduceMotion = rememberReduceMotion()
@@ -87,9 +101,9 @@ fun TaskListScreen(
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
             if (uiState.isLoading && uiState.tasks.isEmpty()) {
                 ListSkeleton(labelWidth = 0.7f)
@@ -112,25 +126,46 @@ fun TaskListScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(Spacing.md),
+                            contentPadding = PaddingValues(start = Spacing.md, end = Spacing.md, top = Spacing.md, bottom = 96.dp),
                             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                         ) {
-                            items(uiState.tasks, key = { it.id }) { task ->
+                            item {
+                                Text("A little progress, every day.", style = MaterialTheme.typography.headlineSmall)
+                                Text("${uiState.tasks.count { it.isCompleted }} of ${uiState.tasks.size} tasks complete", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                LinearProgressIndicator(progress = {
+                                    uiState.tasks.count {
+                                        it.isCompleted
+                                    }.toFloat() / uiState.tasks.size.coerceAtLeast(1)
+                                }, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
+                                OutlinedTextField(value = query, onValueChange = {
+                                    query = it
+                                }, label = {
+                                    Text("Search tasks or labels")
+                                }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    listOf("All", "Open", "In progress", "Done").forEach { label ->
+                                        FilterChip(selected = filter == label, onClick = { filter = label }, label = { Text(label) })
+                                    }
+                                    FilterChip(selected = highPriority, onClick = { highPriority = !highPriority }, label = { Text("High priority") })
+                                }
+                            }
+                            if (visibleTasks.isEmpty()) item { Text("No tasks match these filters.") }
+                            items(visibleTasks, key = { it.id }) { task ->
                                 TaskItem(
                                     task = task,
                                     onToggle = { viewModel.toggleCompleted(task) },
                                     onOpen = { onOpenDetail(task.id) },
                                     onDelete = { viewModel.deleteTask(task.id) },
                                     modifier =
-                                        if (reduceMotion) {
-                                            Modifier
-                                        } else {
-                                            Modifier.animateItem(
-                                                fadeInSpec = tween(Motion.fadeMs),
-                                                placementSpec = tween(Motion.itemMs, easing = FastOutSlowInEasing),
-                                                fadeOutSpec = tween(Motion.fadeMs),
-                                            )
-                                        },
+                                    if (reduceMotion) {
+                                        Modifier
+                                    } else {
+                                        Modifier.animateItem(
+                                            fadeInSpec = tween(Motion.fadeMs),
+                                            placementSpec = tween(Motion.itemMs, easing = FastOutSlowInEasing),
+                                            fadeOutSpec = tween(Motion.fadeMs),
+                                        )
+                                    },
                                 )
                             }
                         }
@@ -141,9 +176,9 @@ fun TaskListScreen(
             if (!uiState.errorMessage.isNullOrBlank() && uiState.tasks.isNotEmpty()) {
                 Snackbar(
                     modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(Spacing.md),
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.loadTasks(projectId) }) {
                             Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
@@ -178,13 +213,7 @@ fun TaskListScreen(
 }
 
 @Composable
-fun TaskItem(
-    modifier: Modifier = Modifier,
-    task: Task,
-    onToggle: () -> Unit,
-    onOpen: () -> Unit,
-    onDelete: () -> Unit,
-) {
+fun TaskItem(modifier: Modifier = Modifier, task: Task, onToggle: () -> Unit, onOpen: () -> Unit, onDelete: () -> Unit,) {
     val reduceMotion = rememberReduceMotion()
     val haptics = LocalHapticFeedback.current
     val checkScale = remember { Animatable(1f) }
@@ -211,34 +240,34 @@ fun TaskItem(
         }
     Card(
         modifier =
-            modifier
-                .fillMaxWidth()
-                // Tapping the row opens the planning editor, matching the audit's
-                // "wire TaskItem so tapping it navigates to the edit screen".
-                .clickable(onClick = onOpen),
+        modifier
+            .fillMaxWidth()
+            // Tapping the row opens the planning editor, matching the audit's
+            // "wire TaskItem so tapping it navigates to the edit screen".
+            .clickable(onClick = onOpen),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors =
-            if (task.isCompleted) {
-                CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            } else {
-                CardDefaults.cardColors()
-            },
+        if (task.isCompleted) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        } else {
+            CardDefaults.cardColors()
+        },
     ) {
         Row(
             modifier =
-                Modifier
-                    .padding(Spacing.smd)
-                    .fillMaxWidth(),
+            Modifier
+                .padding(Spacing.smd)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
                 checked = task.isCompleted,
                 onCheckedChange = { onToggle() },
                 modifier =
-                    Modifier.graphicsLayer {
-                        scaleX = checkScale.value
-                        scaleY = checkScale.value
-                    },
+                Modifier.graphicsLayer {
+                    scaleX = checkScale.value
+                    scaleY = checkScale.value
+                },
             )
             Spacer(modifier = Modifier.width(Spacing.sm))
             Column(modifier = Modifier.weight(1f)) {

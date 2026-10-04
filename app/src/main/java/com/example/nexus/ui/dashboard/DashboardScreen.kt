@@ -93,16 +93,16 @@ fun DashboardScreen(
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
             contentAlignment = Alignment.TopCenter,
         ) {
             Column(
                 modifier =
-                    Modifier
-                        .widthIn(max = 560.dp)
-                        .fillMaxSize(),
+                Modifier
+                    .widthIn(max = 560.dp)
+                    .fillMaxSize(),
             ) {
                 val config = remoteConfigState.config
                 val notice =
@@ -115,9 +115,9 @@ fun DashboardScreen(
                 if (notice != null || (configError != null && !remoteConfigState.isLoading)) {
                     Column(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = Spacing.md, vertical = Spacing.xs),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Spacing.md, vertical = Spacing.xs),
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                     ) {
                         if (notice != null) {
@@ -143,10 +143,10 @@ fun DashboardScreen(
                     is DashboardState.Loading ->
                         Column(
                             modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState()),
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(Spacing.smd),
                         ) {
                             DashboardSkeleton()
@@ -154,9 +154,9 @@ fun DashboardScreen(
                                 text = "Open Projects",
                                 onClick = onOpenProjects,
                                 modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = Spacing.md, vertical = Spacing.xs),
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = Spacing.md, vertical = Spacing.xs),
                             )
                         }
                     is DashboardState.Error ->
@@ -168,14 +168,16 @@ fun DashboardScreen(
                     is DashboardState.Success ->
                         Column(
                             modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                                    .testTag("dashboard_content")
-                                    .verticalScroll(rememberScrollState())
-                                    .padding(Spacing.md),
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .testTag("dashboard_content")
+                                .verticalScroll(rememberScrollState())
+                                .padding(Spacing.md),
                             verticalArrangement = Arrangement.spacedBy(Spacing.smd),
                         ) {
+                            Text("Make room for what matters.", style = MaterialTheme.typography.headlineMedium)
+                            Text("Your projects, daily habits and next steps, together.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (state.data.projects == 0 && state.data.tasks == 0 && state.data.activity == 0) {
                                 EmptyState(
                                     title = "Start your first project",
@@ -221,9 +223,9 @@ fun DashboardScreen(
                                 text = "Open Projects",
                                 onClick = onOpenProjects,
                                 modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = Spacing.xs),
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = Spacing.xs),
                             )
                             if (remoteConfigState.config.featureFlags["habits"] != false) {
                                 NexusSecondaryButton(
@@ -238,9 +240,9 @@ fun DashboardScreen(
                                 text = "Log Out",
                                 onClick = { showLogoutDialog = true },
                                 modifier =
-                                    Modifier
-                                        .align(Alignment.CenterHorizontally)
-                                        .padding(top = Spacing.xs),
+                                Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = Spacing.xs),
                             )
                         }
                 }
@@ -249,9 +251,9 @@ fun DashboardScreen(
             if (uiState is DashboardState.Success && (uiState as DashboardState.Success).isStale) {
                 Snackbar(
                     modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(Spacing.md),
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.fetchDashboard(softRefresh = true) }) {
                             Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
@@ -290,10 +292,7 @@ private fun TaskAttentionSections(tasks: List<Task>) {
 }
 
 @Composable
-private fun AttentionCard(
-    title: String,
-    tasks: List<Task>,
-) {
+private fun AttentionCard(title: String, tasks: List<Task>,) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Spacing.smd)) {
             Text("$title (${tasks.size})", style = MaterialTheme.typography.titleSmall)

@@ -84,10 +84,7 @@ interface ProjectDao {
     suspend fun getProjects(userId: String): List<ProjectEntity>
 
     @Query("SELECT * FROM projects WHERE userId = :userId AND id = :projectId")
-    suspend fun getProjectById(
-        userId: String,
-        projectId: String,
-    ): ProjectEntity?
+    suspend fun getProjectById(userId: String, projectId: String,): ProjectEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProjects(projects: List<ProjectEntity>)
@@ -96,10 +93,7 @@ interface ProjectDao {
     suspend fun insertProject(project: ProjectEntity)
 
     @Query("DELETE FROM projects WHERE userId = :userId AND id = :projectId")
-    suspend fun deleteProjectById(
-        userId: String,
-        projectId: String,
-    )
+    suspend fun deleteProjectById(userId: String, projectId: String,)
 
     @Query("DELETE FROM projects WHERE userId = :userId")
     suspend fun clearForUser(userId: String)
@@ -111,16 +105,10 @@ interface ProjectDao {
 @Dao
 interface TaskDao {
     @Query("SELECT * FROM tasks WHERE userId = :userId AND projectId = :projectId")
-    fun getTasksFlow(
-        userId: String,
-        projectId: String,
-    ): Flow<List<TaskEntity>>
+    fun getTasksFlow(userId: String, projectId: String,): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE userId = :userId AND projectId = :projectId")
-    suspend fun getTasksByProjectId(
-        userId: String,
-        projectId: String,
-    ): List<TaskEntity>
+    suspend fun getTasksByProjectId(userId: String, projectId: String,): List<TaskEntity>
 
     @Query("SELECT * FROM tasks WHERE userId = :userId")
     suspend fun getAllTasks(userId: String): List<TaskEntity>
@@ -132,16 +120,10 @@ interface TaskDao {
     suspend fun insertTask(task: TaskEntity)
 
     @Query("DELETE FROM tasks WHERE userId = :userId AND id = :taskId")
-    suspend fun deleteTaskById(
-        userId: String,
-        taskId: String,
-    )
+    suspend fun deleteTaskById(userId: String, taskId: String,)
 
     @Query("DELETE FROM tasks WHERE userId = :userId AND projectId = :projectId")
-    suspend fun deleteTasksByProjectId(
-        userId: String,
-        projectId: String,
-    )
+    suspend fun deleteTasksByProjectId(userId: String, projectId: String,)
 
     @Query("DELETE FROM tasks WHERE userId = :userId")
     suspend fun clearForUser(userId: String)
@@ -174,10 +156,7 @@ interface HabitDao {
     suspend fun insertHabit(habit: HabitEntity)
 
     @Query("DELETE FROM habits WHERE userId = :userId AND id = :habitId")
-    suspend fun deleteHabit(
-        userId: String,
-        habitId: String,
-    )
+    suspend fun deleteHabit(userId: String, habitId: String,)
 
     @Query("DELETE FROM habits WHERE userId = :userId")
     suspend fun clearForUser(userId: String)
@@ -206,11 +185,12 @@ class TaskConverters {
 
 @TypeConverters(TaskConverters::class)
 @Database(
-    entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class, HabitEntity::class],
-    version = 4,
+    entities = [ProjectEntity::class, TaskEntity::class, DashboardEntity::class, HabitEntity::class, PendingChange::class],
+    version = 5,
     exportSchema = false,
 )
 abstract class NexusDatabase : RoomDatabase() {
+    abstract fun pendingChangeDao(): PendingChangeDao
     abstract fun projectDao(): ProjectDao
 
     abstract fun taskDao(): TaskDao
@@ -256,7 +236,12 @@ abstract class NexusDatabase : RoomDatabase() {
             }
 
         /** Every known migration. Add a new entry here for each future version bump. */
-        private val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_3_4)
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS pending_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, userId TEXT NOT NULL, operationId TEXT NOT NULL, resource TEXT NOT NULL, entityId TEXT NOT NULL, action TEXT NOT NULL, payload TEXT NOT NULL)")
+            }
+        }
+        private val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_3_4, MIGRATION_4_5)
 
         @Volatile
         private var INSTANCE: NexusDatabase? = null

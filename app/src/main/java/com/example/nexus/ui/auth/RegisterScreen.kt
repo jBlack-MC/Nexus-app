@@ -1,8 +1,10 @@
 package com.example.nexus.ui.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -26,11 +28,7 @@ import com.example.nexus.ui.settings.authCopy
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun RegisterScreen(
-    uiState: AuthUiState,
-    onRegister: (String, String, String) -> Unit,
-    onNavigateToLogin: () -> Unit,
-) {
+fun RegisterScreen(uiState: AuthUiState, onRegister: (String, String, String) -> Unit, onNavigateToLogin: () -> Unit,) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var displayName by remember { mutableStateOf("") }
@@ -40,17 +38,19 @@ fun RegisterScreen(
 
     Surface(
         modifier =
-            Modifier
-                .fillMaxSize(),
+        Modifier
+            .fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
     ) {
         Column(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .testTag("register_content")
-                    .padding(Spacing.lg),
+            Modifier
+                .fillMaxSize()
+                .testTag("register_content")
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(Spacing.lg),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -84,10 +84,10 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions =
-                    KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next,
-                    ),
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next,
+                ),
             )
 
             Spacer(modifier = Modifier.height(Spacing.smd))
@@ -99,10 +99,10 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions =
-                    KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next,
-                    ),
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                ),
             )
 
             Spacer(modifier = Modifier.height(Spacing.smd))
@@ -115,17 +115,17 @@ fun RegisterScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 keyboardOptions =
-                    KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done,
-                    ),
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
                 keyboardActions =
-                    KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            onRegister(email.trim(), password, displayName.trim())
-                        },
-                    ),
+                KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        onRegister(email.trim(), password, displayName.trim())
+                    },
+                ),
             )
 
             if (!uiState.errorMessage.isNullOrBlank()) {
