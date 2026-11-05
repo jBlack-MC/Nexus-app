@@ -32,3 +32,19 @@ data class ChangePasswordRequest(
     val currentPassword: String,
     val newPassword: String,
 )
+
+/** Google ID token obtained from Credential Manager, exchanged for a Nexus JWT by the API. */
+data class GoogleSignInRequest(
+    val idToken: String,
+)
+
+/** Firebase Cloud Messaging registration token for this device. */
+data class DeviceTokenRequest(
+    val token: String,
+)
+
+data class TestNotificationResult(
+    val configured: Boolean = false,
+    val sent: Int = 0,
+    val devices: Int = 0,
+)

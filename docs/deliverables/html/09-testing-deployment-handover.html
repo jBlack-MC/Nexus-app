@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NX-09-TDH Testing, Deployment and Handover - Nexus</title>
 <link rel="stylesheet" href="../tools/style.css">
-<style>@media print { @page { @top-left { content: "NX-09-TDH \00B7  Testing, Deployment and Handover \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+<style>@media print { @page { @top-left { content: "NX-09-TDH \00B7  Testing, Deployment and Handover \00B7  v2.0 \00B7  Draft for team review"; } } }</style>
 </head>
 <body>
 <main class="doc">
@@ -15,11 +15,11 @@
   <p class="subtitle">Test strategy and verified results, deployment summary, operational handover, known limitations and runbooks.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-09-TDH</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Incoming maintainers and operators; assessor checking test evidence</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -48,7 +48,8 @@
 </table>
 
 <h2 id="d09-verified-results"><span class="num">2</span>Verified results</h2>
-<p>Run on 2026-11-05 against the baseline working tree (no local modifications to application code).</p>
+<div class="callout"><p><strong>v2.0 results (2026-11-05, after the Part 3 changes):</strong> backend <strong>29/29</strong> (adds <code>part3.test.js</code>, 13 tests: SSO, push, device tokens, data-file safety, email case). Android unit <strong>42/42</strong> (adds <code>AuthErrorMessagesTest</code> 5, <code>ReminderPlannerTest</code> 2, <code>CsvRowTest</code> 2, one <code>HabitScoringTest</code> case). Instrumented <strong>16/16</strong> on an Android 7.0 emulator with the API stopped (<a href="08-engineering-audit.html#AUD-22">AUD-22</a> explains the 14/16 run with a live API). The on-device walkthrough covered the sign-in error, all screens, three languages, the offline round-trip, the reminder and test notifications, and the Settings crash fix. The tables below are the v1.0 baseline results.</p></div>
+<p>v1.0 run on 2026-11-05 against commit 3a3f275, before the Part 3 changes.</p>
 <table>
 <caption>Backend: <code>cd backend; npm test</code>, 2 suites, 16 tests, 16 passed, 31.7 s</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Suite</th><th scope="col">Tests</th><th scope="col">Result</th></tr></thead>
@@ -74,9 +75,9 @@
 <caption>Not executed for this package</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Test</th><th scope="col">Count</th><th scope="col">Status</th></tr></thead>
 <tbody>
-<tr id="TST-10"><td class="id">TST-10</td><td>Instrumented: <code>OfflinePersistenceTest</code> (1), <code>SplashIntroScreenTest</code> (4), <code>ScreenshotCaptureTest</code> (10), <code>ExampleInstrumentedTest</code> (1)</td><td>16</td><td>Not run; no device attached <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-10"><td class="id">TST-10</td><td>Instrumented: <code>OfflinePersistenceTest</code> (1), <code>SplashIntroScreenTest</code> (4), <code>ScreenshotCaptureTest</code> (10), <code>ExampleInstrumentedTest</code> (1)</td><td>16</td><td>Not run at v1.0; run at v2.0: 16/16 passed on an emulator</td></tr>
 <tr id="TST-11"><td class="id">TST-11</td><td>Docker build and smoke test</td><td>1</td><td>Not run; Docker daemon not running <span class="tag unk">Unknown</span></td></tr>
-<tr id="TST-12"><td class="id">TST-12</td><td>Manual acceptance check (<code>ONLINE_OFFLINE.md</code>)</td><td>6 steps</td><td>No recorded execution <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-12"><td class="id">TST-12</td><td>Manual acceptance check (<code>ONLINE_OFFLINE.md</code>)</td><td>6 steps</td><td>v2.0: steps 1–4 exercised on the emulator (offline create, then reconnect, then present on the server, no duplicate); steps 5–6 (account switch, cross-client delete conflict) not run <span class="tag unk">Unknown</span></td></tr>
 </tbody>
 </table>
 <h3 id="d09-coverage-gaps"><span class="num">2.1</span>Coverage gaps</h3>
@@ -97,7 +98,7 @@
 <tbody>
 <tr><td>Source repository</td><td><code>github.com/jBlack-MC/Nexus-app</code>; default branch <code>main</code>; working branch <code>New-Changes</code> <span class="tag fact">Implemented</span></td></tr>
 <tr><td>Repository owner / admins</td><td>Owner account <code>jBlack-MC</code>; other collaborators <span class="tag unk">Unknown</span></td></tr>
-<tr><td>Secrets in use</td><td><code>JWT_SECRET</code> (API runtime; set per environment, never committed). CI uses a hard-coded test-only value. No signing keystore exists <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Secrets in use</td><td><code>JWT_SECRET</code>; since v2.0 also <code>GOOGLE_CLIENT_ID</code> (not secret), <code>FIREBASE_SERVICE_ACCOUNT_BASE64</code> (secret), and the upload keystore at <code>%USERPROFILE%\.nexus\nexus-upload.jks</code> with its password in git-ignored <code>keystore.properties</code> on the development PC. <strong>Back these up.</strong> CI uses a hard-coded test-only JWT value <span class="tag fact">Implemented</span></td></tr>
 <tr><td>CI variables</td><td><code>NEXUS_API_URL</code> (enables release artifacts). Whether it is set: <span class="tag unk">Unknown</span>. Release jobs were skipped in the retrieved runs <span class="tag inf">Inferred</span></td></tr>
 <tr><td>Hosted services</td><td>None <span class="tag fact">Implemented</span></td></tr>
 <tr><td>Monitoring and alerting</td><td><code>/health</code> endpoint and Docker <code>HEALTHCHECK</code>. No external monitoring <span class="tag fact">Implemented</span></td></tr>
@@ -111,8 +112,8 @@
 <li>Single-instance JSON store (<a href="01-product-requirements.html#CON-01">CON-01</a>); not suited to concurrent hosting or large data.</li>
 <li>No background sync while the app process is stopped (<a href="01-product-requirements.html#CON-03">CON-03</a>).</li>
 <li>Last-upload-wins for edits; no field-level merge (<a href="01-product-requirements.html#FR-17">FR-17</a>).</li>
-<li>Reminders, push notifications, account recovery and collaboration are not implemented (<a href="01-product-requirements.html#NX-01-PRD">NX-01-PRD</a> scope).</li>
-<li>Localisation is partial (<a href="01-product-requirements.html#FR-18">FR-18</a>).</li>
+<li>Account recovery and collaboration are not implemented (<a href="01-product-requirements.html#NX-01-PRD">NX-01-PRD</a> scope). Google SSO and FCM push need the team's Google Cloud and Firebase projects before they work end to end.</li>
+<li>isiZulu and Setswana translations are AI-drafted and need first-language review (<a href="01-product-requirements.html#FR-18">FR-18</a>).</li>
 <li>Open defects: see <a href="08-engineering-audit.html#NX-08-AUD">NX-08-AUD</a>.</li>
 </ul>
 
@@ -132,7 +133,7 @@
 </tbody>
 </table>
 
-<footer class="docfoot">NX-09-TDH &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+<footer class="docfoot">NX-09-TDH &middot; v2.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
 </main>
 </body>
 </html>

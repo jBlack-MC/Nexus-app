@@ -11,32 +11,31 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.nexus.R
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun PasswordDialog(
-    onDismiss: () -> Unit,
-    onChange: (String, String) -> Unit,
-) {
+fun PasswordDialog(onDismiss: () -> Unit, onChange: (String, String) -> Unit,) {
     var current by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Change password") },
+        title = { Text(stringResource(R.string.password_change)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 OutlinedTextField(
                     value = current,
                     onValueChange = { current = it },
-                    label = { Text("Current password") },
+                    label = { Text(stringResource(R.string.password_current)) },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = { Text("New password") },
+                    label = { Text(stringResource(R.string.password_new)) },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                 )
@@ -44,10 +43,10 @@ fun PasswordDialog(
         },
         confirmButton = {
             NexusPrimaryButton(
-                text = "Save",
+                text = stringResource(R.string.action_save),
                 onClick = { onChange(current, newPassword) },
             )
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

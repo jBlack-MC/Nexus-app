@@ -1,5 +1,7 @@
-version: '3.8'
-
+# Runs the Nexus API from the repository root. Equivalent to backend/compose.yaml.
+# The image runs as the non-root "node" user and writes /data/nexus-data.json atomically
+# (temp file + rename), so data lives on a named volume rather than a bind-mounted single file (AUD-02).
+#   JWT_SECRET=<32+ random chars> docker compose up --build -d
 services:
   backend:
     build:
@@ -9,11 +11,15 @@ services:
     ports:
       - "${PORT:-5263}:5263"
     environment:
-      - PORT=5263
-      - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - DATABASE_PATH=/usr/src/app/nexus-data.json
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:?Set a persistent random JWT_SECRET of at least 32 characters}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FIREBASE_SERVICE_ACCOUNT_BASE64: ${FIREBASE_SERVICE_ACCOUNT_BASE64:-}
+      TRUST_PROXY: ${TRUST_PROXY:-}
     volumes:
-      - ./backend/nexus-data.json:/usr/src/app/nexus-data.json
+      - nexus-data:/data
     restart: unless-stopped
+
+volumes:
+  nexus-data:

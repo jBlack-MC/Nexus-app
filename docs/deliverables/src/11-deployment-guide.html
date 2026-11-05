@@ -15,14 +15,14 @@ audience: Developers and operators setting up the API and building the app
 <tbody>
 <tr id="DEP-01"><td class="id">DEP-01</td><td>Local Node process (development)</td><td><code>backend/package.json</code> <code>start</code>/<code>dev</code>, <code>docs/ONLINE_OFFLINE.md</code></td><td>Server module loaded and tested in process (16/16) {{F}}; listening server not started for this package</td></tr>
 <tr id="DEP-02"><td class="id">DEP-02</td><td>Single container with a named volume</td><td><code>backend/Dockerfile</code>, <code>backend/compose.yaml</code></td><td>Not executed {{U}}; CI smoke test never succeeded ([[CI-02]])</td></tr>
-<tr id="DEP-03"><td class="id">DEP-03</td><td>Root <code>docker-compose.yml</code></td><td>Repository root</td><td>{{I}} Will not persist data correctly. Do not use ([[AUD-02]])</td></tr>
+<tr id="DEP-03"><td class="id">DEP-03</td><td>Root <code>docker-compose.yml</code></td><td>Repository root</td><td>Fixed in v2.0 to match DEP-02 (named volume at <code>/data</code>); config validated, not run ([[AUD-02]])</td></tr>
 <tr id="DEP-04"><td class="id">DEP-04</td><td>Android debug/release builds</td><td><code>app/build.gradle.kts</code>, Android CI</td><td>Debug build last green in CI on 2026-09-24; release never built in the retrieved history</td></tr>
 </tbody>
 </table>
 
 <h2>Prerequisites</h2>
 <ul>
-<li>API: Node.js 20 (CI) or 22 (Docker image); npm. For containers: Docker with Compose v2.</li>
+<li>API: Node.js 22 or later (required by google-auth-library 11 and firebase-admin 14); npm. For containers: Docker with Compose v2.</li>
 <li>App: Android Studio with SDK Platform 37; JDK 17+ (the build uses a 17 toolchain); an emulator or device on API 24+.</li>
 <li>A strong <code>JWT_SECRET</code> of 32+ characters, stored outside git (<code>.env*</code> files are git-ignored).</li>
 </ul>
@@ -86,3 +86,15 @@ curl http://localhost:5263/health</code></pre>
 
 <h2>Rollback</h2>
 <p>No versioned deployments exist, so rollback is manual {{F}}. {{R}} Tag each deployed commit. To roll back, redeploy the previous tag against the same data volume. Data written by a newer version stays in the file (the JSON store has no schema version), so take a backup before every deploy.</p>
+
+<h2 id="DEP-OPTIONAL">Enabling Google SSO, push and signing (v2.0)</h2>
+<table>
+<caption>One-off setup per environment ({{R}}: the accounts are the team's to create)</caption>
+<thead><tr><th scope="col">Feature</th><th scope="col">Steps</th></tr></thead>
+<tbody>
+<tr><td>Google SSO</td><td>1. Google Cloud Console → APIs &amp; Services → Credentials: create an OAuth client of type <strong>Web application</strong> (its ID is used by both app and API) and one of type <strong>Android</strong> for package <code>com.example.nexus</code> with the SHA-1 of the debug key and of the upload key (printed by <code>scripts/create-upload-keystore.ps1</code>). 2. API: <code>GOOGLE_CLIENT_ID=&lt;web-id&gt;</code>. 3. App: <code>-PGOOGLE_WEB_CLIENT_ID=&lt;web-id&gt;</code>. 4. Check: <code>GET /api/app/config</code> shows <code>googleSignIn: true</code>.</td></tr>
+<tr><td>Push (FCM)</td><td>1. Firebase Console: add an Android app <code>com.example.nexus</code>, download <code>google-services.json</code> into <code>app/</code> (git-ignored). 2. Project settings → Service accounts → generate key; set <code>FIREBASE_SERVICE_ACCOUNT_BASE64</code> to the base64 of that JSON on the API host. 3. Check: <code>pushNotifications: true</code> in <code>/api/app/config</code>, then Settings → Send test notification reports "Push sent to n device(s)".</td></tr>
+<tr><td>Release signing</td><td>Run <code>scripts/create-upload-keystore.ps1</code> once (done on the development PC on 2026-11-05); back up <code>%USERPROFILE%\.nexus\nexus-upload.jks</code> and <code>keystore.properties</code>. In CI, provide <code>NEXUS_KEYSTORE_PATH</code>, <code>NEXUS_KEYSTORE_PASSWORD</code>, <code>NEXUS_KEY_ALIAS</code> and <code>NEXUS_KEY_PASSWORD</code> from secrets.</td></tr>
+<tr><td>Proxy</td><td>Behind an HTTPS reverse proxy set <code>TRUST_PROXY=1</code> ([[DEP-R6]]).</td></tr>
+</tbody>
+</table>

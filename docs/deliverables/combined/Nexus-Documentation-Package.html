@@ -14,10 +14,10 @@
   <h1>Nexus Documentation Package</h1>
   <p class="subtitle">Twelve numbered deliverables for the Nexus Android app and Node.js API, compiled from repository evidence.</p>
   <table class="meta"><caption>Package control</caption><tbody>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
   </tbody></table>
 </header>
@@ -42,11 +42,11 @@
   <p class="subtitle">Purpose, users, scope, functional requirements, constraints and acceptance criteria for Nexus as implemented.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-01-PRD</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Module assessor reviewing the PoE; developers and testers taking over the codebase</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -62,6 +62,7 @@
 
 
 <h2 id="d01-purpose-and-product-summary"><span class="num">1</span>Purpose and product summary</h2>
+<p><strong>Version 2.0 update (Part 3).</strong> Requirements FR-21 to FR-23 (Google SSO, real-time push, due-date reminders) are new. FR-05 and FR-18 are now fully implemented, and the defects behind FR-01 and FR-02 are fixed. Each row states its current status.</p>
 <p>Nexus is an Android app for personal project planning and habit tracking, backed by a small Node.js/Express REST API in <code>backend/</code>. The README describes it as "a calm, focused Android workspace for project planning and habit tracking". This document records what the product does at the evidence baseline, what it deliberately does not do, and how each requirement can be accepted. Requirement IDs (<code>FR-nn</code>, <code>NFR-nn</code>, <code>CON-nn</code>) are referenced by every other deliverable.</p>
 
 <div class="callout">
@@ -82,14 +83,15 @@
 <h2 id="d01-scope"><span class="num">3</span>Scope</h2>
 <h3 id="d01-in-scope-implemented"><span class="num">3.1</span>In scope (implemented)</h3>
 <ul>
-<li>Account lifecycle: register, sign in, persisted session, sign out, profile, preferences, password change, account deletion.</li>
+<li>Account lifecycle: register, sign in (email/password or Google SSO), persisted session, sign out, profile, preferences, password change, account deletion.</li>
+<li>Notifications: scheduled due-date reminders and real-time push of changes made on another device.</li>
 <li>Projects with tasks (due date, priority, status, labels, checklist), search and filters.</li>
 <li>Habits with daily completion, streaks, points, levels, badges and CSV export.</li>
 <li>Offline-first local saves with an ordered upload queue, sync status banner and conflict review.</li>
-<li>English, isiZulu and Setswana for resource-backed strings; light/dark/system theme; animated splash that respects reduced motion.</li>
+<li>English, isiZulu and Setswana on every screen; light/dark/system theme; animated splash that respects reduced motion.</li>
 </ul>
 <h3 id="d01-out-of-scope-or-planned-not-implemented"><span class="num">3.2</span>Out of scope or planned (not implemented)</h3>
-<p>From <code>PROJECT_IMPROVEMENTS.md</code> ("Still planned") and <code>docs/POE_PART_2_ADDENDUM.md</code>: board/calendar/timeline views, recurring tasks and reminders, push notifications, attachments/templates/archive, collaboration/roles/comments, account recovery, Google SSO, general import/export, widgets, complete feature-screen localisation, tablet layouts, and SQLite on the server. None of these exist in code <span class="tag fact">Implemented</span>. A "Task due-date reminders" switch exists in Settings but only stores a preference; see <a href="#FR-05">FR-05</a> and <a href="#AUD-10">AUD-10</a>.</p>
+<p>From <code>PROJECT_IMPROVEMENTS.md</code> ("Still planned") and <code>docs/POE_PART_2_ADDENDUM.md</code>: board/calendar/timeline views, recurring tasks, attachments/templates/archive, collaboration/roles/comments, account recovery, general import/export, widgets, tablet layouts, and SQLite on the server. None of these exist in code <span class="tag fact">Implemented</span>. Google SSO, push notifications, reminders and full localisation were planned for the final PoE and are now implemented (FR-21 to FR-23, FR-18).</p>
 
 <h2 id="d01-functional-requirements"><span class="num">4</span>Functional requirements</h2>
 <p>Acceptance criteria are written so a tester can run them against the debug build and a local API (setup in <a href="#NX-11-DEP">NX-11-DEP</a>).</p>
@@ -97,11 +99,11 @@
 <caption>Functional requirements and acceptance criteria</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">Acceptance criteria</th><th scope="col">Evidence / status</th></tr></thead>
 <tbody>
-<tr id="FR-01"><td class="id">FR-01</td><td>Register an account with display name, email and password.</td><td>Blank fields, a malformed email or a password under 6 characters are rejected on the device before sending. API returns 201 and a JWT; a duplicate email returns 409 <code>EMAIL_ALREADY_REGISTERED</code>, which the app should explain to the user.</td><td><code>AuthViewModel.kt</code>, <code>registerSchema</code> <span class="tag fact">Implemented</span>; the app shows a generic message for 409, see <a href="#AUD-18">AUD-18</a></td></tr>
-<tr id="FR-02"><td class="id">FR-02</td><td>Sign in and keep the session across app restarts.</td><td>Valid credentials return a JWT (24 h expiry) stored in EncryptedSharedPreferences; relaunching the app opens the Dashboard. Wrong credentials (401 <code>INVALID_CREDENTIALS</code>) show an error that says the credentials are wrong. Sign-in requires the API; there is no offline sign-in.</td><td><code>TokenManager.kt</code>, <code>tokenFor()</code> <span class="tag fact">Implemented</span>; the current message is "Your session has expired", see <a href="#AUD-18">AUD-18</a></td></tr>
+<tr id="FR-01"><td class="id">FR-01</td><td>Register an account with display name, email and password.</td><td>Blank fields, a malformed email or a password under 6 characters are rejected on the device before sending. API returns 201 and a JWT; a duplicate email returns 409 <code>EMAIL_ALREADY_REGISTERED</code>, which the app explains ("An account with this email already exists"). Emails are case-insensitive.</td><td><code>AuthViewModel.kt</code>, <code>registerSchema</code> <span class="tag fact">Implemented</span>; fixed in v2.0 (<a href="#AUD-18">AUD-18</a>, <code>AuthErrorMessagesTest</code>)</td></tr>
+<tr id="FR-02"><td class="id">FR-02</td><td>Sign in and keep the session across app restarts.</td><td>Valid credentials return a JWT (24 h expiry) stored in EncryptedSharedPreferences; relaunching the app opens the Dashboard. Wrong credentials (401 <code>INVALID_CREDENTIALS</code>) show "Email or password is incorrect." Sign-in requires the API; there is no offline sign-in.</td><td><code>TokenManager.kt</code>, <code>tokenFor()</code> <span class="tag fact">Implemented</span>; verified on device 2026-11-05 (<a href="#AUD-18">AUD-18</a> fixed)</td></tr>
 <tr id="FR-03"><td class="id">FR-03</td><td>Sign out.</td><td>A confirmation dialog appears; confirming clears the token and returns to Login. Unsent changes stay on the device and upload only when the same account signs in again.</td><td><code>LogoutConfirmationDialog.kt</code>, <code>docs/ONLINE_OFFLINE.md</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-04"><td class="id">FR-04</td><td>View and edit the profile display name.</td><td>Profile shows display name and email; Settings saves a new display name via <code>PATCH /users/me</code>. A cached profile is shown offline.</td><td><code>ProfileScreen.kt</code>, <code>UserRepository.kt</code> <span class="tag fact">Implemented</span></td></tr>
-<tr id="FR-05"><td class="id">FR-05</td><td>Account preferences: language and notification preference.</td><td>Changing language (en/zu/tn) or the reminders switch sends a partial <code>PATCH /users/me</code>. If the language update fails it is marked pending and retried. The notifications preference has no delivery mechanism.</td><td><code>SettingsViewModel.kt</code> <span class="tag fact">Implemented</span>; reminders not delivered, see <a href="#AUD-10">AUD-10</a></td></tr>
+<tr id="FR-05"><td class="id">FR-05</td><td>Account preferences: language and notification preference.</td><td>Changing language (en/zu/tn) or the reminders switch sends a partial <code>PATCH /users/me</code>. If the language update fails it is marked pending and retried. The reminders switch controls the notifications in <a href="#FR-23">FR-23</a>.</td><td><code>SettingsViewModel.kt</code> <span class="tag fact">Implemented</span>; <a href="#AUD-10">AUD-10</a> fixed</td></tr>
 <tr id="FR-06"><td class="id">FR-06</td><td>Choose System, Light or Dark theme.</td><td>Selection applies immediately at the activity root and persists on the device only (not synced).</td><td><code>SettingsPreferences.kt</code>, <code>MainActivity.kt</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-07"><td class="id">FR-07</td><td>Change password.</td><td>Requires the current password and a new password of 6 or more characters. Wrong current password returns 401 <code>INCORRECT_CURRENT_PASSWORD</code>; success returns 204. Requires the API.</td><td><code>PasswordDialog.kt</code>, <code>/users/me/password</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-08"><td class="id">FR-08</td><td>Delete account and all data.</td><td>A confirmation dialog ("This permanently deletes your account and synced data.") precedes deletion. The API removes the user, projects, tasks and habits; the app purges that account's local rows and queue, then signs out.</td><td><code>SettingsScreen.kt</code>, <code>DELETE /users/me</code>, <code>NexusApp.kt</code> purge callback <span class="tag fact">Implemented</span></td></tr>
@@ -110,13 +112,16 @@
 <tr id="FR-11"><td class="id">FR-11</td><td>Create, edit, complete and delete tasks within a project.</td><td>A task has title (required), description, due date (yyyy-MM-dd), priority (None/Low/Medium/High), status (To do/In progress/Done), labels and checklist steps. Marking Done sets <code>isCompleted</code>; the API keeps <code>status</code> and <code>isCompleted</code> consistent.</td><td><code>TaskEditorDialog.kt</code>, <code>taskSchema</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-12"><td class="id">FR-12</td><td>Find tasks quickly.</td><td>Task list offers text search over title and labels, status chips (All, Open, In progress, Done) and a High priority chip; shows progress "x of y tasks complete". A task detail screen shows priority, status, labels and checklist with an Edit action.</td><td><code>TaskListScreen.kt</code>, <code>TaskDetailScreen.kt</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-13"><td class="id">FR-13</td><td>Create, edit, delete and complete habits.</td><td>A habit has a name and frequency (Daily, Weekly, Custom). "Complete today" toggles today's date in <code>completedDates</code>; the button reads "Completed today" when done.</td><td><code>HabitsScreen.kt</code>, <code>HabitCard.kt</code>, <code>HabitsViewModel.kt</code> <span class="tag fact">Implemented</span></td></tr>
-<tr id="FR-14"><td class="id">FR-14</td><td>Habit progress and rewards.</td><td>Habits screen shows level, points, current and best streak, completion rate, badges (3-day streak, 7-day streak, Reliable habit builder) and reward suggestions, all computed on the device.</td><td><code>HabitScoring.kt</code>, <code>HabitScoringTest.kt</code> <span class="tag fact">Implemented</span>; accuracy issue <a href="#AUD-17">AUD-17</a></td></tr>
-<tr id="FR-15"><td class="id">FR-15</td><td>Export habit history as CSV.</td><td>Settings, then "Export habits CSV" builds <code>habit,frequency,completed_date</code> rows; "Share CSV" opens the Android share sheet with <code>text/csv</code>.</td><td><code>SettingsViewModel.exportCsv()</code> <span class="tag fact">Implemented</span>; escaping issue <a href="#AUD-11">AUD-11</a></td></tr>
+<tr id="FR-14"><td class="id">FR-14</td><td>Habit progress and rewards.</td><td>Habits screen shows level, points, current and best streak, completion rate, badges (3-day streak, 7-day streak, Reliable habit builder) and reward suggestions, all computed on the device.</td><td><code>HabitScoring.kt</code>, <code>HabitScoringTest.kt</code> <span class="tag fact">Implemented</span>; <a href="#AUD-17">AUD-17</a> fixed in v2.0</td></tr>
+<tr id="FR-15"><td class="id">FR-15</td><td>Export habit history as CSV.</td><td>Settings, then "Export habits CSV" builds <code>habit,frequency,completed_date</code> rows; "Share CSV" opens the Android share sheet with <code>text/csv</code>.</td><td><code>SettingsViewModel.exportCsv()</code>, <code>CsvRowTest</code> <span class="tag fact">Implemented</span>; <a href="#AUD-11">AUD-11</a> fixed (RFC 4180 quoting)</td></tr>
 <tr id="FR-16"><td class="id">FR-16</td><td>Work offline and sync later.</td><td>Project, task and habit creates, edits and deletes are saved to Room together with an upload record in one transaction, and they survive an app restart. Uploads run on refresh, when the network returns, when you tap Sync, and every 30 s while the process is alive. The banner shows the pending count and state.</td><td><code>SyncManager.kt</code>, <code>NexusApp.kt</code>, <code>OfflinePersistenceTest.kt</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-17"><td class="id">FR-17</td><td>Handle sync conflicts without losing data silently.</td><td>Retried operations are never duplicated (server keeps operation receipts). An edit to an item deleted elsewhere returns 409 and stops the queue; Review offers "Keep changes" or "Discard item edits". Existing-item edits are last-upload-wins.</td><td><code>/api/sync</code>, <code>sync.test.js</code> <span class="tag fact">Implemented</span></td></tr>
-<tr id="FR-18"><td class="id">FR-18</td><td>Use the app in English, isiZulu or Setswana.</td><td>Selecting a language switches the resource-backed strings: auth screens, language picker, profile/settings actions and the stale-data banner (16–17 strings per locale). Most feature-screen text is still hard-coded English.</td><td><code>values-zu</code>, <code>values-tn</code> <span class="tag fact">Implemented</span>; partial, see <a href="#AUD-09">AUD-09</a></td></tr>
+<tr id="FR-18"><td class="id">FR-18</td><td>Use the app in English, isiZulu or Setswana.</td><td>Selecting a language (login screen or Settings) switches every screen, dialog, error, sync message and notification. Each locale has 210 strings and 4 plurals, generated from one catalogue. Translations need first-language review.</td><td><code>docs/i18n/catalog.py</code>, <code>values-zu</code>, <code>values-tn</code>, <code>LocalizedMessages.kt</code> <span class="tag fact">Implemented</span>; verified on device (screenshots 14–18)</td></tr>
 <tr id="FR-19"><td class="id">FR-19</td><td>Animated splash and motion that respect accessibility settings.</td><td>With system animations disabled, the splash and screen transitions render without animation.</td><td><code>SplashIntroScreen.kt</code>, <code>Motion.kt</code>, <code>SplashIntroScreenTest.kt</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="FR-20"><td class="id">FR-20</td><td>Show server notices.</td><td>The Dashboard shows a banner for maintenance mode or the first announcement from <code>GET /app/config</code>. The API always returns maintenance off and no announcements.</td><td><code>RemoteConfigViewModel.kt</code>, <code>/api/app/config</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-21"><td class="id">FR-21</td><td>Sign in with Google (single sign-on).</td><td>"Continue with Google" appears on Login and Register when the build has a Web client ID. Credential Manager returns a Google ID token; <code>POST /api/auth/google</code> verifies signature, audience, expiry and email verification with Google, creates the account on first use (201) or links an existing email (200), and returns a Nexus JWT. Invalid tokens give 401; an unconfigured server gives 503, which the app explains. A Google-only account cannot use password sign-in (401) or change password (409).</td><td><code>GoogleSignIn.kt</code>, <code>server.js</code>, <code>part3.test.js</code> (3 tests, stubbed verifier), <code>AuthErrorMessagesTest</code> <span class="tag fact">Implemented</span>. End to end with real Google: <span class="tag unk">Unknown</span> until the OAuth clients are created</td></tr>
+<tr id="FR-22"><td class="id">FR-22</td><td>Real-time push notifications.</td><td>After sign-in the app registers its FCM token (<code>POST /users/me/devices</code>, at most 10 per user; a token belongs to one account). When a synced change is applied, the API pushes "Project "X" added on another device" to the user's other devices, excluding the sender. The receiving app shows the notification and refreshes its offline cache. Dead tokens are pruned. "Send test notification" in Settings triggers a server push and shows a local one.</td><td><code>Push.kt</code>, <code>push.js</code>, <code>part3.test.js</code> (5 tests) <span class="tag fact">Implemented</span>; local display verified on device; FCM delivery <span class="tag unk">Unknown</span> until a Firebase project is configured</td></tr>
+<tr id="FR-23"><td class="id">FR-23</td><td>Due-date reminders.</td><td>With reminders on, a WorkManager job runs about every 12 hours (and immediately after sign-in or switching reminders on). It reads the offline cache and posts "Tasks need your attention: n overdue and m due today" with up to three task titles. It runs while the app is closed and without network. Android 13+ asks for the notification permission.</td><td><code>Reminders.kt</code>, <code>ReminderPlanner</code> + <code>ReminderPlannerTest</code> <span class="tag fact">Implemented</span>; verified on device ("1 overdue and 2 due today")</td></tr>
 </tbody>
 </table>
 
@@ -125,7 +130,7 @@
 <caption>Quality requirements evidenced in the implementation</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">Evidence / status</th></tr></thead>
 <tbody>
-<tr id="NFR-01"><td class="id">NFR-01</td><td>Credentials and tokens are protected: bcrypt (cost 12) password hashes; JWT secret of at least 32 characters enforced at startup; token stored encrypted on the device; auth endpoints rate-limited to 10 requests per 15 min per IP.</td><td><code>server.js</code>, <code>TokenManager.kt</code>, <code>server.test.js</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="NFR-01"><td class="id">NFR-01</td><td>Credentials and tokens are protected: bcrypt (cost 12) password hashes; JWT secret of at least 32 characters enforced at startup; token stored encrypted on the device; auth endpoints (including Google sign-in) rate-limited to 10 requests per 15 min per client IP (proxy-aware with <code>TRUST_PROXY</code>); Google ID tokens verified server-side.</td><td><code>server.js</code>, <code>TokenManager.kt</code>, <code>server.test.js</code> <span class="tag fact">Implemented</span></td></tr>
 <tr id="NFR-02"><td class="id">NFR-02</td><td>Release builds use HTTPS only; cleartext HTTP is allowed only in debug builds.</td><td><code>network_security_config.xml</code> (main/debug), <code>preReleaseBuild</code> check <span class="tag fact">Implemented</span></td></tr>
 <tr id="NFR-03"><td class="id">NFR-03</td><td>Data isolation: each account sees only its own server data and cached rows.</td><td>Per-user maps on the server; <code>userId</code>-scoped DAO queries; sync ownership test <span class="tag fact">Implemented</span></td></tr>
 <tr id="NFR-04"><td class="id">NFR-04</td><td>Durability: a local save is never lost because an upload failed; server writes are atomic (temp file + rename) and serialised by a mutex.</td><td><code>SyncManager.save()</code>, <code>saveDatabase()</code> <span class="tag fact">Implemented</span>; corrupt-file risk <a href="#AUD-01">AUD-01</a></td></tr>
@@ -157,10 +162,10 @@
 <caption>Decisions needed from the team</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Question</th><th scope="col">Related</th></tr></thead>
 <tbody>
-<tr id="OQ-01"><td class="id">OQ-01</td><td>Should the "Task due-date reminders" switch be hidden until reminders exist, or should reminders be built for the final PoE? <span class="tag oq">Open question</span></td><td><a href="#FR-05">FR-05</a>, <a href="#AUD-10">AUD-10</a>, <a href="#IMP-08">IMP-08</a></td></tr>
+<tr id="OQ-01"><td class="id">OQ-01</td><td><em>Resolved 2026-11-05:</em> reminders were built for the final PoE (<a href="#FR-23">FR-23</a>).</td><td><a href="#FR-05">FR-05</a>, <a href="#AUD-10">AUD-10</a>, <a href="#IMP-08">IMP-08</a></td></tr>
 <tr id="OQ-02"><td class="id">OQ-02</td><td>Which public host will run the API, and who owns its secret and backups? <span class="tag oq">Open question</span></td><td><a href="#CON-02">CON-02</a>, <a href="#NX-11-DEP">NX-11-DEP</a></td></tr>
 <tr id="OQ-03"><td class="id">OQ-03</td><td>Is a "Global system administrator" role actually required? If so it needs server-side authorisation; if not, the README label should be corrected. <span class="tag oq">Open question</span></td><td><a href="#ROLE-02">ROLE-02</a>, <a href="#AUD-09">AUD-09</a></td></tr>
-<tr id="OQ-04"><td class="id">OQ-04</td><td>Which of the planned final-PoE features (Google SSO, push notifications, full localisation) are committed, and in what order? <span class="tag oq">Open question</span></td><td><a href="#NX-06-PLAN">NX-06-PLAN</a></td></tr>
+<tr id="OQ-04"><td class="id">OQ-04</td><td><em>Resolved:</em> all three are implemented (<a href="#FR-21">FR-21</a>, <a href="#FR-22">FR-22</a>, <a href="#FR-18">FR-18</a>). Still open: who creates and owns the Google Cloud and Firebase projects. <span class="tag oq">Open question</span></td><td><a href="#NX-06-PLAN">NX-06-PLAN</a></td></tr>
 </tbody>
 </table>
 </section>
@@ -170,11 +175,11 @@
   <p class="subtitle">Architecture, technology stack, interfaces, quality attributes and operational requirements.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-02-TRD</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Developers and operators maintaining Nexus; assessor checking technical depth</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -190,7 +195,8 @@
 
 
 <h2 id="d02-system-context"><span class="num">1</span>System context</h2>
-<p>Nexus has two deployable parts: the Android app (<code>app/</code>, package <code>com.example.nexus</code>) and the Nexus API (<code>backend/server.js</code>). The app talks only to the Nexus API over REST/JSON. A Retrofit client for the public MyMemory translation API is defined, but nothing in the app calls it (<span class="tag fact">Implemented</span>, <a href="#AUD-09">AUD-09</a>).</p>
+<p><strong>Version 2.0 update.</strong> Part 3 added Google SSO (Credential Manager plus <code>google-auth-library</code>), FCM push (<code>firebase-messaging</code> plus <code>firebase-admin</code>), WorkManager reminders, full en/zu/tn resources, release signing, Zod 4 and Node 22. The diagram shows the core components; the new pieces are listed in the tables below.</p>
+<p>Nexus has two deployable parts: the Android app (<code>app/</code>, package <code>com.example.nexus</code>) and the Nexus API (<code>backend/server.js</code>). The app talks to the Nexus API over REST/JSON. Since v2.0 it also uses Google Identity (Credential Manager) for SSO and Firebase Cloud Messaging for push. A Retrofit client for the public MyMemory translation API is defined, but nothing in the app calls it (<span class="tag fact">Implemented</span>, <a href="#AUD-09">AUD-09</a>).</p>
 
 <figure class="diagram" id="DIAG-01">
 <svg viewBox="0 0 760 330" role="img" aria-labelledby="diag01t diag01d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
@@ -230,9 +236,10 @@
 <tr><td>UI</td><td>Jetpack Compose (BOM 2026.02.01), Material 3, Navigation Compose 2.8.0 with kotlinx-serialization routes, material-icons-extended</td><td><code>libs.versions.toml</code>, <code>app/build.gradle.kts</code></td></tr>
 <tr><td>Networking</td><td>Retrofit 3.0.0 + Gson converter, OkHttp logging-interceptor 4.12.0 (BASIC in debug, NONE in release)</td><td><code>RetrofitClient.kt</code></td></tr>
 <tr><td>Local storage</td><td>Room 2.8.5 (runtime, ktx, compiler via KSP); AndroidX Security Crypto 1.1.0</td><td><code>Database.kt</code>, <code>TokenManager.kt</code></td></tr>
+<tr><td>SSO and notifications (v2.0)</td><td>androidx.credentials 1.6.0 + play-services-auth, googleid 1.1.1; WorkManager 2.12.0; Firebase BoM 35.1.0 (firebase-messaging); google-services plugin 4.5.0, applied only when <code>app/google-services.json</code> exists</td><td><code>app/build.gradle.kts</code></td></tr>
 <tr><td>Quality tooling</td><td>ktlint plugin 12.1.2, detekt 1.23.8, Kover 0.9.1; JUnit 4.13.2, MockK 1.13.12, coroutines-test 1.8.1, Compose UI test</td><td><code>build.gradle.kts</code></td></tr>
-<tr><td>API runtime</td><td>Node.js (CI uses 20; Docker image uses <code>node:22-alpine</code>), ES modules</td><td><code>.github/workflows/*.yml</code>, <code>backend/Dockerfile</code></td></tr>
-<tr><td>API libraries</td><td>express ^4.21.2, bcryptjs ^2.4.3, jsonwebtoken ^9.0.2, zod ^3.23.8 (3.25.76 installed), express-rate-limit ^7.5.0, helmet ^8.3.0, cors ^2.8.6, pino ^10.3.1, pino-http ^11.0.0</td><td><code>backend/package.json</code></td></tr>
+<tr><td>API runtime</td><td>Node.js 22 (CI and Docker; required by google-auth-library 11 and firebase-admin 14), ES modules</td><td><code>.github/workflows/*.yml</code>, <code>backend/Dockerfile</code></td></tr>
+<tr><td>API libraries</td><td>express ^4.21.2, bcryptjs ^2.4.3, jsonwebtoken ^9.0.2, zod ^4 (4.6.7 installed), google-auth-library ^11.3.3, firebase-admin ^14.5.0, express-rate-limit ^7.5.0, helmet ^8.3.0, cors ^2.8.6, pino ^10.3.1, pino-http ^11.0.0</td><td><code>backend/package.json</code></td></tr>
 <tr><td>API tests</td><td>Jest ^29.7.0 and Supertest ^7.0.0, run in band with <code>--experimental-vm-modules</code></td><td><code>backend/package.json</code></td></tr>
 </tbody>
 </table>
@@ -266,7 +273,10 @@
 <tr><td><code>GET /app/config</code></td><td>No</td><td>Static config: versions 1.0.0, maintenance off, feature flags, no announcements</td></tr>
 <tr><td><code>GET /localization/:language</code></td><td>No</td><td>Five-string bundle for en/zu/tn (falls back to en)</td></tr>
 <tr><td><code>POST /auth/register</code></td><td>No, rate-limited</td><td>201 <code>{token}</code>; 409 duplicate email; 429 after 10 per 15 min</td></tr>
-<tr><td><code>POST /auth/login</code></td><td>No, rate-limited</td><td>200 <code>{token}</code>; 401 invalid credentials</td></tr>
+<tr><td><code>POST /auth/login</code></td><td>No, rate-limited</td><td>200 <code>{token}</code>; 401 invalid credentials (emails case-insensitive)</td></tr>
+<tr><td><code>POST /auth/google</code></td><td>No, rate-limited</td><td><code>{idToken}</code>; 201 new account or 200 existing/linked, <code>{token}</code>; 401 <code>INVALID_GOOGLE_TOKEN</code>; 503 <code>SSO_NOT_CONFIGURED</code></td></tr>
+<tr><td><code>POST /users/me/devices</code>, <code>DELETE /users/me/devices/:token</code></td><td>Yes</td><td>Register or unregister an FCM token (204)</td></tr>
+<tr><td><code>POST /users/me/notifications/test</code></td><td>Yes</td><td>Pushes a test notification; returns <code>{configured, sent, devices}</code></td></tr>
 <tr><td><code>GET</code>/<code>PATCH /users/me</code></td><td>Yes</td><td>Profile <code>{email, displayName, language, notificationsEnabled}</code>; PATCH rejects unknown fields</td></tr>
 <tr><td><code>POST /users/me/password</code></td><td>Yes</td><td>204; 401 wrong current password</td></tr>
 <tr><td><code>DELETE /users/me</code></td><td>Yes</td><td>204; removes the user and all their data</td></tr>
@@ -283,10 +293,11 @@
 
 <h3 id="d02-device-integrations"><span class="num">4.2</span>Device integrations</h3>
 <ul>
-<li>Permissions: <code>INTERNET</code> and <code>ACCESS_NETWORK_STATE</code> only <span class="tag fact">Implemented</span>.</li>
+<li>Permissions: <code>INTERNET</code>, <code>ACCESS_NETWORK_STATE</code> and (v2.0) <code>POST_NOTIFICATIONS</code>, requested at runtime on Android 13+ <span class="tag fact">Implemented</span>.</li>
+<li>WorkManager periodic job (reminders) and an FCM <code>FirebaseMessagingService</code> (v2.0) <span class="tag fact">Implemented</span>.</li>
 <li><code>ConnectivityManager</code> network callback triggers sync when a network becomes available <span class="tag fact">Implemented</span>.</li>
 <li>Android share sheet for CSV export (<code>Intent.ACTION_SEND</code>, <code>text/csv</code>) <span class="tag fact">Implemented</span>.</li>
-<li>Backup: <code>allowBackup="true"</code>; shared preferences are excluded from cloud backup and device transfer, but the Room database is not excluded (<a href="#AUD-05">AUD-05</a>).</li>
+<li>Backup: <code>allowBackup="true"</code>; since v2.0 both shared preferences and the Room database are excluded from cloud backup and device transfer (<a href="#AUD-05">AUD-05</a> fixed).</li>
 </ul>
 
 <h2 id="d02-quality-attributes"><span class="num">5</span>Quality attributes</h2>
@@ -312,6 +323,9 @@
 <tr><td><code>DATABASE_PATH</code></td><td>No</td><td>Data file path; defaults to <code>backend/nexus-data.json</code>, and to <code>/data/nexus-data.json</code> in the Docker image.</td></tr>
 <tr><td><code>NODE_ENV</code></td><td>No</td><td><code>production</code> hides 500 messages; <code>test</code> disables listening and enables the test route.</td></tr>
 <tr><td><code>LOG_LEVEL</code></td><td>No (info)</td><td>Pino log level.</td></tr>
+<tr><td><code>GOOGLE_CLIENT_ID</code></td><td>For SSO</td><td>Web OAuth client ID(s), comma-separated, accepted as the ID-token audience. Unset disables <code>/auth/google</code> (503).</td></tr>
+<tr><td><code>FIREBASE_SERVICE_ACCOUNT_BASE64</code></td><td>For push</td><td>Base64 of the Firebase service-account JSON (or use <code>GOOGLE_APPLICATION_CREDENTIALS</code>). Unset makes push a logged no-op.</td></tr>
+<tr><td><code>TRUST_PROXY</code></td><td>Behind a proxy</td><td>Express trust-proxy setting (e.g. <code>1</code>) so rate limiting uses the client IP.</td></tr>
 </tbody>
 </table>
 <ul>
@@ -326,11 +340,11 @@
   <p class="subtitle">Navigation map, key user journeys, system interactions and error/alternate flows.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-03-FLOW</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Testers, developers and the assessor following the demo</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -392,6 +406,8 @@
 <tr id="UF-07"><td class="id">UF-07</td><td>Resolve a conflict</td><td>An upload is rejected with 409 (or 400). The banner shows "An item changed on another device · review required" with a Review button. The dialog offers "Keep changes" (the queue stays blocked and the edits are kept) or "Discard item edits" (that entity's queued operations and its local row are removed, then the rest of the queue retries).</td><td><a href="#FR-17">FR-17</a>, <a href="#AUD-19">AUD-19</a></td></tr>
 <tr id="UF-08"><td class="id">UF-08</td><td>Session expiry during sync</td><td>Upload returns 401, the banner says "Sign in again to sync saved changes", and a "Sign in" button clears the token and opens Login. Queued changes stay on the device for the same account.</td><td><a href="#FR-02">FR-02</a>, <a href="#FR-16">FR-16</a></td></tr>
 <tr id="UF-09"><td class="id">UF-09</td><td>Manage account</td><td>Settings tab: edit Display Name; choose Appearance (System/Light/Dark) and Language; toggle reminders; "Sync account"; "Export habits CSV", then "Share CSV"; "Change password"; "Delete account and data" (confirm); "Log Out".</td><td><a href="#FR-04">FR-04</a> to <a href="#FR-08">FR-08</a>, <a href="#FR-15">FR-15</a></td></tr>
+<tr id="UF-11"><td class="id">UF-11</td><td>Sign in with Google (v2.0)</td><td>Login or Register: tap "Continue with Google", pick an account in the Credential Manager sheet. The app posts the ID token to <code>/auth/google</code>, receives a Nexus JWT and opens Today. First use creates the account; an existing email account is linked.</td><td><a href="#FR-21">FR-21</a></td></tr>
+<tr id="UF-12"><td class="id">UF-12</td><td>Notifications (v2.0)</td><td>Settings: keep "Task due-date reminders" on (grant permission on Android 13+). A reminder lists overdue and due-today tasks. "Send test notification" shows a local notification and reports the server push result. Editing on phone A pushes "Task … updated on another device" to phone B, which refreshes its cache.</td><td><a href="#FR-22">FR-22</a>, <a href="#FR-23">FR-23</a></td></tr>
 <tr id="UF-10"><td class="id">UF-10</td><td>Shared device, account switch</td><td>User A signs out with pending changes and user B signs in. B sees only B's rows. A's queue is neither shown nor uploaded until A signs in again.</td><td><a href="#FR-03">FR-03</a>, <a href="#NFR-03">NFR-03</a></td></tr>
 </tbody>
 </table>
@@ -424,8 +440,9 @@
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Condition</th><th scope="col">System behaviour</th><th scope="col">User sees</th></tr></thead>
 <tbody>
 <tr id="EF-01"><td class="id">EF-01</td><td>API unreachable or timed out (5 s connect, 15 s call)</td><td>Writes are queued; reads fall back to Room.</td><td>Banner "Offline · changes saved on device" or "Offline · showing saved data"; Dashboard "Showing saved data". Sign-in shows "No internet connection. Check your network and try again."</td></tr>
-<tr id="EF-02"><td class="id">EF-02</td><td>401/403 on a screen request</td><td><code>ApiError.SessionExpired</code>; Settings clears the session.</td><td>"Your session has expired. Please log in again." This is also shown for a wrong password at sign-in (<a href="#AUD-18">AUD-18</a>).</td></tr>
-<tr id="EF-03"><td class="id">EF-03</td><td>409 at registration (email exists) or 429 (rate limit)</td><td>Mapped to <code>ApiError.Unknown</code>.</td><td>"Something went wrong. Please try again." (<a href="#AUD-18">AUD-18</a>)</td></tr>
+<tr id="EF-02"><td class="id">EF-02</td><td>401/403 on a screen request</td><td><code>ApiError.SessionExpired</code>; Settings clears the session.</td><td>"Your session has expired. Please log in again." Since v2.0, a wrong password at sign-in shows "Email or password is incorrect." instead (<a href="#AUD-18">AUD-18</a> fixed).</td></tr>
+<tr id="EF-03"><td class="id">EF-03</td><td>409 at registration (email exists) or 429 (rate limit)</td><td>Mapped by <code>AuthViewModel.authErrorMessage</code> (v2.0).</td><td>"An account with this email already exists. Sign in instead." / "Too many attempts. Please wait 15 minutes and try again."</td></tr>
+<tr id="EF-09"><td class="id">EF-09</td><td>Google sign-in cancelled, no Google account on the device, or server SSO not configured</td><td>Cancel shows nothing; the other cases show a message.</td><td>"Add a Google account to this device…" / "Google sign-in is not available on this server yet."</td></tr>
 <tr id="EF-04"><td class="id">EF-04</td><td>409/400 during sync</td><td>The queue stops at the failing operation; <code>conflict=true</code>.</td><td>Review button (<a href="#UF-07">UF-07</a>)</td></tr>
 <tr id="EF-05"><td class="id">EF-05</td><td>5xx from the API</td><td><code>ApiError.ServerError</code>. In production the API hides internal messages.</td><td>"Something went wrong on our end. Please try again shortly." Sync banner: "Sync needs attention · saved changes kept on device".</td></tr>
 <tr id="EF-06"><td class="id">EF-06</td><td>Item not available offline</td><td>Room has no row (never downloaded).</td><td>Error state with Retry, e.g. "Project is not available offline" (<a href="#CON-05">CON-05</a>)</td></tr>
@@ -440,11 +457,11 @@
   <p class="subtitle">Design goals, navigation, visual conventions, accessibility and responsive behaviour as evidenced in the app.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-04-DES</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Designers and developers changing the UI; assessor reviewing UX decisions</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -478,7 +495,7 @@
 <li>Bottom <code>NavigationBar</code> with four destinations: Today, Projects, Habits, Settings. Navigating between them saves and restores state and uses <code>launchSingleTop</code> <span class="tag fact">Implemented</span>.</li>
 <li>Second-level screens (Project detail, Tasks, Task detail, Profile) use a top app bar with a Back arrow ("Back" content description) <span class="tag fact">Implemented</span>.</li>
 <li>Create and edit actions use modal dialogs (project, task editor, habit, password), not separate screens <span class="tag fact">Implemented</span>.</li>
-<li>Destructive actions confirm first: log out and delete account. Deleting a project, task or habit from a list has no confirmation dialog <span class="tag fact">Implemented</span> (<span class="tag rec">Recommendation</span> add an undo snackbar; see <a href="#IMP-12">IMP-12</a>).</li>
+<li>Destructive actions confirm first: log out, delete account and (since v2.0) deleting any project, task or habit. The project dialog warns that its tasks are deleted too <span class="tag fact">Implemented</span> (<a href="#IMP-12">IMP-12</a>).</li>
 </ul>
 <p>The full map is in <a href="#DIAG-02">DIAG-02</a>.</p>
 
@@ -516,7 +533,7 @@
 <tr><td>Not relying on colour alone</td><td>Priority and status are shown as text chips ("Priority · High"), not colour only.</td><td><span class="tag fact">Implemented</span></td></tr>
 <tr><td>Keyboard / IME</td><td><code>windowSoftInputMode="adjustResize"</code>; auth forms scroll above the keyboard (improvements log).</td><td><span class="tag fact">Implemented</span></td></tr>
 <tr><td>Contrast, touch targets, TalkBack walkthrough</td><td>No measurements or audit records in the repository.</td><td><span class="tag unk">Unknown</span> → <a href="#IMP-11">IMP-11</a></td></tr>
-<tr><td>Localised content</td><td>en/zu/tn resource strings for auth and a few labels; feature screens are English-only.</td><td>Partial (<a href="#FR-18">FR-18</a>)</td></tr>
+<tr><td>Localised content</td><td>Every screen in en/zu/tn (210 strings each), including content descriptions, errors and notifications. Bottom-bar labels are single-line, so the longest isiZulu label ("Amaphrojekthi") fits.</td><td><span class="tag fact">Implemented</span> (<a href="#FR-18">FR-18</a>)</td></tr>
 </tbody>
 </table>
 
@@ -524,12 +541,15 @@
 <p>Layouts are single-column phone layouts built with <code>fillMaxWidth</code>, <code>LazyColumn</code> and horizontally scrolling chip rows. Window insets are handled with <code>statusBarsPadding</code>. No window size classes or tablet layouts exist; tablet layouts are listed as planned <span class="tag fact">Implemented</span>. Landscape behaviour has not been tested <span class="tag unk">Unknown</span>.</p>
 
 <h2 id="d04-screen-evidence"><span class="num">6</span>Screen evidence</h2>
-<p>Only two distinct, correctly identified screenshots exist in the repository. The UI-audit folder <code>docs/screenshots/ui-audit/</code> contains nine files, but they are only four distinct images, and their file names do not match their content (<a href="#AUD-21">AUD-21</a>). Both images below were captured on 2026-09-25, before the 2026-10-04 navigation and sync-banner changes, so they may not match the current UI.</p>
+<p>These screenshots were captured on 2026-11-05 from version 2.0.0 running on an Android 7.0 (API 24) emulator against the local API, using fictional demo data. They replace the old UI-audit set, whose file names did not match their content (<a href="#AUD-21">AUD-21</a>). All 21 are in <code>docs/screenshots/part3/</code>.</p>
 <figure class="shots" id="FIG-SHOTS">
-<div><img src="../../screenshots/ui-audit/splash.png" alt="Login screen: Nexus logo, Language picker set to English, Welcome Back heading, Email and Password fields, disabled Sign In button, and a Need an account? Register link."><figcaption>Login screen (stored as <code>splash.png</code>).</figcaption></div>
-<div><img src="../../screenshots/ui-audit/dashboard-offline.png" alt="Skeleton loading state: top bar with back arrow, Nexus logo and English label, then grey placeholder blocks."><figcaption>Skeleton loading state (stored under four names, including <code>dashboard-offline.png</code>).</figcaption></div>
+<div><img src="../../screenshots/part3/01-login.png" alt="Login screen with language picker, email and password fields"><figcaption>Login</figcaption></div>
+<div><img src="../../screenshots/part3/03-dashboard.png" alt="Today dashboard with counts for projects, tasks and activity and the schedule cards"><figcaption>Today</figcaption></div>
+<div><img src="../../screenshots/part3/07-tasks.png" alt="Task list with progress bar, search and status filter chips"><figcaption>Tasks</figcaption></div>
+<div><img src="../../screenshots/part3/09-habits.png" alt="Habits with level, points, streaks, completion rate and badges"><figcaption>Habits</figcaption></div>
+<div><img src="../../screenshots/part3/11-settings-notifications.png" alt="Settings showing the reminders switch and Send test notification button"><figcaption>Settings</figcaption></div>
+<div><img src="../../screenshots/part3/15-dashboard-isizulu.png" alt="Today dashboard in isiZulu"><figcaption>isiZulu</figcaption></div>
 </figure>
-<p><span class="tag rec">Recommendation</span> Recapture the screen set from a running build and replace the folder contents (<a href="#IMP-16">IMP-16</a>); <a href="#NX-10-UM">NX-10-UM</a> intentionally uses text-only instructions until then.</p>
 </section>
 <section class="combined-break"><header class="titlepage" id="NX-05-DATA">
   <p class="project">Nexus &middot; Documentation package &middot; Deliverable 05</p>
@@ -537,11 +557,11 @@
   <p class="subtitle">Entities, relationships, key fields, storage locations and data flows on the server and the device.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-05-DATA</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Developers changing the API or Room schema; assessor checking the data design</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -562,7 +582,7 @@
 <thead><tr><th scope="col">Store</th><th scope="col">Location</th><th scope="col">Contents</th><th scope="col">Protection</th></tr></thead>
 <tbody>
 <tr><td>API document store</td><td><code>DATABASE_PATH</code> (default <code>backend/nexus-data.json</code>; <code>/data/nexus-data.json</code> in the container)</td><td>users, projects, tasks, habits, sync receipts</td><td>File-system permissions only; not encrypted at rest. Git-ignored.</td></tr>
-<tr><td>Room database</td><td>App-private <code>nexus_database</code>, schema version 5</td><td>Cached projects, tasks, habits, dashboard counts, pending upload queue</td><td>App sandbox; included in Android backup (<a href="#AUD-05">AUD-05</a>)</td></tr>
+<tr><td>Room database</td><td>App-private <code>nexus_database</code>, schema version 5</td><td>Cached projects, tasks, habits, dashboard counts, pending upload queue</td><td>App sandbox; excluded from Android backup since v2.0 (<a href="#AUD-05">AUD-05</a> fixed)</td></tr>
 <tr><td>Encrypted preferences</td><td><code>nexus_secure_prefs</code></td><td>JWT (<code>jwt_token</code>)</td><td>AES-256 GCM/SIV via AndroidX Security; excluded from backup</td></tr>
 <tr><td>Plain preferences</td><td>Settings store; <code>cached_profiles</code></td><td><code>theme_mode</code>, <code>notifications_enabled</code>, <code>language</code>, language-sync flag; profile JSON per owner (<code>profile:&lt;owner&gt;</code>)</td><td>App sandbox; excluded from backup</td></tr>
 </tbody>
@@ -588,12 +608,14 @@
 <h3 id="ENT-USER"><span class="num">2.1</span>User (ENT-USER)</h3>
 <table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
 <tr><td><code>id</code></td><td>UUID string</td><td><code>randomUUID()</code> at registration; JWT <code>sub</code></td></tr>
-<tr><td><code>email</code></td><td>string</td><td>Valid email; unique (exact, case-sensitive match) <span class="tag fact">Implemented</span></td></tr>
+<tr><td><code>email</code></td><td>string</td><td>Valid email, stored lower-case since v2.0; unique and matched case-insensitively <span class="tag fact">Implemented</span></td></tr>
 <tr><td><code>displayName</code></td><td>string</td><td>Non-empty</td></tr>
 <tr><td><code>passwordHash</code></td><td>string</td><td>bcrypt cost 12. A non-bcrypt value is compared as plain text once and then rehashed (<a href="#AUD-16">AUD-16</a>). Never returned by the API.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>Default <code>"en"</code>; any string accepted by the API, the app sends en/zu/tn</td></tr>
 <tr><td><code>notificationsEnabled</code></td><td>boolean</td><td>Default <code>true</code></td></tr>
 <tr><td><code>syncOperations</code></td><td>string[]</td><td>Applied <code>operationId</code>s; grows without limit (<a href="#AUD-07">AUD-07</a>)</td></tr>
+<tr><td><code>googleSub</code> (v2.0)</td><td>string</td><td>Google account subject; set on first Google sign-in. Accounts created by Google have no <code>passwordHash</code>.</td></tr>
+<tr><td><code>deviceTokens</code> (v2.0)</td><td>string[]</td><td>FCM registration tokens, at most 10, newest last; a token is removed from any other account when registered</td></tr>
 </tbody></table>
 
 <h3 id="ENT-PROJECT"><span class="num">2.2</span>Project (ENT-PROJECT)</h3>
@@ -659,13 +681,15 @@
 <tr id="DF-02"><td class="id">DF-02</td><td>Upload</td><td><code>pending_changes</code> (ordered) → <code>POST /api/sync</code> → in-memory map → <code>saveDatabase()</code> (<code>.tmp</code> then <code>rename</code>) → receipt stored → queue row deleted</td></tr>
 <tr id="DF-03"><td class="id">DF-03</td><td>Refresh</td><td><code>GET /projects</code> + <code>GET /projects/:id/tasks</code> for each project (N+1 requests) → replaces the account's cached projects and tasks → dashboard counts computed on the device</td></tr>
 <tr id="DF-04"><td class="id">DF-04</td><td>Account deletion</td><td><code>DELETE /users/me</code> → server removes the user and all collections → app purges that owner's Room rows and queue under the sync mutex</td></tr>
+<tr id="DF-06"><td class="id">DF-06</td><td>Real-time push (v2.0)</td><td>Successful <code>/api/sync</code> → <code>notifyUser()</code> → FCM multicast to the user's other device tokens → <code>NexusMessagingService</code> shows a notification and refreshes the Room cache</td></tr>
+<tr id="DF-07"><td class="id">DF-07</td><td>Google SSO (v2.0)</td><td>Credential Manager → Google ID token → <code>/api/auth/google</code> → Google key verification → user found/created/linked → Nexus JWT</td></tr>
 <tr id="DF-05"><td class="id">DF-05</td><td>Export</td><td>Habits (cache or API) → CSV string in memory → Android share sheet. Nothing is written to shared storage.</td></tr>
 </tbody>
 </table>
 
 <h2 id="d05-data-retention-and-privacy-notes"><span class="num">5</span>Data retention and privacy notes</h2>
 <ul>
-<li>Personal data held: email, display name, password hash, and the user's own content. No analytics or third-party data processors are wired in <span class="tag fact">Implemented</span>.</li>
+<li>Personal data held: email, display name, password hash, the user's own content and, since v2.0, the Google account subject and FCM device tokens. Google (sign-in) and Firebase (push delivery) act as service providers; no analytics or ads <span class="tag fact">Implemented</span>.</li>
 <li>Retention: data is kept until the user deletes it or the account. There are no server-side backups or expiry <span class="tag fact">Implemented</span>.</li>
 <li>Logs: Pino redacts password fields, <code>passwordHash</code>, <code>token</code> and the authorization header. pino-http's default serializers do not log request bodies, so emails in bodies do not reach the logs, but remote IP addresses are logged <span class="tag fact">Implemented</span>.</li>
 </ul>
@@ -676,11 +700,11 @@
   <p class="subtitle">Completed work with evidence, and remaining work ordered by dependency with priorities, estimates, acceptance criteria and tests.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-06-PLAN</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Development team planning the final PoE; assessor reviewing project management</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -692,7 +716,7 @@
     <span class="tag unk">Unknown</span> no evidence available;
     <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
 </header>
-<nav class="toc" aria-label="Table of contents"><h2>NX-06-PLAN contents</h2><ol><li><a href="#d06-completed-work">1 Completed work</a></li><li><a href="#d06-remaining-work">2 Remaining work</a></li><li><a href="#d06-definition-of-done">3 Definition of done</a></li></ol></nav>
+<nav class="toc" aria-label="Table of contents"><h2>NX-06-PLAN contents</h2><ol><li><a href="#d06-completed-work">1 Completed work</a></li><li><a href="#d06-remaining-work">2 Remaining work</a></li><li><a href="#d06-definition-of-done">3 Definition of done</a></li><li><a href="#PLAN-STATUS">4 Status at v2.0 (2026-11-05)</a></li></ol></nav>
 
 
 <h2 id="d06-completed-work"><span class="num">1</span>Completed work</h2>
@@ -706,6 +730,7 @@
 <tr><td>2026-09-23</td><td>Backend remediation: mutex + atomic writes, Zod validation, JWT secret check, bcrypt, rate limiting, health check, Pino; task detail screen</td><td>PR #23; <code>server.test.js</code></td><td><a href="#NFR-01">NFR-01</a>, <a href="#NFR-04">NFR-04</a>, <a href="#FR-12">FR-12</a></td></tr>
 <tr><td>2026-09-24</td><td>Android structural remediation: six repositories, manual DI, <code>HabitScoring</code> domain, feature packages, type-safe routes, shared fakes</td><td>PR #24</td><td><a href="#TR-01">TR-01</a> to <a href="#TR-03">TR-03</a>, <a href="#FR-14">FR-14</a></td></tr>
 <tr><td>2026-09-26</td><td>UI refinement: theme colours, logo component</td><td>PR #25</td><td><a href="#NX-04-DES">NX-04-DES</a></td></tr>
+<tr><td>2026-11-05</td><td><strong>Part 3 / v2.0:</strong> Google SSO, FCM push, WorkManager reminders, full zu/tn localisation, audit fixes (AUD-01/02/03/05/06/10/11/16/17/18/21), Settings crash fix, release signing, Play Store kit, recaptured screenshots</td><td><code>716bedb</code> + uncommitted working tree</td><td><a href="#FR-21">FR-21</a>, <a href="#FR-22">FR-22</a>, <a href="#FR-23">FR-23</a>, <a href="#FR-18">FR-18</a></td></tr>
 <tr><td>2026-10-04</td><td>Offline upload queue and <code>/api/sync</code>, sync banner, conflict review, project search, task filters, zu/tn resources, configurable <code>NEXUS_API_URL</code>, HTTPS-only release, Dockerfile/compose</td><td>PR #26 (commit 3a3f275)</td><td><a href="#FR-16">FR-16</a>, <a href="#FR-17">FR-17</a>, <a href="#FR-18">FR-18</a>, <a href="#TR-07">TR-07</a></td></tr>
 </tbody>
 </table>
@@ -740,6 +765,32 @@
 
 <h2 id="d06-definition-of-done"><span class="num">3</span>Definition of done</h2>
 <p>Adopted from the quality checklist in <code>PROJECT_IMPROVEMENTS.md</code>: API models and validation first; a Room migration for any schema change; loading, offline, retry, unauthorised and validation states covered; ViewModel unit tests plus instrumented coverage of the main path; accessibility checked; README and the improvements log updated <span class="tag fact">Implemented</span>. <span class="tag rec">Recommendation</span> Add "CI green on the PR" once <a href="#IMP-01">IMP-01</a> is done.</p>
+
+<h2 id="PLAN-STATUS"><span class="num">4</span>Status at v2.0 (2026-11-05)</h2>
+<table>
+<caption>Backlog status after the Part 3 work</caption>
+<thead><tr><th scope="col" class="id">Task</th><th scope="col">Status</th><th scope="col">Evidence or remaining action</th></tr></thead>
+<tbody>
+<tr><td class="id"><a href="#IMP-01">IMP-01</a></td><td>Open (team)</td><td>Needs the GitHub account billing lock resolved; then re-run CI. Workflows moved to Node 22.</td></tr>
+<tr><td class="id"><a href="#IMP-02">IMP-02</a></td><td>Done</td><td>Zod 4.6.7 adopted; 29/29 backend tests pass. PR #27 can be closed as superseded.</td></tr>
+<tr><td class="id"><a href="#IMP-03">IMP-03</a></td><td>Done</td><td>Refuses to start; <code>.bak</code> copy kept; 3 tests in <code>part3.test.js</code>.</td></tr>
+<tr><td class="id"><a href="#IMP-04">IMP-04</a></td><td>Done</td><td><code>AuthErrorMessagesTest</code>; verified on device.</td></tr>
+<tr><td class="id"><a href="#IMP-05">IMP-05</a></td><td>Done</td><td>Root <code>docker-compose.yml</code> uses a named volume at <code>/data</code>; <code>docker compose config</code> valid. Not run (no Docker daemon).</td></tr>
+<tr><td class="id"><a href="#IMP-06">IMP-06</a></td><td>Done</td><td><code>TRUST_PROXY</code> env; not covered by a test.</td></tr>
+<tr><td class="id"><a href="#IMP-07">IMP-07</a></td><td>Partly done</td><td>Signing config, upload key and Play kit done. API hosting and Play Console upload are team actions.</td></tr>
+<tr><td class="id"><a href="#IMP-08">IMP-08</a></td><td>Done (built)</td><td>Reminders and push implemented (<a href="#FR-22">FR-22</a>, <a href="#FR-23">FR-23</a>).</td></tr>
+<tr><td class="id"><a href="#IMP-09">IMP-09</a></td><td>Done</td><td>Backup rules exclude <code>database</code>.</td></tr>
+<tr><td class="id"><a href="#IMP-10">IMP-10</a></td><td>Done (ktlint)</td><td>Codebase brought to zero ktlint violations (592 at the start: auto-format, line wrapping, constant renames, and two rules disabled in <code>.editorconfig</code> with recorded reasons). <code>ktlintCheck</code> now runs in Android CI before the tests. <code>blank.yml</code> and <code>build-verification.log</code> removed. detekt is not gated because the tool crashes in this toolchain (<a href="#AUD-23">AUD-23</a>).</td></tr>
+<tr><td class="id"><a href="#IMP-11">IMP-11</a></td><td>Open</td><td>No TalkBack or contrast audit recorded.</td></tr>
+<tr><td class="id"><a href="#IMP-12">IMP-12</a></td><td>Done (alternative)</td><td>Every delete (project, task, habit) now asks for confirmation, and the project dialog warns that its tasks are deleted too. Verified on device (screenshot 21). Undo was not implemented.</td></tr>
+<tr><td class="id"><a href="#IMP-13">IMP-13</a></td><td>Done</td><td><code>CsvRowTest</code>.</td></tr>
+<tr><td class="id"><a href="#IMP-14">IMP-14</a></td><td>Done</td><td>New <code>HabitScoringTest</code> case.</td></tr>
+<tr><td class="id"><a href="#IMP-15">IMP-15</a></td><td>Open</td><td>Room schema export and migration tests not added.</td></tr>
+<tr><td class="id"><a href="#IMP-16">IMP-16</a></td><td>Done</td><td>README rewritten (contents links fixed, release notes, AI use); screenshots recaptured.</td></tr>
+<tr><td class="id"><a href="#IMP-17">IMP-17</a></td><td>Done</td><td>210 strings × 3 languages; native-speaker review still recommended.</td></tr>
+<tr><td class="id"><a href="#IMP-18">IMP-18</a></td><td>Done (code)</td><td>SSO and push implemented; need Google Cloud and Firebase projects to run end to end.</td></tr>
+</tbody>
+</table>
 </section>
 <section class="combined-break"><header class="titlepage" id="NX-07-CICD">
   <p class="project">Nexus &middot; Documentation package &middot; Deliverable 07</p>
@@ -747,11 +798,11 @@
   <p class="subtitle">Verified pipeline behaviour, build and test gates, run history, environments and the release checklist.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-07-CICD</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Developers and whoever performs releases; assessor checking delivery automation</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -772,12 +823,12 @@
 <caption>Workflows</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Workflow</th><th scope="col">Triggers</th><th scope="col">Jobs and gates</th></tr></thead>
 <tbody>
-<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 20, <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
-<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 20 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
-<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>Push/PR on main; manual</td><td>GitHub starter template that only echoes text. It provides no gate (<a href="#AUD-13">AUD-13</a>).</td></tr>
+<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 22 (since v2.0; was 20), <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>ktlintCheck</code> (since v2.0), <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
+<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 22 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
+<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>(removed in v2.0)</td><td>GitHub starter template that only echoed text; deleted (<a href="#AUD-13">AUD-13</a>).</td></tr>
 </tbody>
 </table>
-<p>Not gated in CI: ktlint, detekt, Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning <span class="tag fact">Implemented</span>. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings <span class="tag unk">Unknown</span>.</p>
+<p>Not gated in CI: detekt (<a href="#AUD-23">AUD-23</a>), Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning <span class="tag fact">Implemented</span>. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings <span class="tag unk">Unknown</span>.</p>
 
 <h2 id="d07-verified-run-history"><span class="num">2</span>Verified run history</h2>
 <p>Retrieved with <code>gh run list</code> / <code>gh run view</code> on 2026-11-05 (78 most recent runs: 49 success, 29 failure).</p>
@@ -799,9 +850,14 @@
 <caption>Commands run on 2026-11-05 on the author's Windows workstation</caption>
 <thead><tr><th scope="col">Command</th><th scope="col">Result</th></tr></thead>
 <tbody>
-<tr><td><code>cd backend; npm test</code> (installed zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
-<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong>, 0 failures</td></tr>
-<tr><td><code>assembleDebug</code>, <code>assembleRelease</code>, Docker build</td><td>Not run for this package <span class="tag unk">Unknown</span>. The Docker daemon was not running.</td></tr>
+<tr><td><code>cd backend; npm test</code> at v1.0 (zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
+<tr><td><code>cd backend; npm test</code> at v2.0 (zod 4.6.7)</td><td>3 suites, <strong>29/29 passed</strong>; <code>npm audit --omit=dev</code>: 0 vulnerabilities</td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> at v1.0 (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong></td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest</code> at v2.0</td><td>BUILD SUCCESSFUL; 10 classes, <strong>42/42 passed</strong></td></tr>
+<tr><td><code>./gradlew :app:connectedDebugAndroidTest</code> at v2.0 (Android 7.0 emulator)</td><td><strong>16/16 passed</strong> with the API stopped; 14/16 when a live API was reachable (<a href="#AUD-22">AUD-22</a>)</td></tr>
+<tr><td><code>assembleRelease -PNEXUS_API_URL=https://api.nexus.invalid/api/</code> at v2.0</td><td>APK signed with the upload key, verified by <code>apksigner</code> (APK Signature Scheme v2). A configuration-cache error in the HTTPS guard was fixed, after which the build is SUCCESSFUL; an http:// URL is rejected. The placeholder build was deleted.</td></tr>
+<tr><td><code>assembleDebug</code> at v2.0</td><td>Succeeded; installed and exercised on the emulator</td></tr>
+<tr><td>Docker build</td><td>Not run <span class="tag unk">Unknown</span>. The Docker daemon was not running; <code>docker compose config</code> validates both compose files.</td></tr>
 </tbody>
 </table>
 <p>Details per suite are in <a href="#NX-09-TDH">NX-09-TDH</a>.</p>
@@ -819,7 +875,7 @@
 </table>
 
 <h2 id="d07-release-process"><span class="num">5</span>Release process</h2>
-<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 <span class="tag fact">Implemented</span>. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources <span class="tag fact">Implemented</span>. No <code>signingConfig</code> is defined, so CI release artifacts would be unsigned (<a href="#AUD-08">AUD-08</a>).</p>
+<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 <span class="tag fact">Implemented</span>. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources <span class="tag fact">Implemented</span>. Since v2.0 a <code>release</code> signing config reads <code>keystore.properties</code> (git-ignored) or <code>NEXUS_KEYSTORE_*</code> environment variables, and the upload key was created with <code>scripts/create-upload-keystore.ps1</code> (<a href="#AUD-08">AUD-08</a> fixed). CI does not have the key yet, so CI release artifacts remain unsigned until the secrets are added.</p>
 <h3 id="REL-CHECK"><span class="num">5.1</span>Release checklist</h3>
 <p>Items marked <span class="tag rec">Recommendation</span> are recommendations for the first release. The others restate rules the repository already enforces or documents.</p>
 <ol>
@@ -827,7 +883,7 @@
 <li id="REL-02">Backend tests pass locally: <code>npm ci &amp;&amp; npm test</code>.</li>
 <li id="REL-03">Android unit tests pass: <code>./gradlew test</code>. Instrumented tests pass on at least one API 24 and one current device. <span class="tag rec">Recommendation</span></li>
 <li id="REL-04">Run the offline acceptance check in <code>docs/ONLINE_OFFLINE.md</code> (six steps) against the target API.</li>
-<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> and update the hard-coded "Version 1.0.0 (Prototype)" label in Settings. <span class="tag rec">Recommendation</span></li>
+<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> (2 / 2.0.0 for the final PoE). Settings shows <code>BuildConfig.VERSION_NAME</code>.</li>
 <li id="REL-06">Hosted API is healthy over HTTPS with persistent storage and a stable <code>JWT_SECRET</code> (<a href="#NX-11-DEP">NX-11-DEP</a>).</li>
 <li id="REL-07">Set repository variable <code>NEXUS_API_URL</code> to the HTTPS URL ending in <code>/</code>.</li>
 <li id="REL-08">Sign the APK/AAB with the release keystore held outside the repository (<a href="#IMP-07">IMP-07</a>). <span class="tag rec">Recommendation</span></li>
@@ -841,11 +897,11 @@
   <p class="subtitle">Evidence-based findings with severity, confidence, affected area and recommended action, plus an addendum verifying earlier remediation.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-08-AUD</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Development team prioritising fixes; assessor reviewing quality assurance</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -857,7 +913,7 @@
     <span class="tag unk">Unknown</span> no evidence available;
     <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
 </header>
-<nav class="toc" aria-label="Table of contents"><h2>NX-08-AUD contents</h2><ol><li><a href="#d08-scope-and-method">1 Scope and method</a></li><li><a href="#d08-summary">2 Summary</a></li><li><a href="#d08-findings">3 Findings</a></li><li><a href="#AUD-ADDENDUM">4 Addendum: verification of earlier remediation</a></li></ol></nav>
+<nav class="toc" aria-label="Table of contents"><h2>NX-08-AUD contents</h2><ol><li><a href="#d08-scope-and-method">1 Scope and method</a></li><li><a href="#d08-summary">2 Summary</a></li><li><a href="#d08-findings">3 Findings</a></li><li><a href="#AUD-ADDENDUM">4 Addendum: verification of earlier remediation</a></li><li><a href="#AUD-ADDENDUM-B">5 Addendum B: remediation in v2.0 (2026-11-05)</a></li></ol></nav>
 
 
 <h2 id="d08-scope-and-method"><span class="num">1</span>Scope and method</h2>
@@ -878,7 +934,7 @@
 <tbody>
 <tr><td><span class="sev high">High</span></td><td>3</td><td><a href="#AUD-01">AUD-01</a>, <a href="#AUD-03">AUD-03</a>, <a href="#AUD-04">AUD-04</a></td></tr>
 <tr><td><span class="sev medium">Medium</span></td><td>6</td><td><a href="#AUD-02">AUD-02</a>, <a href="#AUD-05">AUD-05</a>, <a href="#AUD-06">AUD-06</a>, <a href="#AUD-08">AUD-08</a>, <a href="#AUD-18">AUD-18</a>, <a href="#AUD-19">AUD-19</a></td></tr>
-<tr><td><span class="sev low">Low</span></td><td>10</td><td><a href="#AUD-07">AUD-07</a>, <a href="#AUD-09">AUD-09</a>, <a href="#AUD-10">AUD-10</a>, <a href="#AUD-11">AUD-11</a>, <a href="#AUD-12">AUD-12</a>, <a href="#AUD-13">AUD-13</a>, <a href="#AUD-14">AUD-14</a>, <a href="#AUD-16">AUD-16</a>, <a href="#AUD-17">AUD-17</a>, <a href="#AUD-21">AUD-21</a></td></tr>
+<tr><td><span class="sev low">Low</span></td><td>12</td><td><a href="#AUD-07">AUD-07</a>, <a href="#AUD-09">AUD-09</a>, <a href="#AUD-10">AUD-10</a>, <a href="#AUD-11">AUD-11</a>, <a href="#AUD-12">AUD-12</a>, <a href="#AUD-13">AUD-13</a>, <a href="#AUD-14">AUD-14</a>, <a href="#AUD-16">AUD-16</a>, <a href="#AUD-17">AUD-17</a>, <a href="#AUD-21">AUD-21</a>, <a href="#AUD-22">AUD-22</a>, <a href="#AUD-23">AUD-23</a></td></tr>
 <tr><td><span class="sev info">Info</span></td><td>2</td><td><a href="#AUD-15">AUD-15</a>, <a href="#AUD-20">AUD-20</a></td></tr>
 </tbody>
 </table>
@@ -908,6 +964,8 @@
 <tr id="AUD-16"><td class="id">AUD-16</td><td><strong>Minor auth weaknesses.</strong> Login returns before any bcrypt work for unknown emails, so timing could reveal registered emails. A legacy path accepts a stored non-bcrypt value as a plain-text password. Email uniqueness is case-sensitive.</td><td><span class="sev low">Low</span> / High</td><td>Backend auth</td><td>Compare against a dummy hash; remove the legacy path once no such records exist; normalise emails to lower case.</td></tr>
 <tr id="AUD-17"><td class="id">AUD-17</td><td><strong>Habit completion rate is understated with several habits.</strong> <code>HabitScoring</code> counts distinct dates across all habits but sums the schedule per habit. Two daily habits both done for 30 days score 50%. Streaks also count a day if <em>any</em> habit was done.</td><td><span class="sev low">Low</span> / High</td><td>Domain logic</td><td><a href="#IMP-14">IMP-14</a></td></tr>
 <tr id="AUD-21"><td class="id">AUD-21</td><td><strong>UI screenshot set does not show the screens it names.</strong> <code>docs/screenshots/ui-audit/</code> holds 9 files but only 4 distinct images (MD5): <code>dashboard-offline</code>, <code>profile</code>, <code>project-list</code> and <code>settings</code> are identical. <code>habits</code>, <code>project-list-skeleton</code>, <code>login</code> and <code>register</code> are also skeleton states, and <code>splash.png</code> shows the Login screen.</td><td><span class="sev low">Low</span> / Verified</td><td>Evidence / documentation</td><td>Recapture before submission; do not present these files as evidence of named screens. <a href="#IMP-16">IMP-16</a></td></tr>
+<tr id="AUD-22"><td class="id">AUD-22</td><td><strong>Two instrumented tests depend on the API being unreachable.</strong> <code>SplashIntroScreenTest</code> plants a fake token. When a live API is reachable at 10.0.2.2:5263 it answers 401, the dashboard signs out, and the "Log Out"/"Retry" assertions fail. Observed 2026-11-05: 14/16 with the API running, 16/16 with it stopped. (Found during v2.0 verification.)</td><td><span class="sev low">Low</span> / Verified</td><td>Test reliability</td><td>Inject fake repositories into <code>NexusNavHost</code> for UI tests instead of relying on network state.</td></tr>
+<tr id="AUD-23"><td class="id">AUD-23</td><td><strong>detekt cannot run.</strong> <code>./gradlew :app:detekt</code> fails with an internal error whose message is only "25.0.3". This is consistent with detekt 1.23.8 not supporting the current Kotlin/JDK toolchain. (Found during v2.0 lint work.)</td><td><span class="sev low">Low</span> / Verified</td><td>Code quality tooling</td><td>Upgrade to detekt 2.x when it supports this toolchain, or remove the plugin.</td></tr>
 <tr id="AUD-15"><td class="id">AUD-15</td><td><strong>Dead code.</strong> <code>AuthSession.OFFLINE_TOKEN_PREFIX</code> handling remains after synthetic offline auth was removed; <code>setOnSessionCleared</code> is never registered; <code>OnlineLanguageRepository</code> and <code>languageInstance</code> are unused.</td><td><span class="sev info">Info</span> / High</td><td>Android</td><td>Remove during the next refactor.</td></tr>
 <tr id="AUD-20"><td class="id">AUD-20</td><td><strong>Inert or ordering quirks in the API.</strong> <code>registrationEnabled</code> in <code>/app/config</code> is not enforced. Validation runs before authentication on several routes, so an unauthenticated request with a bad body gets 400 instead of 401. CORS is <code>*</code> (documented as intentional).</td><td><span class="sev info">Info</span> / High</td><td>Backend</td><td>Address when roles or a web client are introduced.</td></tr>
 </tbody>
@@ -927,6 +985,33 @@
 <tr><td>Synthetic offline authentication removed</td><td>No code mints offline tokens</td><td>Not separately tested</td><td>Confirmed, with leftover parsing code (<a href="#AUD-15">AUD-15</a>)</td></tr>
 </tbody>
 </table>
+
+<h2 id="AUD-ADDENDUM-B"><span class="num">5</span>Addendum B: remediation in v2.0 (2026-11-05)</h2>
+<p>Part 3 fixed the findings below. Each fix was verified as stated; "not executed" means it was checked by reading only.</p>
+<table>
+<caption>Finding status after Part 3</caption>
+<thead><tr><th scope="col" class="id">Finding</th><th scope="col">Status</th><th scope="col">Fix and verification</th></tr></thead>
+<tbody>
+<tr><td class="id"><a href="#AUD-01">AUD-01</a></td><td>Fixed</td><td>Unreadable file: refuses to start, file untouched, <code>.bak</code> kept on every save. 3 Jest tests, including a real process start.</td></tr>
+<tr><td class="id"><a href="#AUD-02">AUD-02</a></td><td>Fixed (config)</td><td>Root compose uses a named volume at <code>/data</code>; validated with <code>docker compose config</code>; not run.</td></tr>
+<tr><td class="id"><a href="#AUD-03">AUD-03</a></td><td>Fixed</td><td><code>error.issues</code>, two-argument <code>z.record</code>; Zod 4.6.7 installed; 29/29 tests.</td></tr>
+<tr><td class="id"><a href="#AUD-04">AUD-04</a></td><td>Open (team)</td><td>Account billing lock; workflows updated to Node 22.</td></tr>
+<tr><td class="id"><a href="#AUD-05">AUD-05</a></td><td>Fixed</td><td><code>database</code> domain excluded from backup and transfer.</td></tr>
+<tr><td class="id"><a href="#AUD-06">AUD-06</a></td><td>Fixed</td><td><code>TRUST_PROXY</code> setting; not tested.</td></tr>
+<tr><td class="id"><a href="#AUD-08">AUD-08</a></td><td>Fixed</td><td>Signing config from <code>keystore.properties</code> or env; upload key created; signed APK verified with <code>apksigner</code> (see <a href="#NX-07-CICD">NX-07-CICD</a>).</td></tr>
+<tr><td class="id"><a href="#AUD-09">AUD-09</a></td><td>Mostly fixed</td><td>README rewritten; stray "?" replaced; the admin label removed. The unused MyMemory client remains (<a href="#AUD-15">AUD-15</a>).</td></tr>
+<tr><td class="id"><a href="#AUD-10">AUD-10</a></td><td>Fixed</td><td>Reminders implemented (<a href="#FR-23">FR-23</a>); verified on device.</td></tr>
+<tr><td class="id"><a href="#AUD-11">AUD-11</a></td><td>Fixed</td><td>RFC 4180 quoting; <code>CsvRowTest</code>.</td></tr>
+<tr><td class="id"><a href="#AUD-16">AUD-16</a></td><td>Mostly fixed</td><td>Dummy bcrypt compare for unknown emails; emails lower-cased. Legacy plain-text path kept for old records.</td></tr>
+<tr><td class="id"><a href="#AUD-17">AUD-17</a></td><td>Fixed</td><td>Per-habit completions; new unit test.</td></tr>
+<tr><td class="id"><a href="#AUD-18">AUD-18</a></td><td>Fixed</td><td>Status-specific auth messages; <code>AuthErrorMessagesTest</code>; verified on device.</td></tr>
+<tr><td class="id"><a href="#AUD-13">AUD-13</a></td><td>Fixed (ktlint)</td><td>0 ktlint violations; <code>ktlintCheck</code> gated in Android CI; placeholder workflow and failing log removed. detekt: <a href="#AUD-23">AUD-23</a>.</td></tr>
+<tr><td class="id"><a href="#AUD-15">AUD-15</a></td><td>Fixed</td><td>Unused MyMemory client (<code>LanguageApiService</code>, <code>OnlineLanguageRepository</code>, <code>languageInstance</code>) and the offline-token parsing removed.</td></tr>
+<tr><td class="id"><a href="#AUD-21">AUD-21</a></td><td>Fixed</td><td>20 new, correctly named screenshots in <code>docs/screenshots/part3/</code>.</td></tr>
+<tr><td class="id">New</td><td>Fixed</td><td>Settings crashed with "No ActivityResultRegistryOwner" after adding the permission request: <code>MainActivity</code> overrides <code>LocalContext</code>. Fixed by providing <code>LocalActivityResultRegistryOwner</code>; verified on device (crash buffer empty).</td></tr>
+</tbody>
+</table>
+<p>Still open: <a href="#AUD-04">AUD-04</a>, <a href="#AUD-07">AUD-07</a>, <a href="#AUD-12">AUD-12</a>, <a href="#AUD-14">AUD-14</a>, <a href="#AUD-19">AUD-19</a>, <a href="#AUD-20">AUD-20</a>, <a href="#AUD-22">AUD-22</a>, <a href="#AUD-23">AUD-23</a>. Part 3 added the SSO and push endpoints; like the rest of the API, they were reviewed by reading code and testing, not by a security audit.</p>
 </section>
 <section class="combined-break"><header class="titlepage" id="NX-09-TDH">
   <p class="project">Nexus &middot; Documentation package &middot; Deliverable 09</p>
@@ -934,11 +1019,11 @@
   <p class="subtitle">Test strategy and verified results, deployment summary, operational handover, known limitations and runbooks.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-09-TDH</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Incoming maintainers and operators; assessor checking test evidence</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -967,7 +1052,8 @@
 </table>
 
 <h2 id="d09-verified-results"><span class="num">2</span>Verified results</h2>
-<p>Run on 2026-11-05 against the baseline working tree (no local modifications to application code).</p>
+<div class="callout"><p><strong>v2.0 results (2026-11-05, after the Part 3 changes):</strong> backend <strong>29/29</strong> (adds <code>part3.test.js</code>, 13 tests: SSO, push, device tokens, data-file safety, email case). Android unit <strong>42/42</strong> (adds <code>AuthErrorMessagesTest</code> 5, <code>ReminderPlannerTest</code> 2, <code>CsvRowTest</code> 2, one <code>HabitScoringTest</code> case). Instrumented <strong>16/16</strong> on an Android 7.0 emulator with the API stopped (<a href="#AUD-22">AUD-22</a> explains the 14/16 run with a live API). The on-device walkthrough covered the sign-in error, all screens, three languages, the offline round-trip, the reminder and test notifications, and the Settings crash fix. The tables below are the v1.0 baseline results.</p></div>
+<p>v1.0 run on 2026-11-05 against commit 3a3f275, before the Part 3 changes.</p>
 <table>
 <caption>Backend: <code>cd backend; npm test</code>, 2 suites, 16 tests, 16 passed, 31.7 s</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Suite</th><th scope="col">Tests</th><th scope="col">Result</th></tr></thead>
@@ -993,9 +1079,9 @@
 <caption>Not executed for this package</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Test</th><th scope="col">Count</th><th scope="col">Status</th></tr></thead>
 <tbody>
-<tr id="TST-10"><td class="id">TST-10</td><td>Instrumented: <code>OfflinePersistenceTest</code> (1), <code>SplashIntroScreenTest</code> (4), <code>ScreenshotCaptureTest</code> (10), <code>ExampleInstrumentedTest</code> (1)</td><td>16</td><td>Not run; no device attached <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-10"><td class="id">TST-10</td><td>Instrumented: <code>OfflinePersistenceTest</code> (1), <code>SplashIntroScreenTest</code> (4), <code>ScreenshotCaptureTest</code> (10), <code>ExampleInstrumentedTest</code> (1)</td><td>16</td><td>Not run at v1.0; run at v2.0: 16/16 passed on an emulator</td></tr>
 <tr id="TST-11"><td class="id">TST-11</td><td>Docker build and smoke test</td><td>1</td><td>Not run; Docker daemon not running <span class="tag unk">Unknown</span></td></tr>
-<tr id="TST-12"><td class="id">TST-12</td><td>Manual acceptance check (<code>ONLINE_OFFLINE.md</code>)</td><td>6 steps</td><td>No recorded execution <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-12"><td class="id">TST-12</td><td>Manual acceptance check (<code>ONLINE_OFFLINE.md</code>)</td><td>6 steps</td><td>v2.0: steps 1–4 exercised on the emulator (offline create, then reconnect, then present on the server, no duplicate); steps 5–6 (account switch, cross-client delete conflict) not run <span class="tag unk">Unknown</span></td></tr>
 </tbody>
 </table>
 <h3 id="d09-coverage-gaps"><span class="num">2.1</span>Coverage gaps</h3>
@@ -1016,7 +1102,7 @@
 <tbody>
 <tr><td>Source repository</td><td><code>github.com/jBlack-MC/Nexus-app</code>; default branch <code>main</code>; working branch <code>New-Changes</code> <span class="tag fact">Implemented</span></td></tr>
 <tr><td>Repository owner / admins</td><td>Owner account <code>jBlack-MC</code>; other collaborators <span class="tag unk">Unknown</span></td></tr>
-<tr><td>Secrets in use</td><td><code>JWT_SECRET</code> (API runtime; set per environment, never committed). CI uses a hard-coded test-only value. No signing keystore exists <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Secrets in use</td><td><code>JWT_SECRET</code>; since v2.0 also <code>GOOGLE_CLIENT_ID</code> (not secret), <code>FIREBASE_SERVICE_ACCOUNT_BASE64</code> (secret), and the upload keystore at <code>%USERPROFILE%\.nexus\nexus-upload.jks</code> with its password in git-ignored <code>keystore.properties</code> on the development PC. <strong>Back these up.</strong> CI uses a hard-coded test-only JWT value <span class="tag fact">Implemented</span></td></tr>
 <tr><td>CI variables</td><td><code>NEXUS_API_URL</code> (enables release artifacts). Whether it is set: <span class="tag unk">Unknown</span>. Release jobs were skipped in the retrieved runs <span class="tag inf">Inferred</span></td></tr>
 <tr><td>Hosted services</td><td>None <span class="tag fact">Implemented</span></td></tr>
 <tr><td>Monitoring and alerting</td><td><code>/health</code> endpoint and Docker <code>HEALTHCHECK</code>. No external monitoring <span class="tag fact">Implemented</span></td></tr>
@@ -1030,8 +1116,8 @@
 <li>Single-instance JSON store (<a href="#CON-01">CON-01</a>); not suited to concurrent hosting or large data.</li>
 <li>No background sync while the app process is stopped (<a href="#CON-03">CON-03</a>).</li>
 <li>Last-upload-wins for edits; no field-level merge (<a href="#FR-17">FR-17</a>).</li>
-<li>Reminders, push notifications, account recovery and collaboration are not implemented (<a href="#NX-01-PRD">NX-01-PRD</a> scope).</li>
-<li>Localisation is partial (<a href="#FR-18">FR-18</a>).</li>
+<li>Account recovery and collaboration are not implemented (<a href="#NX-01-PRD">NX-01-PRD</a> scope). Google SSO and FCM push need the team's Google Cloud and Firebase projects before they work end to end.</li>
+<li>isiZulu and Setswana translations are AI-drafted and need first-language review (<a href="#FR-18">FR-18</a>).</li>
 <li>Open defects: see <a href="#NX-08-AUD">NX-08-AUD</a>.</li>
 </ul>
 
@@ -1057,11 +1143,11 @@
   <p class="subtitle">Task-based instructions for Nexus users: account, projects, tasks, habits, settings and working offline.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-10-UM</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>People using the Nexus Android app (signed-in users) and testers following the demo</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -1082,7 +1168,7 @@
 <li>Your first registration or sign-in must happen while the device can reach the Nexus server. After that you can keep working offline.</li>
 <li>Nexus has one kind of user. Everything you create is private to your account, and there are no shared projects.</li>
 </ul>
-<div class="callout"><p>Screen labels in this manual are the English ones. If you choose isiZulu or Setswana, the sign-in screens and some labels change language; most other screens stay in English.</p></div>
+<div class="callout"><p>Screen labels in this manual are the English ones. Choose isiZulu or Setswana on the Login screen or in Settings → Language, and every screen, message and notification switches language.</p></div>
 
 <h2 id="d10-account"><span class="num">2</span>Account</h2>
 <h3 id="UM-01"><span class="num">2.1</span>Create an account (UM-01)</h3>
@@ -1093,13 +1179,15 @@
 <li>Enter <strong>Display Name</strong>, <strong>Email</strong> and a <strong>Password</strong> of at least 6 characters, then tap <strong>Create Account</strong>.</li>
 <li>The Today screen opens. You stay signed in when you close and reopen the app (for up to 24 hours per sign-in).</li>
 </ol>
-<p>If you see "Something went wrong. Please try again." when registering, the email may already be registered, or you made too many attempts in a short time. Try signing in instead, or wait 15 minutes.</p>
+<p>If the email is already registered, the app says so. Sign in instead.</p>
 <h3 id="UM-02"><span class="num">2.2</span>Sign in and sign out (UM-02)</h3>
 <ol>
 <li>On Login, enter your Email and Password and tap <strong>Sign In</strong>.</li>
 <li>To sign out, tap <strong>Log Out</strong> on the Today screen or in Settings, then confirm.</li>
 </ol>
-<p>If a wrong password is entered, the app currently says "Your session has expired. Please log in again." Check your password and try again. This message is a known issue (<a href="#AUD-18">AUD-18</a>).</p>
+<p>If the email or password is wrong, the app says "Email or password is incorrect." After 10 attempts in 15 minutes it asks you to wait.</p>
+<h3 id="UM-12"><span class="num">2.3</span>Continue with Google (UM-12)</h3>
+<ol><li>On Login or Register, tap <strong>Continue with Google</strong>. This button only appears in builds configured for Google sign-in.</li><li>Choose your Google account. Your Nexus account is created on first use, or linked if you already registered with the same email.</li><li>Accounts created with Google have no Nexus password; keep using <strong>Continue with Google</strong>.</li></ol>
 <p>Changes you saved while offline stay on the device after you sign out. They upload the next time <em>you</em> sign in on that device. Another person signing in on the same phone will not see them.</p>
 
 <h2 id="d10-today-screen"><span class="num">3</span>Today screen</h2>
@@ -1115,7 +1203,7 @@
 <li>Use <strong>Search projects</strong> to filter the list by name.</li>
 <li>Tap a project to open it. There you can rename it (<strong>Save Project</strong>), add tasks, open the task list (<strong>Open Tasks Screen</strong>) or <strong>Delete Project</strong>.</li>
 </ol>
-<p><strong>Deleting a project also deletes all its tasks.</strong> List deletes do not ask for confirmation, and there is no undo.</p>
+<p><strong>Deleting a project also deletes all its tasks.</strong> Nexus asks you to confirm every delete; there is no undo afterwards.</p>
 <h3 id="UM-04"><span class="num">4.2</span>Add and edit tasks (UM-04)</h3>
 <ol>
 <li>In a project's task list, tap <strong>+</strong> (New Task).</li>
@@ -1138,7 +1226,7 @@
 <li>Each day you do the habit, tap <strong>Complete today</strong>. Tap it again (it reads <strong>Completed today</strong>) to undo.</li>
 <li>Use the pencil icon to edit, or the delete icon to remove a habit.</li>
 </ol>
-<p>The stats card shows your level, points, current and best streak (in days), completion rate and badges ("3-day streak", "7-day streak", "Reliable habit builder"). With more than one habit, the completion rate shown is lower than your real rate (<a href="#AUD-17">AUD-17</a>).</p>
+<p>The stats card shows your level, points, current and best streak (in days), completion rate and badges ("3-day streak", "7-day streak", "Reliable habit builder"). The completion rate counts each habit against its own schedule.</p>
 
 <h2 id="d10-settings"><span class="num">6</span>Settings</h2>
 <h3 id="UM-07"><span class="num">6.1</span>Change your profile and preferences (UM-07)</h3>
@@ -1146,11 +1234,12 @@
 <li><strong>Display Name</strong>: edit it in the User Profile section and tap <strong>Save Changes</strong>. Your email cannot be changed.</li>
 <li><strong>Appearance</strong>: System, Light or Dark. This applies to this device only.</li>
 <li><strong>Language</strong>: English, isiZulu or Setswana. It is saved to your account.</li>
-<li><strong>Task due-date reminders</strong>: this switch is saved, but Nexus does not send reminders yet (<a href="#AUD-10">AUD-10</a>).</li>
+<li><strong>Task due-date reminders</strong>: when on, Nexus notifies you about overdue and due-today tasks, about twice a day, even offline. On Android 13 and later, allow notifications when asked. You also get an alert when your account changes on another of your devices.</li>
+<li><strong>Send test notification</strong>: shows a notification on this phone and reports whether the server could push to your devices.</li>
 <li><strong>Sync account</strong> reloads your profile from the server.</li>
 </ul>
 <h3 id="UM-08"><span class="num">6.2</span>Export your habit history (UM-08)</h3>
-<ol><li>In Settings, tap <strong>Export habits CSV</strong>, then <strong>Share CSV</strong>.</li><li>Choose an app (email, Drive, etc.). The file lists habit, frequency and each completed date. Avoid commas in habit names; they break the CSV columns (<a href="#AUD-11">AUD-11</a>).</li></ol>
+<ol><li>In Settings, tap <strong>Export habits CSV</strong>, then <strong>Share CSV</strong>.</li><li>Choose an app (email, Drive, etc.). The file lists habit, frequency and each completed date. Habit names with commas or quotes are exported correctly.</li></ol>
 <h3 id="UM-09"><span class="num">6.3</span>Change password or delete your account (UM-09)</h3>
 <ul>
 <li><strong>Change password</strong>: enter your current password and a new one (6+ characters), then tap Save. You must be online.</li>
@@ -1186,11 +1275,11 @@
   <p class="subtitle">How the API and app are actually deployed today (local), the container path the repository supports, and labelled recommendations for public hosting.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-11-DEP</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Developers and operators setting up the API and building the app</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -1202,7 +1291,7 @@
     <span class="tag unk">Unknown</span> no evidence available;
     <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
 </header>
-<nav class="toc" aria-label="Table of contents"><h2>NX-11-DEP contents</h2><ol><li><a href="#d11-current-deployment-position">1 Current deployment position</a></li><li><a href="#d11-prerequisites">2 Prerequisites</a></li><li><a href="#d11-run-the-api-locally-dep-01">3 Run the API locally (DEP-01)</a></li><li><a href="#d11-run-the-api-in-a-container-dep-02">4 Run the API in a container (DEP-02)</a></li><li><a href="#d11-public-hosting-recommendations">5 Public hosting (recommendations)</a></li><li><a href="#d11-rollback">6 Rollback</a></li></ol></nav>
+<nav class="toc" aria-label="Table of contents"><h2>NX-11-DEP contents</h2><ol><li><a href="#d11-current-deployment-position">1 Current deployment position</a></li><li><a href="#d11-prerequisites">2 Prerequisites</a></li><li><a href="#d11-run-the-api-locally-dep-01">3 Run the API locally (DEP-01)</a></li><li><a href="#d11-run-the-api-in-a-container-dep-02">4 Run the API in a container (DEP-02)</a></li><li><a href="#d11-public-hosting-recommendations">5 Public hosting (recommendations)</a></li><li><a href="#d11-rollback">6 Rollback</a></li><li><a href="#DEP-OPTIONAL">7 Enabling Google SSO, push and signing (v2.0)</a></li></ol></nav>
 
 
 <h2 id="d11-current-deployment-position"><span class="num">1</span>Current deployment position</h2>
@@ -1215,14 +1304,14 @@
 <tbody>
 <tr id="DEP-01"><td class="id">DEP-01</td><td>Local Node process (development)</td><td><code>backend/package.json</code> <code>start</code>/<code>dev</code>, <code>docs/ONLINE_OFFLINE.md</code></td><td>Server module loaded and tested in process (16/16) <span class="tag fact">Implemented</span>; listening server not started for this package</td></tr>
 <tr id="DEP-02"><td class="id">DEP-02</td><td>Single container with a named volume</td><td><code>backend/Dockerfile</code>, <code>backend/compose.yaml</code></td><td>Not executed <span class="tag unk">Unknown</span>; CI smoke test never succeeded (<a href="#CI-02">CI-02</a>)</td></tr>
-<tr id="DEP-03"><td class="id">DEP-03</td><td>Root <code>docker-compose.yml</code></td><td>Repository root</td><td><span class="tag inf">Inferred</span> Will not persist data correctly. Do not use (<a href="#AUD-02">AUD-02</a>)</td></tr>
+<tr id="DEP-03"><td class="id">DEP-03</td><td>Root <code>docker-compose.yml</code></td><td>Repository root</td><td>Fixed in v2.0 to match DEP-02 (named volume at <code>/data</code>); config validated, not run (<a href="#AUD-02">AUD-02</a>)</td></tr>
 <tr id="DEP-04"><td class="id">DEP-04</td><td>Android debug/release builds</td><td><code>app/build.gradle.kts</code>, Android CI</td><td>Debug build last green in CI on 2026-09-24; release never built in the retrieved history</td></tr>
 </tbody>
 </table>
 
 <h2 id="d11-prerequisites"><span class="num">2</span>Prerequisites</h2>
 <ul>
-<li>API: Node.js 20 (CI) or 22 (Docker image); npm. For containers: Docker with Compose v2.</li>
+<li>API: Node.js 22 or later (required by google-auth-library 11 and firebase-admin 14); npm. For containers: Docker with Compose v2.</li>
 <li>App: Android Studio with SDK Platform 37; JDK 17+ (the build uses a 17 toolchain); an emulator or device on API 24+.</li>
 <li>A strong <code>JWT_SECRET</code> of 32+ characters, stored outside git (<code>.env*</code> files are git-ignored).</li>
 </ul>
@@ -1286,6 +1375,18 @@ curl http://localhost:5263/health</code></pre>
 
 <h2 id="d11-rollback"><span class="num">6</span>Rollback</h2>
 <p>No versioned deployments exist, so rollback is manual <span class="tag fact">Implemented</span>. <span class="tag rec">Recommendation</span> Tag each deployed commit. To roll back, redeploy the previous tag against the same data volume. Data written by a newer version stays in the file (the JSON store has no schema version), so take a backup before every deploy.</p>
+
+<h2 id="DEP-OPTIONAL"><span class="num">7</span>Enabling Google SSO, push and signing (v2.0)</h2>
+<table>
+<caption>One-off setup per environment (<span class="tag rec">Recommendation</span>: the accounts are the team's to create)</caption>
+<thead><tr><th scope="col">Feature</th><th scope="col">Steps</th></tr></thead>
+<tbody>
+<tr><td>Google SSO</td><td>1. Google Cloud Console → APIs &amp; Services → Credentials: create an OAuth client of type <strong>Web application</strong> (its ID is used by both app and API) and one of type <strong>Android</strong> for package <code>com.example.nexus</code> with the SHA-1 of the debug key and of the upload key (printed by <code>scripts/create-upload-keystore.ps1</code>). 2. API: <code>GOOGLE_CLIENT_ID=&lt;web-id&gt;</code>. 3. App: <code>-PGOOGLE_WEB_CLIENT_ID=&lt;web-id&gt;</code>. 4. Check: <code>GET /api/app/config</code> shows <code>googleSignIn: true</code>.</td></tr>
+<tr><td>Push (FCM)</td><td>1. Firebase Console: add an Android app <code>com.example.nexus</code>, download <code>google-services.json</code> into <code>app/</code> (git-ignored). 2. Project settings → Service accounts → generate key; set <code>FIREBASE_SERVICE_ACCOUNT_BASE64</code> to the base64 of that JSON on the API host. 3. Check: <code>pushNotifications: true</code> in <code>/api/app/config</code>, then Settings → Send test notification reports "Push sent to n device(s)".</td></tr>
+<tr><td>Release signing</td><td>Run <code>scripts/create-upload-keystore.ps1</code> once (done on the development PC on 2026-11-05); back up <code>%USERPROFILE%\.nexus\nexus-upload.jks</code> and <code>keystore.properties</code>. In CI, provide <code>NEXUS_KEYSTORE_PATH</code>, <code>NEXUS_KEYSTORE_PASSWORD</code>, <code>NEXUS_KEY_ALIAS</code> and <code>NEXUS_KEY_PASSWORD</code> from secrets.</td></tr>
+<tr><td>Proxy</td><td>Behind an HTTPS reverse proxy set <code>TRUST_PROXY=1</code> (<a href="#DEP-R6">DEP-R6</a>).</td></tr>
+</tbody>
+</table>
 </section>
 <section class="combined-break"><header class="titlepage" id="NX-12-TCR">
   <p class="project">Nexus &middot; Documentation package &middot; Deliverable 12</p>
@@ -1293,11 +1394,11 @@ curl http://localhost:5263/health</code></pre>
   <p class="subtitle">Verifiable contribution evidence from the repository and GitHub, with unavailable evidence marked as unknown.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-12-TCR</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Module assessor; team members confirming their contributions</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -1309,7 +1410,7 @@ curl http://localhost:5263/health</code></pre>
     <span class="tag unk">Unknown</span> no evidence available;
     <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
 </header>
-<nav class="toc" aria-label="Table of contents"><h2>NX-12-TCR contents</h2><ol><li><a href="#d12-basis-of-this-report">1 Basis of this report</a></li><li><a href="#d12-declared-team">2 Declared team</a></li><li><a href="#d12-recorded-activity-by-account">3 Recorded activity by account</a></li><li><a href="#d12-tool-assisted-work">4 Tool-assisted work</a></li><li><a href="#d12-contribution-areas">5 Contribution areas</a></li><li><a href="#d12-gaps-and-how-to-close-them">6 Gaps and how to close them</a></li></ol></nav>
+<nav class="toc" aria-label="Table of contents"><h2>NX-12-TCR contents</h2><ol><li><a href="#d12-basis-of-this-report">1 Basis of this report</a></li><li><a href="#d12-declared-team">2 Declared team</a></li><li><a href="#d12-recorded-activity-by-account">3 Recorded activity by account</a></li><li><a href="#d12-tool-assisted-work">4 Tool-assisted work</a></li><li><a href="#d12-contribution-areas">5 Contribution areas</a></li><li><a href="#d12-gaps-and-how-to-close-them">6 Gaps and how to close them</a></li><li><a href="#TCR-PART3">7 Part 3 (v2.0) work</a></li></ol></nav>
 
 
 <h2 id="d12-basis-of-this-report"><span class="num">1</span>Basis of this report</h2>
@@ -1363,6 +1464,9 @@ curl http://localhost:5263/health</code></pre>
 <li><span class="tag rec">Recommendation</span> If both members commit from a shared machine, set per-person <code>git config user.name</code>/<code>user.email</code>, or use <code>Co-authored-by:</code> trailers.</li>
 </ul>
 <p>Until these gaps are closed, individual contribution claims in the PoE should rest on the members' own statements, not on this report.</p>
+
+<h2 id="TCR-PART3"><span class="num">7</span>Part 3 (v2.0) work</h2>
+<p>On 2026-11-05 the Part 3 changes (SSO, push, reminders, localisation, fixes, Play kit, documentation updates) were made with Claude Code in a session run from the <code>jBlack-MC</code> workspace. Commit <code>716bedb</code> ("Add Nexus documentation package") includes part of that work; the rest was uncommitted when this report was generated. As before, the person directing the session cannot be identified from the repository <span class="tag unk">Unknown</span>, and the team should state it in the AI-use write-up.</p>
 </section>
 </main>
 </body>

@@ -455,6 +455,12 @@ const deviceSchema = z.object({ token: z.string().min(10).max(4096) }).strict();
 const MAX_DEVICES_PER_USER = 10;
 
 app.post("/api/users/me/devices", validate(deviceSchema), withAuthAndDb(async (req, res) => {
+  // A device token belongs to one account: on a shared phone, the previous user stops receiving pushes.
+  for (const other of users.values()) {
+    if (other !== req.user && other.deviceTokens?.includes(req.body.token)) {
+      other.deviceTokens = other.deviceTokens.filter((token) => token !== req.body.token);
+    }
+  }
   const tokens = (req.user.deviceTokens || []).filter((token) => token !== req.body.token);
   // Newest last; keep the most recent devices only.
   req.user.deviceTokens = [...tokens, req.body.token].slice(-MAX_DEVICES_PER_USER);

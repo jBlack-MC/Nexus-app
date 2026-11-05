@@ -8,16 +8,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.R
 import com.example.nexus.api.Task
 import com.example.nexus.api.TaskStatus
+import com.example.nexus.ui.components.DeleteConfirmationDialog
+import com.example.nexus.ui.components.DeleteKind
 import com.example.nexus.ui.components.DetailSkeleton
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusDestructiveButton
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.NexusPrimaryButton
 import com.example.nexus.ui.components.NexusSecondaryButton
+import com.example.nexus.ui.components.rememberDeleteConfirmation
 import com.example.nexus.ui.settings.CompactLanguageMenu
 import com.example.nexus.ui.tasks.TaskDraft
 import com.example.nexus.ui.tasks.TaskEditorDialog
@@ -44,6 +49,8 @@ fun ProjectDetailScreen(
     }
 
     val project = uiState.project
+    val confirmDelete = rememberDeleteConfirmation()
+    DeleteConfirmationDialog(confirmDelete)
     var projectName by remember(project?.id) { mutableStateOf(project?.name ?: "") }
     var projectDescription by remember(project?.id) { mutableStateOf(project?.description ?: "") }
 
@@ -58,7 +65,7 @@ fun ProjectDetailScreen(
                 },
                 actions = {
                     Text(
-                        "Details",
+                        stringResource(R.string.project_details),
                         modifier = Modifier.padding(end = Spacing.md),
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -69,9 +76,9 @@ fun ProjectDetailScreen(
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
             if (uiState.isLoading && project == null) {
                 DetailSkeleton()
@@ -83,40 +90,40 @@ fun ProjectDetailScreen(
             } else {
                 Column(
                     modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .testTag("project_detail_content")
-                            .padding(Spacing.md),
+                    Modifier
+                        .fillMaxSize()
+                        .testTag("project_detail_content")
+                        .padding(Spacing.md),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                 ) {
                     if (project != null) {
                         OutlinedTextField(
                             value = projectName,
                             onValueChange = { projectName = it },
-                            label = { Text("Project name") },
+                            label = { Text(stringResource(R.string.project_name)) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                         )
                         OutlinedTextField(
                             value = projectDescription,
                             onValueChange = { projectDescription = it },
-                            label = { Text("Description") },
+                            label = { Text(stringResource(R.string.field_description)) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                         )
 
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                             NexusPrimaryButton(
-                                text = "Save Project",
+                                text = stringResource(R.string.project_save),
                                 onClick = { viewModel.updateProject(projectName, projectDescription) },
                             )
                             NexusSecondaryButton(
-                                text = "Open Tasks Screen",
+                                text = stringResource(R.string.project_open_tasks),
                                 onClick = { onOpenTasks(project.id) },
                             )
                             NexusDestructiveButton(
-                                text = "Delete Project",
-                                onClick = { viewModel.deleteProject() },
+                                text = stringResource(R.string.project_delete),
+                                onClick = { confirmDelete.ask(DeleteKind.PROJECT, project?.name.orEmpty()) { viewModel.deleteProject() } },
                             )
                         }
 
@@ -125,9 +132,9 @@ fun ProjectDetailScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("Tasks", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.titleMedium)
                             NexusPrimaryButton(
-                                text = "Add Task",
+                                text = stringResource(R.string.task_add),
                                 onClick = {
                                     editingTask = null
                                     showTaskEditor = true
@@ -137,7 +144,7 @@ fun ProjectDetailScreen(
 
                         if (uiState.tasks.isEmpty()) {
                             Text(
-                                text = "No tasks in this project yet.",
+                                text = stringResource(R.string.project_no_tasks),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = Spacing.sm),
@@ -154,24 +161,34 @@ fun ProjectDetailScreen(
                                     ) {
                                         Column(
                                             modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(Spacing.sm),
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(Spacing.sm),
                                             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
                                         ) {
                                             Text(text = task.title, style = MaterialTheme.typography.titleSmall)
-                                            Text(text = task.description ?: "No description")
-                                            Text(text = if (task.isCompleted) "Done" else "Open")
+                                            Text(text = task.description ?: stringResource(R.string.project_no_description))
+                                            Text(
+                                                text = if (task.isCompleted) {
+                                                    stringResource(R.string.status_done)
+                                                } else {
+                                                    stringResource(R.string.task_state_open)
+                                                },
+                                            )
                                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                                                 NexusSecondaryButton(
-                                                    text = "Edit",
+                                                    text = stringResource(R.string.action_edit),
                                                     onClick = {
                                                         editingTask = task
                                                         showTaskEditor = true
                                                     },
                                                 )
                                                 NexusPrimaryButton(
-                                                    text = if (task.isCompleted) "Mark Open" else "Complete",
+                                                    text = if (task.isCompleted) {
+                                                        stringResource(R.string.task_mark_open)
+                                                    } else {
+                                                        stringResource(R.string.task_mark_complete)
+                                                    },
                                                     onClick = {
                                                         viewModel.updateTask(
                                                             task.id,
@@ -188,8 +205,13 @@ fun ProjectDetailScreen(
                                                     },
                                                 )
                                                 NexusDestructiveButton(
-                                                    text = "Delete",
-                                                    onClick = { viewModel.deleteTask(task.id) },
+                                                    text = stringResource(R.string.action_delete),
+                                                    onClick = {
+                                                        confirmDelete.ask(
+                                                            DeleteKind.TASK,
+                                                            task.title,
+                                                        ) { viewModel.deleteTask(task.id) }
+                                                    },
                                                 )
                                             }
                                         }
@@ -200,7 +222,7 @@ fun ProjectDetailScreen(
                     }
 
                     NexusSecondaryButton(
-                        text = "Back",
+                        text = stringResource(R.string.action_back),
                         onClick = onBackToProjects,
                     )
                 }
@@ -209,12 +231,12 @@ fun ProjectDetailScreen(
             if (!uiState.errorMessage.isNullOrBlank() && project != null) {
                 Snackbar(
                     modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(Spacing.md),
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.loadProject(projectId) }) {
-                            Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
+                            Text(stringResource(R.string.action_retry), color = MaterialTheme.colorScheme.inversePrimary)
                         }
                     },
                 ) {

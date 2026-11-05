@@ -28,6 +28,9 @@ data class SettingsUiState(
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val csvExport: String? = null,
+    /** Result of "Send test notification"; null until the user asks. */
+    val pushTest: com.example.nexus.api.TestNotificationResult? = null,
+    val pushTestFailed: Boolean = false,
 )
 
 class SettingsViewModel(
@@ -42,6 +45,9 @@ class SettingsViewModel(
     ) -> Unit = { (userRepository ?: NexusApp.userRepository).changePassword(it) },
     private val accountDeleter: suspend () -> Unit = { (userRepository ?: NexusApp.userRepository).deleteAccount() },
     private val habitsLoader: suspend () -> List<Habit> = { (habitRepository ?: NexusApp.habitRepository).getHabits() },
+    private val pushTester: suspend () -> com.example.nexus.api.TestNotificationResult = {
+        (userRepository ?: NexusApp.userRepository).sendTestNotification()
+    },
     private val themeModeFlow: StateFlow<ThemeMode> = SettingsSession.themeMode,
     private val notificationsEnabledFlow: StateFlow<Boolean> = SettingsSession.notificationsEnabled,
     private val languageFlow: StateFlow<String> = SettingsSession.language,
@@ -140,10 +146,7 @@ class SettingsViewModel(
         clearSession()
     }
 
-    fun changePassword(
-        currentPassword: String,
-        newPassword: String,
-    ) {
+    fun changePassword(currentPassword: String, newPassword: String,) {
         if (currentPassword.isBlank() || newPassword.length < 6) {
             _uiState.value = _uiState.value.copy(errorMessage = "Use a current password and a new password of at least 6 characters")
             return
@@ -169,7 +172,7 @@ class SettingsViewModel(
                 .onSuccess { habits ->
                     val rows =
                         habits.flatMap { habit ->
-                            habit.completedDates.map { date -> "${habit.name},${habit.frequency},$date" }
+                            habit.completedDates.sorted().map { date -> csvRow(habit.name, habit.frequency.name, date) }
                         }
                     _uiState.value =
                         _uiState.value.copy(
@@ -178,6 +181,15 @@ class SettingsViewModel(
                         )
                 }
                 .onFailure(::handleError)
+        }
+    }
+
+    /** Asks the API to push a test notification to this account's devices (demo / troubleshooting). */
+    fun sendTestNotification() {
+        viewModelScope.launch {
+            runCatching { pushTester() }
+                .onSuccess { _uiState.value = _uiState.value.copy(pushTest = it, pushTestFailed = false) }
+                .onFailure { _uiState.value = _uiState.value.copy(pushTest = null, pushTestFailed = true) }
         }
     }
 
@@ -193,10 +205,7 @@ class SettingsViewModel(
             )
     }
 
-    private fun updatePreferences(
-        language: String? = null,
-        notificationsEnabled: Boolean? = null,
-    ) {
+    private fun updatePreferences(language: String? = null, notificationsEnabled: Boolean? = null,) {
         viewModelScope.launch {
             runCatching {
                 profileUpdater(
@@ -221,4 +230,13 @@ class SettingsViewModel(
             }
         }
     }
+}
+
+/**
+ * One RFC 4180 CSV row: fields containing a comma, quote or line break are quoted and inner quotes
+ * doubled, so habit names such as `Read, write` stay in one column (AUD-11).
+ */
+internal fun csvRow(vararg fields: String): String = fields.joinToString(",") { field ->
+    val needsQuotes = field.any { it == ',' || it == '"' || it == '\n' || it == '\r' }
+    if (needsQuotes) "\"" + field.replace("\"", "\"\"") + "\"" else field
 }

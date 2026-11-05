@@ -23,7 +23,7 @@ audience: Development team prioritising fixes; assessor reviewing quality assura
 <tbody>
 <tr><td><span class="sev high">High</span></td><td>3</td><td>[[AUD-01]], [[AUD-03]], [[AUD-04]]</td></tr>
 <tr><td><span class="sev medium">Medium</span></td><td>6</td><td>[[AUD-02]], [[AUD-05]], [[AUD-06]], [[AUD-08]], [[AUD-18]], [[AUD-19]]</td></tr>
-<tr><td><span class="sev low">Low</span></td><td>10</td><td>[[AUD-07]], [[AUD-09]], [[AUD-10]], [[AUD-11]], [[AUD-12]], [[AUD-13]], [[AUD-14]], [[AUD-16]], [[AUD-17]], [[AUD-21]]</td></tr>
+<tr><td><span class="sev low">Low</span></td><td>12</td><td>[[AUD-07]], [[AUD-09]], [[AUD-10]], [[AUD-11]], [[AUD-12]], [[AUD-13]], [[AUD-14]], [[AUD-16]], [[AUD-17]], [[AUD-21]], [[AUD-22]], [[AUD-23]]</td></tr>
 <tr><td><span class="sev info">Info</span></td><td>2</td><td>[[AUD-15]], [[AUD-20]]</td></tr>
 </tbody>
 </table>
@@ -53,6 +53,8 @@ audience: Development team prioritising fixes; assessor reviewing quality assura
 <tr id="AUD-16"><td class="id">AUD-16</td><td><strong>Minor auth weaknesses.</strong> Login returns before any bcrypt work for unknown emails, so timing could reveal registered emails. A legacy path accepts a stored non-bcrypt value as a plain-text password. Email uniqueness is case-sensitive.</td><td><span class="sev low">Low</span> / High</td><td>Backend auth</td><td>Compare against a dummy hash; remove the legacy path once no such records exist; normalise emails to lower case.</td></tr>
 <tr id="AUD-17"><td class="id">AUD-17</td><td><strong>Habit completion rate is understated with several habits.</strong> <code>HabitScoring</code> counts distinct dates across all habits but sums the schedule per habit. Two daily habits both done for 30 days score 50%. Streaks also count a day if <em>any</em> habit was done.</td><td><span class="sev low">Low</span> / High</td><td>Domain logic</td><td>[[IMP-14]]</td></tr>
 <tr id="AUD-21"><td class="id">AUD-21</td><td><strong>UI screenshot set does not show the screens it names.</strong> <code>docs/screenshots/ui-audit/</code> holds 9 files but only 4 distinct images (MD5): <code>dashboard-offline</code>, <code>profile</code>, <code>project-list</code> and <code>settings</code> are identical. <code>habits</code>, <code>project-list-skeleton</code>, <code>login</code> and <code>register</code> are also skeleton states, and <code>splash.png</code> shows the Login screen.</td><td><span class="sev low">Low</span> / Verified</td><td>Evidence / documentation</td><td>Recapture before submission; do not present these files as evidence of named screens. [[IMP-16]]</td></tr>
+<tr id="AUD-22"><td class="id">AUD-22</td><td><strong>Two instrumented tests depend on the API being unreachable.</strong> <code>SplashIntroScreenTest</code> plants a fake token. When a live API is reachable at 10.0.2.2:5263 it answers 401, the dashboard signs out, and the "Log Out"/"Retry" assertions fail. Observed 2026-11-05: 14/16 with the API running, 16/16 with it stopped. (Found during v2.0 verification.)</td><td><span class="sev low">Low</span> / Verified</td><td>Test reliability</td><td>Inject fake repositories into <code>NexusNavHost</code> for UI tests instead of relying on network state.</td></tr>
+<tr id="AUD-23"><td class="id">AUD-23</td><td><strong>detekt cannot run.</strong> <code>./gradlew :app:detekt</code> fails with an internal error whose message is only "25.0.3". This is consistent with detekt 1.23.8 not supporting the current Kotlin/JDK toolchain. (Found during v2.0 lint work.)</td><td><span class="sev low">Low</span> / Verified</td><td>Code quality tooling</td><td>Upgrade to detekt 2.x when it supports this toolchain, or remove the plugin.</td></tr>
 <tr id="AUD-15"><td class="id">AUD-15</td><td><strong>Dead code.</strong> <code>AuthSession.OFFLINE_TOKEN_PREFIX</code> handling remains after synthetic offline auth was removed; <code>setOnSessionCleared</code> is never registered; <code>OnlineLanguageRepository</code> and <code>languageInstance</code> are unused.</td><td><span class="sev info">Info</span> / High</td><td>Android</td><td>Remove during the next refactor.</td></tr>
 <tr id="AUD-20"><td class="id">AUD-20</td><td><strong>Inert or ordering quirks in the API.</strong> <code>registrationEnabled</code> in <code>/app/config</code> is not enforced. Validation runs before authentication on several routes, so an unauthenticated request with a bad body gets 400 instead of 401. CORS is <code>*</code> (documented as intentional).</td><td><span class="sev info">Info</span> / High</td><td>Backend</td><td>Address when roles or a web client are introduced.</td></tr>
 </tbody>
@@ -72,3 +74,30 @@ audience: Development team prioritising fixes; assessor reviewing quality assura
 <tr><td>Synthetic offline authentication removed</td><td>No code mints offline tokens</td><td>Not separately tested</td><td>Confirmed, with leftover parsing code ([[AUD-15]])</td></tr>
 </tbody>
 </table>
+
+<h2 id="AUD-ADDENDUM-B">Addendum B: remediation in v2.0 (2026-11-05)</h2>
+<p>Part 3 fixed the findings below. Each fix was verified as stated; "not executed" means it was checked by reading only.</p>
+<table>
+<caption>Finding status after Part 3</caption>
+<thead><tr><th scope="col" class="id">Finding</th><th scope="col">Status</th><th scope="col">Fix and verification</th></tr></thead>
+<tbody>
+<tr><td class="id">[[AUD-01]]</td><td>Fixed</td><td>Unreadable file: refuses to start, file untouched, <code>.bak</code> kept on every save. 3 Jest tests, including a real process start.</td></tr>
+<tr><td class="id">[[AUD-02]]</td><td>Fixed (config)</td><td>Root compose uses a named volume at <code>/data</code>; validated with <code>docker compose config</code>; not run.</td></tr>
+<tr><td class="id">[[AUD-03]]</td><td>Fixed</td><td><code>error.issues</code>, two-argument <code>z.record</code>; Zod 4.6.7 installed; 29/29 tests.</td></tr>
+<tr><td class="id">[[AUD-04]]</td><td>Open (team)</td><td>Account billing lock; workflows updated to Node 22.</td></tr>
+<tr><td class="id">[[AUD-05]]</td><td>Fixed</td><td><code>database</code> domain excluded from backup and transfer.</td></tr>
+<tr><td class="id">[[AUD-06]]</td><td>Fixed</td><td><code>TRUST_PROXY</code> setting; not tested.</td></tr>
+<tr><td class="id">[[AUD-08]]</td><td>Fixed</td><td>Signing config from <code>keystore.properties</code> or env; upload key created; signed APK verified with <code>apksigner</code> (see [[NX-07-CICD]]).</td></tr>
+<tr><td class="id">[[AUD-09]]</td><td>Mostly fixed</td><td>README rewritten; stray "?" replaced; the admin label removed. The unused MyMemory client remains ([[AUD-15]]).</td></tr>
+<tr><td class="id">[[AUD-10]]</td><td>Fixed</td><td>Reminders implemented ([[FR-23]]); verified on device.</td></tr>
+<tr><td class="id">[[AUD-11]]</td><td>Fixed</td><td>RFC 4180 quoting; <code>CsvRowTest</code>.</td></tr>
+<tr><td class="id">[[AUD-16]]</td><td>Mostly fixed</td><td>Dummy bcrypt compare for unknown emails; emails lower-cased. Legacy plain-text path kept for old records.</td></tr>
+<tr><td class="id">[[AUD-17]]</td><td>Fixed</td><td>Per-habit completions; new unit test.</td></tr>
+<tr><td class="id">[[AUD-18]]</td><td>Fixed</td><td>Status-specific auth messages; <code>AuthErrorMessagesTest</code>; verified on device.</td></tr>
+<tr><td class="id">[[AUD-13]]</td><td>Fixed (ktlint)</td><td>0 ktlint violations; <code>ktlintCheck</code> gated in Android CI; placeholder workflow and failing log removed. detekt: [[AUD-23]].</td></tr>
+<tr><td class="id">[[AUD-15]]</td><td>Fixed</td><td>Unused MyMemory client (<code>LanguageApiService</code>, <code>OnlineLanguageRepository</code>, <code>languageInstance</code>) and the offline-token parsing removed.</td></tr>
+<tr><td class="id">[[AUD-21]]</td><td>Fixed</td><td>20 new, correctly named screenshots in <code>docs/screenshots/part3/</code>.</td></tr>
+<tr><td class="id">New</td><td>Fixed</td><td>Settings crashed with "No ActivityResultRegistryOwner" after adding the permission request: <code>MainActivity</code> overrides <code>LocalContext</code>. Fixed by providing <code>LocalActivityResultRegistryOwner</code>; verified on device (crash buffer empty).</td></tr>
+</tbody>
+</table>
+<p>Still open: [[AUD-04]], [[AUD-07]], [[AUD-12]], [[AUD-14]], [[AUD-19]], [[AUD-20]], [[AUD-22]], [[AUD-23]]. Part 3 added the SSO and push endpoints; like the rest of the API, they were reviewed by reading code and testing, not by a security audit.</p>

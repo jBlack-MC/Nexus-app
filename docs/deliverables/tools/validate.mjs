@@ -85,6 +85,11 @@ for (const [, pw] of seed.matchAll(/password\s*=\s*"([^"]+)"/gi)) forbidden.push
 for (const wf of readdirSync(join(repo, ".github", "workflows"))) {
   for (const [, s] of readFileSync(join(repo, ".github", "workflows", wf), "utf8").matchAll(/JWT_SECRET[=:]\s*"([^"]{16,})"/g)) forbidden.push(s);
 }
+// Release-signing passwords (git-ignored keystore.properties) must never appear in documents.
+const keystoreProps = join(repo, "keystore.properties");
+if (existsSync(keystoreProps)) {
+  for (const [, v] of readFileSync(keystoreProps, "utf8").matchAll(/^(?:storePassword|keyPassword)=(.+)$/gm)) forbidden.push(v.trim());
+}
 const allOut = [...htmlFiles, combinedHtml, indexHtml, ...sources.map((s) => join(root, "src", s))].filter(existsSync);
 for (const f of allOut) {
   const text = readFileSync(f, "utf8");
@@ -121,6 +126,7 @@ for (const s of sources) {
 const expectedAbsent = {
   "backend/nexus-data.json": "runtime data file, git-ignored",
   ".github/dependabot.yml": "documents state it does not exist",
+  "app/google-services.json": "Firebase config supplied by the team, git-ignored",
 };
 for (const p of cited) if (!existsSync(join(repo, p)) && !expectedAbsent[p]) fail(`cited path does not exist: ${p}`);
 notes.push(`cited repository paths checked: ${cited.size}`);

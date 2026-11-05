@@ -25,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.R
 import com.example.nexus.ui.components.DetailSkeleton
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.NexusLogo
@@ -37,11 +39,7 @@ import com.example.nexus.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-    onBack: () -> Unit,
-    onOpenSettings: () -> Unit,
-    viewModel: SettingsViewModel = viewModel(),
-) {
+fun ProfileScreen(onBack: () -> Unit, onOpenSettings: () -> Unit, viewModel: SettingsViewModel = viewModel(),) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -50,7 +48,7 @@ fun ProfileScreen(
                 title = { NexusLogo(iconSize = Spacing.TopBarLogoSize, textSize = Spacing.TopBarLogoTextSize) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = { CompactLanguageMenu() },
@@ -59,9 +57,9 @@ fun ProfileScreen(
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
             contentAlignment = Alignment.Center,
         ) {
             when {
@@ -75,25 +73,25 @@ fun ProfileScreen(
                     val profile = uiState.profile!!
                     Column(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .testTag("profile_content")
-                                .padding(Spacing.lg),
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag("profile_content")
+                            .padding(Spacing.lg),
                         verticalArrangement = Arrangement.spacedBy(Spacing.md),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
+                            contentDescription = stringResource(R.string.profile_title),
                             modifier = Modifier.size(72.dp),
                         )
-                        Text("Profile", style = MaterialTheme.typography.headlineSmall)
+                        Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.headlineSmall)
                         OutlinedTextField(
                             value = profile.displayName,
                             onValueChange = {},
                             readOnly = true,
                             enabled = false,
-                            label = { Text("Display Name") },
+                            label = { Text(stringResource(R.string.auth_display_name)) },
                             leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -102,12 +100,12 @@ fun ProfileScreen(
                             onValueChange = {},
                             readOnly = true,
                             enabled = false,
-                            label = { Text("Email") },
+                            label = { Text(stringResource(R.string.auth_email)) },
                             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth(),
                         )
                         NexusPrimaryButton(
-                            text = "Edit Profile and Settings",
+                            text = stringResource(R.string.profile_edit),
                             onClick = onOpenSettings,
                             modifier = Modifier.fillMaxWidth(),
                         )

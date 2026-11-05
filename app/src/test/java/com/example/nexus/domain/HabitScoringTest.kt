@@ -75,4 +75,14 @@ class HabitScoringTest {
         assertEquals(3, stats.currentStreak)
         assertEquals(3, stats.bestStreak)
     }
+
+    @Test
+    fun calculateStats_completionRateCountsEachHabitSeparately() {
+        val days = (1..30).map { "2026-09-%02d".format(it) }
+        val habits = listOf(Habit(id = "a", name = "Read", completedDates = days), Habit(id = "b", name = "Walk", completedDates = days))
+
+        val stats = HabitScoring.calculateStats(habits, "2026-09-30")
+
+        assertEquals(100, stats.completionRate)
+    }
 }

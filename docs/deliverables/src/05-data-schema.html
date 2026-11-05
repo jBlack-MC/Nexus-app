@@ -11,7 +11,7 @@ audience: Developers changing the API or Room schema; assessor checking the data
 <thead><tr><th scope="col">Store</th><th scope="col">Location</th><th scope="col">Contents</th><th scope="col">Protection</th></tr></thead>
 <tbody>
 <tr><td>API document store</td><td><code>DATABASE_PATH</code> (default <code>backend/nexus-data.json</code>; <code>/data/nexus-data.json</code> in the container)</td><td>users, projects, tasks, habits, sync receipts</td><td>File-system permissions only; not encrypted at rest. Git-ignored.</td></tr>
-<tr><td>Room database</td><td>App-private <code>nexus_database</code>, schema version 5</td><td>Cached projects, tasks, habits, dashboard counts, pending upload queue</td><td>App sandbox; included in Android backup ([[AUD-05]])</td></tr>
+<tr><td>Room database</td><td>App-private <code>nexus_database</code>, schema version 5</td><td>Cached projects, tasks, habits, dashboard counts, pending upload queue</td><td>App sandbox; excluded from Android backup since v2.0 ([[AUD-05]] fixed)</td></tr>
 <tr><td>Encrypted preferences</td><td><code>nexus_secure_prefs</code></td><td>JWT (<code>jwt_token</code>)</td><td>AES-256 GCM/SIV via AndroidX Security; excluded from backup</td></tr>
 <tr><td>Plain preferences</td><td>Settings store; <code>cached_profiles</code></td><td><code>theme_mode</code>, <code>notifications_enabled</code>, <code>language</code>, language-sync flag; profile JSON per owner (<code>profile:&lt;owner&gt;</code>)</td><td>App sandbox; excluded from backup</td></tr>
 </tbody>
@@ -37,12 +37,14 @@ audience: Developers changing the API or Room schema; assessor checking the data
 <h3 id="ENT-USER">User (ENT-USER)</h3>
 <table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
 <tr><td><code>id</code></td><td>UUID string</td><td><code>randomUUID()</code> at registration; JWT <code>sub</code></td></tr>
-<tr><td><code>email</code></td><td>string</td><td>Valid email; unique (exact, case-sensitive match) {{F}}</td></tr>
+<tr><td><code>email</code></td><td>string</td><td>Valid email, stored lower-case since v2.0; unique and matched case-insensitively {{F}}</td></tr>
 <tr><td><code>displayName</code></td><td>string</td><td>Non-empty</td></tr>
 <tr><td><code>passwordHash</code></td><td>string</td><td>bcrypt cost 12. A non-bcrypt value is compared as plain text once and then rehashed ([[AUD-16]]). Never returned by the API.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>Default <code>"en"</code>; any string accepted by the API, the app sends en/zu/tn</td></tr>
 <tr><td><code>notificationsEnabled</code></td><td>boolean</td><td>Default <code>true</code></td></tr>
 <tr><td><code>syncOperations</code></td><td>string[]</td><td>Applied <code>operationId</code>s; grows without limit ([[AUD-07]])</td></tr>
+<tr><td><code>googleSub</code> (v2.0)</td><td>string</td><td>Google account subject; set on first Google sign-in. Accounts created by Google have no <code>passwordHash</code>.</td></tr>
+<tr><td><code>deviceTokens</code> (v2.0)</td><td>string[]</td><td>FCM registration tokens, at most 10, newest last; a token is removed from any other account when registered</td></tr>
 </tbody></table>
 
 <h3 id="ENT-PROJECT">Project (ENT-PROJECT)</h3>
@@ -108,13 +110,15 @@ audience: Developers changing the API or Room schema; assessor checking the data
 <tr id="DF-02"><td class="id">DF-02</td><td>Upload</td><td><code>pending_changes</code> (ordered) → <code>POST /api/sync</code> → in-memory map → <code>saveDatabase()</code> (<code>.tmp</code> then <code>rename</code>) → receipt stored → queue row deleted</td></tr>
 <tr id="DF-03"><td class="id">DF-03</td><td>Refresh</td><td><code>GET /projects</code> + <code>GET /projects/:id/tasks</code> for each project (N+1 requests) → replaces the account's cached projects and tasks → dashboard counts computed on the device</td></tr>
 <tr id="DF-04"><td class="id">DF-04</td><td>Account deletion</td><td><code>DELETE /users/me</code> → server removes the user and all collections → app purges that owner's Room rows and queue under the sync mutex</td></tr>
+<tr id="DF-06"><td class="id">DF-06</td><td>Real-time push (v2.0)</td><td>Successful <code>/api/sync</code> → <code>notifyUser()</code> → FCM multicast to the user's other device tokens → <code>NexusMessagingService</code> shows a notification and refreshes the Room cache</td></tr>
+<tr id="DF-07"><td class="id">DF-07</td><td>Google SSO (v2.0)</td><td>Credential Manager → Google ID token → <code>/api/auth/google</code> → Google key verification → user found/created/linked → Nexus JWT</td></tr>
 <tr id="DF-05"><td class="id">DF-05</td><td>Export</td><td>Habits (cache or API) → CSV string in memory → Android share sheet. Nothing is written to shared storage.</td></tr>
 </tbody>
 </table>
 
 <h2>Data retention and privacy notes</h2>
 <ul>
-<li>Personal data held: email, display name, password hash, and the user's own content. No analytics or third-party data processors are wired in {{F}}.</li>
+<li>Personal data held: email, display name, password hash, the user's own content and, since v2.0, the Google account subject and FCM device tokens. Google (sign-in) and Firebase (push delivery) act as service providers; no analytics or ads {{F}}.</li>
 <li>Retention: data is kept until the user deletes it or the account. There are no server-side backups or expiry {{F}}.</li>
 <li>Logs: Pino redacts password fields, <code>passwordHash</code>, <code>token</code> and the authorization header. pino-http's default serializers do not log request bodies, so emails in bodies do not reach the logs, but remote IP addresses are logged {{F}}.</li>
 </ul>

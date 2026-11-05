@@ -32,9 +32,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.R
 import com.example.nexus.api.Task
 import com.example.nexus.ui.components.DetailSkeleton
 import com.example.nexus.ui.components.EmptyState
@@ -52,12 +54,7 @@ import com.example.nexus.ui.theme.Spacing
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskDetailScreen(
-    projectId: String,
-    taskId: String,
-    onBack: () -> Unit,
-    viewModel: TaskListViewModel = viewModel(),
-) {
+fun TaskDetailScreen(projectId: String, taskId: String, onBack: () -> Unit, viewModel: TaskListViewModel = viewModel(),) {
     val uiState by viewModel.uiState.collectAsState()
     var showEditor by remember { mutableStateOf(false) }
 
@@ -70,10 +67,10 @@ fun TaskDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Task", style = MaterialTheme.typography.titleLarge) },
+                title = { Text(stringResource(R.string.task_title_screen), style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = { CompactLanguageMenu() },
@@ -82,9 +79,9 @@ fun TaskDetailScreen(
     ) { paddingValues ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
             when {
                 task == null && uiState.isLoading -> DetailSkeleton()
@@ -95,9 +92,9 @@ fun TaskDetailScreen(
                     )
                 task == null ->
                     EmptyState(
-                        message = "This task no longer exists.",
+                        message = stringResource(R.string.task_missing),
                         onAction = onBack,
-                        actionLabel = "Go back",
+                        actionLabel = stringResource(R.string.action_go_back),
                     )
                 else -> TaskDetailContent(task = task, onEdit = { showEditor = true })
             }
@@ -117,18 +114,15 @@ fun TaskDetailScreen(
 }
 
 @Composable
-private fun TaskDetailContent(
-    task: Task,
-    onEdit: () -> Unit,
-) {
+private fun TaskDetailContent(task: Task, onEdit: () -> Unit,) {
     val overdue = isTaskOverdue(task.dueDate, task.isCompleted)
     Column(
         modifier =
-            Modifier
-                .fillMaxSize()
-                .testTag("task_detail_content")
-                .verticalScroll(rememberScrollState())
-                .padding(Spacing.md),
+        Modifier
+            .fillMaxSize()
+            .testTag("task_detail_content")
+            .verticalScroll(rememberScrollState())
+            .padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         Text(text = task.title, style = MaterialTheme.typography.headlineSmall)
@@ -148,19 +142,19 @@ private fun TaskDetailContent(
         ) {
             MetaChip(
                 text =
-                    when {
-                        task.dueDate == null -> "No due date"
-                        overdue -> "Overdue \u00b7 due ${task.dueDate}"
-                        else -> "Due ${task.dueDate}"
-                    },
+                when {
+                    task.dueDate == null -> stringResource(R.string.task_no_due_date)
+                    overdue -> stringResource(R.string.task_overdue_due, task.dueDate ?: "")
+                    else -> stringResource(R.string.task_due, task.dueDate ?: "")
+                },
                 emphasized = overdue,
             )
-            MetaChip(text = "Priority \u00b7 ${task.priority.displayName()}")
-            MetaChip(text = "Status \u00b7 ${task.status.displayName()}")
+            MetaChip(text = stringResource(R.string.task_detail_priority, task.priority.displayName()))
+            MetaChip(text = stringResource(R.string.task_detail_status, task.status.displayName()))
         }
 
         if (task.labels.isNotEmpty()) {
-            Text("Labels", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.task_labels), style = MaterialTheme.typography.titleMedium)
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -170,7 +164,7 @@ private fun TaskDetailContent(
         }
 
         if (task.checklist.isNotEmpty()) {
-            Text("Checklist", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.task_checklist), style = MaterialTheme.typography.titleMedium)
             task.checklist.forEach { item ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = item.isCompleted, onCheckedChange = null, enabled = false)
@@ -180,7 +174,7 @@ private fun TaskDetailContent(
         }
 
         NexusPrimaryButton(
-            text = "Edit task",
+            text = stringResource(R.string.task_edit),
             icon = Icons.Default.Edit,
             onClick = onEdit,
         )
@@ -188,29 +182,26 @@ private fun TaskDetailContent(
 }
 
 @Composable
-private fun MetaChip(
-    text: String,
-    emphasized: Boolean = false,
-) {
+private fun MetaChip(text: String, emphasized: Boolean = false,) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         color =
-            if (emphasized) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
+        if (emphasized) {
+            MaterialTheme.colorScheme.errorContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = Spacing.mdCompact, vertical = Spacing.smCompact),
             style = MaterialTheme.typography.labelMedium,
             color =
-                if (emphasized) {
-                    MaterialTheme.colorScheme.onErrorContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+            if (emphasized) {
+                MaterialTheme.colorScheme.onErrorContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

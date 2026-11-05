@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.nexus.R
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
@@ -32,10 +34,10 @@ fun FeedbackState(
     ) {
         Box(
             modifier =
-                Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+            Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -55,14 +57,14 @@ fun FeedbackState(
             )
             Spacer(modifier = Modifier.height(Spacing.xs))
             Text(
-                text = message,
+                text = localizedMessage(message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         } else {
             Text(
-                text = message,
+                text = localizedMessage(message),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -76,26 +78,18 @@ fun FeedbackState(
 }
 
 @Composable
-fun ErrorState(
-    message: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier,) {
     FeedbackState(
         message = message,
         icon = Icons.Default.CloudOff,
-        actionLabel = "Retry",
+        actionLabel = stringResource(R.string.action_retry),
         onAction = onRetry,
         modifier = modifier.fillMaxSize(),
     )
 }
 
 @Composable
-fun InlineErrorState(
-    message: String,
-    modifier: Modifier = Modifier,
-    onRetry: (() -> Unit)? = null,
-) {
+fun InlineErrorState(message: String, modifier: Modifier = Modifier, onRetry: (() -> Unit)? = null,) {
     Surface(
         color = MaterialTheme.colorScheme.errorContainer,
         contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -107,14 +101,14 @@ fun InlineErrorState(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = message,
+                text = localizedMessage(message),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
             if (onRetry != null) {
                 TextButton(onClick = onRetry) {
                     Text(
-                        text = "Retry",
+                        text = stringResource(R.string.action_retry),
                         color = MaterialTheme.colorScheme.onErrorContainer,
                     )
                 }

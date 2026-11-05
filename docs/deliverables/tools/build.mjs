@@ -26,10 +26,10 @@ const wantPdf = process.argv.includes("--pdf");
 
 export const PACKAGE = {
   project: "Nexus",
-  version: "1.0",
+  version: "2.0",
   date: "2026-11-05",
   status: "Draft for team review (not approved)",
-  baseline: "Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)",
+  baseline: "Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)",
   preparedBy: "AI-assisted (Claude Code) from repository evidence; team review pending",
 };
 

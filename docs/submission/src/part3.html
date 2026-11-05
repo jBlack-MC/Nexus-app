@@ -1,0 +1,163 @@
+<header class="titlepage" id="P3-COVER">
+  <p class="project">OPSC6312 Open Source Coding (Intermediate) · Portfolio of Evidence</p>
+  <h1>Nexus: Part 3 Final Submission</h1>
+  <p class="subtitle">Final asset development, additions, tweaking and final submission (Learning Units 1–4). App version 2.0.0.</p>
+  <table class="meta"><caption>Assessment sheet details</caption><tbody>
+    <tr><th scope="row">Module</th><td>OPEN SOURCE CODING (INTERMEDIATE) · OPSC6312</td></tr>
+    <tr><th scope="row">Students</th><td>Clarity Masuku (ST10438928) · Sibusiso Mabena (ST10462532). Names and numbers as listed in the repository README history; <strong>confirm before submitting</strong>.</td></tr>
+    <tr><th scope="row">App</th><td>Nexus 2.0.0 (versionCode 2), package <code>com.example.nexus</code></td></tr>
+    <tr><th scope="row">Repository</th><td>https://github.com/jBlack-MC/Nexus-app (Kotlin source on GitHub; no ZIP)</td></tr>
+    <tr><th scope="row">Final commit / tag</th><td><span class="tag oq">Team action</span> Commit the Part 3 working tree, then tag it: <code>git tag -a final-poe -m "Final PoE"</code> and <code>git push origin final-poe</code></td></tr>
+    <tr><th scope="row">Demo video</th><td><span class="tag oq">Team action</span> Unlisted YouTube link (recorded on a physical phone; script in section 5)</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Document status</th><td>Prepared with AI assistance (see section 6). Every statement is checked against the repository and test runs. The team must review it and fill in the marked team actions.</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Labels:</strong> <span class="tag fact">Implemented</span> verified in code or test output · <span class="tag inf">Inferred</span> · <span class="tag rec">Recommendation</span> · <span class="tag oq">Open question</span> / team action · <span class="tag unk">Unknown</span> · <span class="tag est">Estimate</span></p>
+</header>
+
+<h2 id="P3-CHECKLIST">Submission checklist</h2>
+<p>This table maps every item the brief says to "present for your submission" to where it is and what remains.</p>
+<table>
+<caption>Part 3 submission items</caption>
+<thead><tr><th scope="col">Item required by the brief</th><th scope="col">Where</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>Complete Kotlin source on GitHub (no ZIP)</td><td><code>app/</code>, <code>backend/</code> on <code>jBlack-MC/Nexus-app</code></td><td>{{F}} Part 3 changes are <strong>uncommitted</strong>. <span class="tag oq">Team action</span> commit, push and merge to <code>main</code>.</td></tr>
+<tr><td>Comments in code, with references</td><td>KDoc on all new classes (e.g. <code>GoogleSignIn.kt</code>, <code>Reminders.kt</code>, <code>Push.kt</code>, <code>push.js</code>, SSO block in <code>server.js</code>) with "Reference: … (accessed 2026-11-05)" lines; README references section</td><td>{{F}}</td></tr>
+<tr><td>Logging that shows understanding</td><td>Android <code>Log.i/w</code> in auth, SSO, push, reminders and notifications; Pino structured logs with request IDs and redaction in the API (e.g. "Google sign-in", "Push notification sent", "Refusing to start")</td><td>{{F}}</td></tr>
+<tr><td>README on GitHub: purpose, design, GitHub and Actions use, images</td><td><code>README.md</code> (rewritten for v2.0, 8 real screenshots)</td><td>{{F}}</td></tr>
+<tr><td>Video presentation with voice-over, link in README</td><td>Script: section 5</td><td><span class="tag oq">Team action</span> record on a physical phone; add the link to the README and this cover</td></tr>
+<tr><td>Release notes since the prototype, naming the innovative features</td><td>Section 3; <code>README.md</code> → Release notes</td><td>{{F}}</td></tr>
+<tr><td>Signed APK</td><td>Signing config, upload key, verification in section 7</td><td>{{F}} pipeline verified. <span class="tag oq">Team action</span> build the final AAB/APK once the API has an HTTPS URL.</td></tr>
+<tr><td>Screenshots</td><td><code>docs/screenshots/part3/</code> (21), Play-ready set in <code>docs/play-store/assets/phone/</code> (8)</td><td>{{F}} emulator captures. <span class="tag oq">Team action</span> the brief wants the <em>app running on a phone</em>: add phone photos or screenshots in the video.</td></tr>
+<tr><td>Play Console screenshot (if applicable)</td><td><code>docs/play-store/README.md</code></td><td><span class="tag oq">Team action</span> requires a Google Play developer account</td></tr>
+<tr><td>AI-use write-up (≤ 500 words)</td><td>Section 6</td><td>{{F}} draft; the team confirms and signs</td></tr>
+<tr><td>Final commit tagged as the final PoE</td><td>Cover page</td><td><span class="tag oq">Team action</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="P3-RUBRIC">Requirements and rubric evidence</h2>
+<p>For each criterion this table gives the evidence and what limits it. It is not a mark: the lecturer assesses against the rubric. Requirement IDs link to the product requirements in the appendix.</p>
+<table>
+<caption>Final PoE and general rubric criteria</caption>
+<thead><tr><th scope="col">Criterion</th><th scope="col">Evidence</th><th scope="col">Gaps / what reaches the top band</th></tr></thead>
+<tbody>
+<tr><td>Feature: SSO login [10]</td><td>Google sign-in via Credential Manager; server verifies the ID token with Google; creates or links accounts ([[FR-21]]). 3 backend tests, 2 app tests.</td><td>Needs a Google Cloud Web and Android OAuth client to run for real; show it working on the phone in the video.</td></tr>
+<tr><td>Feature: Offline mode [10]</td><td>Room outbox, sync banner, conflict review, idempotent replay ([[FR-16]], [[FR-17]]). Verified on device: offline create, then reconnect, then the server has it (screenshots 19–20).</td><td>A blocked queue needs a manual "Discard" ([[AUD-19]]).</td></tr>
+<tr><td>Feature: Real-time notification [10]</td><td>FCM push of cross-device changes, test push, plus WorkManager due-date reminders ([[FR-22]], [[FR-23]]). Reminder and local notification verified on device (screenshot 13); 5 backend push tests.</td><td>Needs a Firebase project (<code>google-services.json</code>, service account) to show a real push from the server in the video.</td></tr>
+<tr><td>Feature: Multi-language [10]</td><td>English, isiZulu, Setswana on every screen, 210 strings each ([[FR-18]]); verified on device (screenshots 14–18).</td><td>Translations are AI-drafted: have first-language speakers review them.</td></tr>
+<tr><td>Feature: User Defined 4 [10]</td><td><span class="tag oq">Confirm against Part 1</span> Suggested: <strong>habit tracking with gamification</strong>: streaks, points, levels, badges, rewards, CSV export ([[FR-13]] to [[FR-15]]).</td><td>The Part 2 PDF does not name the user-defined features; use the names from your Part 1 design.</td></tr>
+<tr><td>Feature: User Defined 5 [10]</td><td><span class="tag oq">Confirm against Part 1</span> Suggested: <strong>Today planning</strong>: overdue, due-today and upcoming schedule, with task priority, status, labels, checklists and filters ([[FR-09]], [[FR-11]], [[FR-12]]).</td><td>The Part 2 PDF also claimed "list/board task views" and "sorting"; no board view or sort control exists in the code. Do not claim them.</td></tr>
+<tr><td>Prepared for Play Store [5]</td><td>Signing config and upload key; signed release verified; Play kit with icon, feature graphic, 8 screenshots, listing, Data safety, privacy policy (section 7).</td><td>Upload to Play Console (Internal testing) and screenshot it; host the privacy policy.</td></tr>
+<tr><td>Runs on a mobile device [5]</td><td>Verified on an Android 7.0 (API 24, minSdk) emulator; no crashes after the Settings fix.</td><td>The brief requires a <strong>physical phone</strong> in the video.</td></tr>
+<tr><td>Register / login with encrypted password, settings, REST API [requirements]</td><td>bcrypt cost 12; JWT; Settings screen; Express API with 29 tests ([[FR-01]] to [[FR-08]]).</td><td>The API must be <strong>hosted</strong> ("exists on the internet") and the video must show the stored data.</td></tr>
+<tr><td>AI-use write-up [5]</td><td>Section 6: tools, what each did, how output was checked, citations.</td><td>The team adds anything else it used.</td></tr>
+<tr><td>User interface [10]</td><td>Material 3, consistent spacing, colour and type tokens, bottom navigation, skeletons, clear errors, confirmation before every delete, labels that fit in all three languages ([[NX-04-DES]]).</td><td>No accessibility audit recorded ([[IMP-11]]).</td></tr>
+<tr><td>GitHub, README, automated testing [10]</td><td>Many commits and PRs; README; Android CI (ktlint gate, unit tests, APK) and Backend CI (tests, Docker smoke test) workflows; 29 + 42 + 16 tests pass locally; 0 lint violations.</td><td><strong>CI runs have not started since 2026-09-26 (account billing lock).</strong> Fix it so the final commit shows green checks ([[AUD-04]]).</td></tr>
+<tr><td>Demonstration video [5]</td><td>Script in section 5.</td><td>Record it: professional, voice-over, all features, phone, data in the API and authentication service.</td></tr>
+</tbody>
+</table>
+
+<h2 id="P3-RELEASE">Release notes: 2.0.0 (changes since the Part 2 prototype)</h2>
+<h3>Innovative features added in this version</h3>
+<ul>
+<li><strong>Google single sign-on</strong> ([[FR-21]]): Credential Manager plus server-side ID-token verification; account linking by email.</li>
+<li><strong>Real-time push notifications</strong> ([[FR-22]]): changes on one device push to your other devices, which refresh their offline copy; Settings has a test push.</li>
+<li><strong>Due-date reminders</strong> ([[FR-23]]): WorkManager job, works offline and when the app is closed.</li>
+<li><strong>Full isiZulu and Setswana</strong> ([[FR-18]]): every screen, error, sync message and notification.</li>
+<li><strong>Offline-first editing with sync</strong> ([[FR-16]], [[FR-17]]): added on 2026-10-04 after the prototype; Room outbox, sync banner, duplicate-proof replay, conflict review.</li>
+</ul>
+<h3>Improvements and fixes</h3>
+<ul>
+<li>Sign-in and registration explain wrong credentials, a taken email and rate limiting ([[AUD-18]]); emails are case-insensitive; sign-in timing no longer reveals registered emails.</li>
+<li>The server refuses to start on a damaged data file and keeps a <code>.bak</code> copy ([[AUD-01]]); compatible with Zod 4 ([[AUD-03]]); <code>npm audit</code> reports 0 vulnerabilities; proxy-aware rate limiting ([[AUD-06]]); root Docker Compose fixed ([[AUD-02]]).</li>
+<li>Fixed a crash when opening Settings; correct CSV quoting ([[AUD-11]]); correct multi-habit completion rate ([[AUD-17]]); offline cache excluded from cloud backup ([[AUD-05]]).</li>
+<li>Delete confirmations for projects, tasks and habits ([[IMP-12]]); single-line bottom-bar labels in every language.</li>
+<li>Codebase at 0 ktlint violations, with <code>ktlintCheck</code> gated in CI; dead code, the placeholder workflow and a stale failing build log removed ([[AUD-13]], [[AUD-15]]).</li>
+<li>Release signing configuration and upload-key script; Play Store kit; version 2.0.0; CI on Node 22.</li>
+</ul>
+
+<h2 id="P3-EVIDENCE">Screen evidence</h2>
+<p>All screenshots come from version 2.0.0 running on an Android 7.0 emulator against the local API on 2026-11-05, using a fictional demo account. The brief asks for the final app on a physical phone: use these as supporting evidence and show the phone in the video.</p>
+<figure class="shots">
+<div><img src="../screenshots/part3/02-login-wrong-password.png" alt="Login screen showing Email or password is incorrect"><figcaption>Clear sign-in error</figcaption></div>
+<div><img src="../screenshots/part3/03-dashboard.png" alt="Today dashboard"><figcaption>Today</figcaption></div>
+<div><img src="../screenshots/part3/06-project-detail.png" alt="Project detail with tasks"><figcaption>Project detail</figcaption></div>
+<div><img src="../screenshots/part3/08-task-detail.png" alt="Task detail with priority, status, labels and checklist"><figcaption>Task detail</figcaption></div>
+<div><img src="../screenshots/part3/09-habits.png" alt="Habits with gamification stats"><figcaption>Habits</figcaption></div>
+<div><img src="../screenshots/part3/11-settings-notifications.png" alt="Settings with reminders switch and test notification"><figcaption>Settings: notifications</figcaption></div>
+<div><img src="../screenshots/part3/13-notifications.png" alt="Notification shade showing the due-date reminder and the test notification"><figcaption>Reminder + test notification</figcaption></div>
+<div><img src="../screenshots/part3/21-delete-confirmation.png" alt="Delete project confirmation dialog warning that tasks are deleted too"><figcaption>Delete confirmation</figcaption></div>
+<div><img src="../screenshots/part3/19-offline-pending.png" alt="Offline banner with one pending change"><figcaption>Offline: 1 pending</figcaption></div>
+<div><img src="../screenshots/part3/20-synced.png" alt="All changes synced after reconnecting"><figcaption>Reconnected: synced</figcaption></div>
+<div><img src="../screenshots/part3/14-settings-isizulu.png" alt="Settings in isiZulu"><figcaption>isiZulu</figcaption></div>
+<div><img src="../screenshots/part3/16-habits-isizulu.png" alt="Habits in isiZulu"><figcaption>isiZulu habits</figcaption></div>
+<div><img src="../screenshots/part3/18-projects-setswana.png" alt="Projects in Setswana"><figcaption>Setswana</figcaption></div>
+</figure>
+
+<h2 id="P3-VIDEO">Demonstration video script (about 8 minutes, physical phone, voice-over)</h2>
+<p>Before recording: deploy the API over HTTPS, configure Google SSO and Firebase ([[NX-11-DEP]]), and install the signed build on the phone. Use a demo account, never real passwords, and do not show tokens or secrets on screen.</p>
+<table>
+<caption>Recording plan mapped to the rubric</caption>
+<thead><tr><th scope="col">Time</th><th scope="col">Show</th><th scope="col">Say (key points)</th></tr></thead>
+<tbody>
+<tr><td>0:00</td><td>Phone home screen, app icon, launch, splash</td><td>Nexus 2.0, what it is for, that this is a physical phone.</td></tr>
+<tr><td>0:30</td><td>Register a new user; wrong password, then the correct one</td><td>Validation; passwords hashed with bcrypt on the server; JWT stored encrypted on the phone.</td></tr>
+<tr><td>1:30</td><td>"Continue with Google"</td><td>SSO: Google returns an ID token, which our API verifies before issuing a session.</td></tr>
+<tr><td>2:15</td><td>API data: the hosted <code>/health</code> and the users in the data store (hashes visible, not passwords), plus the Firebase console's registered app</td><td>"What data is stored in the online-hosted authentication service, API and database."</td></tr>
+<tr><td>3:00</td><td>Create a project and tasks with due date, priority, labels and checklist; filters; Today cards</td><td>User-defined features (Part 1 names).</td></tr>
+<tr><td>4:00</td><td>Habits: complete today, streaks, badges; CSV export</td><td>Gamification.</td></tr>
+<tr><td>4:45</td><td>Airplane mode on → create and edit → banner shows pending → airplane mode off → synced → item visible in the API data</td><td>Offline mode with sync and duplicate-proof replay.</td></tr>
+<tr><td>5:45</td><td>Second device or emulator signed in to the same account: edit there, and the phone receives a push. Then Settings → Send test notification, and a due-date reminder</td><td>Real-time notifications (FCM) and scheduled reminders.</td></tr>
+<tr><td>6:45</td><td>Switch to isiZulu, then Setswana, on Login and Settings</td><td>Multi-language support for two South African languages.</td></tr>
+<tr><td>7:15</td><td>Settings: theme, password, delete account</td><td>Settings menu.</td></tr>
+<tr><td>7:40</td><td>GitHub: README, Actions green checks, tag <code>final-poe</code>; Play Console Internal testing</td><td>Automated tests, CI and publication preparation.</td></tr>
+</tbody>
+</table>
+
+<h2 id="P3-AI">AI-use write-up</h2>
+<div class="callout">
+<p><strong>Tools used.</strong> OpenAI Codex (September 2026; cited in Part 2) helped draft Kotlin implementation ideas and explain build errors. Cline (VS Code extension) and the GitHub Copilot coding agent were used during September 2026; their checkpoints and commits are visible in the Git history. Dependabot proposed dependency updates. For Part 3 (5 November 2026), Anthropic's Claude Code (Claude Opus 5.5) was used.</p>
+<p><strong>What Claude Code produced.</strong> It analysed the repository and wrote the twelve-document documentation package and this submission. It implemented the Google SSO endpoint and client, the FCM push sender and receiver, WorkManager reminders, the isiZulu and Setswana string catalogue (first-draft translations), fixes for the audit findings, the release-signing setup and the Play Store kit. It also added backend and Android unit tests, and drove an emulator to capture the screenshots and check offline sync and notifications.</p>
+<p><strong>How the output was checked.</strong> All code was compiled, and the tests were run: 29 backend, 42 Android unit and 16 instrumented, all passing (section 8). Behaviour was checked on an emulator. One defect found this way, a crash on opening Settings, was fixed before submission. Statements in the documents were checked against the code and test output; unknowns are labelled rather than guessed. Translations are marked for first-language review. <span class="tag oq">Team action</span> each member should review the changes, run the app on a phone, and edit this section to describe their own review.</p>
+<p><strong>Citation.</strong> Anthropic (2026) <em>Claude Code</em> [AI coding assistant], Claude Opus 5.5. Used 5 November 2026 for implementation, testing support, translation drafts and documentation. OpenAI (2026) <em>Codex</em>, used September 2026. Cline (2026) <em>Cline</em> VS Code extension, used September 2026. GitHub (2026) <em>Copilot coding agent</em>, used 23 September 2026. Prompts and outputs are kept in the tool session logs.</p>
+</div>
+
+<h2 id="P3-PUBLISH">Publication preparation</h2>
+<table>
+<caption>Play Store readiness</caption>
+<thead><tr><th scope="col">Item</th><th scope="col">Evidence</th></tr></thead>
+<tbody>
+<tr><td>Upload key and signing</td><td><code>scripts/create-upload-keystore.ps1</code> created a 4096-bit RSA PKCS12 upload key outside the repository; <code>keystore.properties</code> is git-ignored. Release signing verification: SIGNED_RESULT</td></tr>
+<tr><td>Release build guard</td><td>Release builds fail unless <code>NEXUS_API_URL</code> is HTTPS; R8 minify and resource shrinking are on.</td></tr>
+<tr><td>Store listing kit</td><td><code>docs/play-store/</code>: 512 px icon (32-bit), 1024×500 feature graphic, 8 phone screenshots (1080×2160), listing text, Data safety answers, content rating, privacy policy.</td></tr>
+<tr><td>Remaining</td><td><span class="tag oq">Team action</span> host the API, publish the privacy policy, build <code>bundleRelease</code> with the real URL, upload to Play Console Internal testing, and screenshot the Console.</td></tr>
+</tbody>
+</table>
+
+<h2 id="P3-TESTS">Test results (2026-11-05)</h2>
+<table>
+<caption>Verified locally; CI could not run (account billing lock)</caption>
+<thead><tr><th scope="col">Suite</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr><td>Backend: <code>npm test</code> (Jest + Supertest, Zod 4.6.7)</td><td>29/29 passed: <code>server.test.js</code> 11, <code>sync.test.js</code> 5, <code>part3.test.js</code> 13 (SSO, push, device tokens, data-file safety, email case)</td></tr>
+<tr><td>Android unit: <code>gradlew test</code></td><td>42/42 passed, including new <code>AuthErrorMessagesTest</code> (5), <code>ReminderPlannerTest</code> (2), <code>CsvRowTest</code> (2) and a <code>HabitScoringTest</code> case</td></tr>
+<tr><td>Android instrumented: <code>connectedDebugAndroidTest</code>, Android 7.0 emulator</td><td>16/16 passed with the API stopped. Earlier runs: 14/16 with a live API ([[AUD-22]]) and one flaky instrumentation crash.</td></tr>
+<tr><td>On-device walkthrough</td><td>Sign-in error, all screens, three languages, offline create → sync → present on the server, reminder ("1 overdue and 2 due today"), test notification, Settings crash fixed and re-verified</td></tr>
+</tbody>
+</table>
+
+<h2 id="P3-ACTIONS">What the team must still do</h2>
+<ol>
+<li>Review all changes, commit, push, merge to <code>main</code>, close Dependabot PR #27 as superseded, and tag <code>final-poe</code>.</li>
+<li>Resolve the GitHub Actions billing lock and confirm green CI on the final commit.</li>
+<li>Host the API over HTTPS (any Node 22 or container host with a persistent disk; see [[NX-11-DEP]]), and set <code>JWT_SECRET</code>, <code>GOOGLE_CLIENT_ID</code>, <code>FIREBASE_SERVICE_ACCOUNT_BASE64</code> and <code>TRUST_PROXY</code>.</li>
+<li>Create the Google Cloud OAuth clients (Web + Android with the SHA-1s) and the Firebase project (<code>google-services.json</code>).</li>
+<li>Build the signed release with the real URL and install it on a physical phone.</li>
+<li>Record the video (section 5), upload it unlisted, and add the link to the README and the cover.</li>
+<li>Publish the privacy policy (fill in the contact email), upload to Play Console Internal testing, and screenshot it.</li>
+<li>Have isiZulu and Setswana speakers review <code>docs/i18n/catalog.py</code>, then run <code>python docs/i18n/generate_strings.py</code>.</li>
+<li>Confirm the User Defined 4/5 feature names, the student details, and the AI-use write-up.</li>
+</ol>
+
+<h2 id="P3-APPENDIX">Appendix: documentation package (v2.0)</h2>
+<p>The twelve deliverables follow. They were updated for v2.0, and each document's control table states its evidence baseline.</p>

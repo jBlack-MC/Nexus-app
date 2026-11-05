@@ -6,16 +6,16 @@ import com.example.nexus.api.HabitFrequency
 import java.util.Calendar
 
 object HabitScoring {
-    fun calculateStats(
-        habits: List<Habit>,
-        today: String,
-    ): GamificationStats {
+    fun calculateStats(habits: List<Habit>, today: String,): GamificationStats {
         val dates = habits.flatMap { it.completedDates }.toSet()
         val sortedDates = dates.sorted()
         val currentStreak = streakEndingAt(sortedDates, today)
         val bestStreak = longestStreak(sortedDates)
         val scheduled = habits.sumOf { if (it.frequency == HabitFrequency.DAILY) 30 else 4 }
-        val completionRate = if (scheduled == 0) 0 else ((dates.size * 100) / scheduled).coerceAtMost(100)
+        // Count each habit's own completions against its own schedule. Using the union of dates
+        // understated the rate whenever several habits were done on the same day (AUD-17).
+        val completions = habits.sumOf { it.completedDates.toSet().size }
+        val completionRate = if (scheduled == 0) 0 else ((completions * 100) / scheduled).coerceAtMost(100)
         val points = dates.size * 10 + bestStreak * 5
         val level = (points / 100) + 1
         val badges =
@@ -35,10 +35,7 @@ object HabitScoring {
         )
     }
 
-    private fun streakEndingAt(
-        dates: List<String>,
-        end: String,
-    ): Int {
+    private fun streakEndingAt(dates: List<String>, end: String,): Int {
         var streak = 0
         var cursor = end
         while (dates.binarySearch(cursor) >= 0) {
@@ -63,10 +60,7 @@ object HabitScoring {
 
     private fun nextDate(date: String): String = shiftDate(date, 1)
 
-    private fun shiftDate(
-        date: String,
-        amount: Int,
-    ): String {
+    private fun shiftDate(date: String, amount: Int,): String {
         val parts = date.split('-').map(String::toInt)
         val calendar =
             Calendar.getInstance().apply {

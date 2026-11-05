@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NX-10-UM User Manual - Nexus</title>
 <link rel="stylesheet" href="../tools/style.css">
-<style>@media print { @page { @top-left { content: "NX-10-UM \00B7  User Manual \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+<style>@media print { @page { @top-left { content: "NX-10-UM \00B7  User Manual \00B7  v2.0 \00B7  Draft for team review"; } } }</style>
 </head>
 <body>
 <main class="doc">
@@ -15,11 +15,11 @@
   <p class="subtitle">Task-based instructions for Nexus users: account, projects, tasks, habits, settings and working offline.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-10-UM</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>People using the Nexus Android app (signed-in users) and testers following the demo</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -31,7 +31,7 @@
     <span class="tag unk">Unknown</span> no evidence available;
     <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
 </header>
-<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d10-before-you-start">1 Before you start</a></li><li><a href="#d10-account">2 Account</a><ol><li><a href="#UM-01">2.1 Create an account (UM-01)</a></li><li><a href="#UM-02">2.2 Sign in and sign out (UM-02)</a></li></ol></li><li><a href="#d10-today-screen">3 Today screen</a></li><li><a href="#d10-projects-and-tasks">4 Projects and tasks</a><ol><li><a href="#UM-03">4.1 Create and manage a project (UM-03)</a></li><li><a href="#UM-04">4.2 Add and edit tasks (UM-04)</a></li><li><a href="#UM-05">4.3 Find tasks (UM-05)</a></li></ol></li><li><a href="#d10-habits">5 Habits</a><ol><li><a href="#UM-06">5.1 Track a habit (UM-06)</a></li></ol></li><li><a href="#d10-settings">6 Settings</a><ol><li><a href="#UM-07">6.1 Change your profile and preferences (UM-07)</a></li><li><a href="#UM-08">6.2 Export your habit history (UM-08)</a></li><li><a href="#UM-09">6.3 Change password or delete your account (UM-09)</a></li></ol></li><li><a href="#d10-working-offline">7 Working offline</a><ol><li><a href="#UM-10">7.1 Understand the sync banner (UM-10)</a></li><li><a href="#UM-11">7.2 Resolve a conflict (UM-11)</a></li></ol></li></ol></nav>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d10-before-you-start">1 Before you start</a></li><li><a href="#d10-account">2 Account</a><ol><li><a href="#UM-01">2.1 Create an account (UM-01)</a></li><li><a href="#UM-02">2.2 Sign in and sign out (UM-02)</a></li><li><a href="#UM-12">2.3 Continue with Google (UM-12)</a></li></ol></li><li><a href="#d10-today-screen">3 Today screen</a></li><li><a href="#d10-projects-and-tasks">4 Projects and tasks</a><ol><li><a href="#UM-03">4.1 Create and manage a project (UM-03)</a></li><li><a href="#UM-04">4.2 Add and edit tasks (UM-04)</a></li><li><a href="#UM-05">4.3 Find tasks (UM-05)</a></li></ol></li><li><a href="#d10-habits">5 Habits</a><ol><li><a href="#UM-06">5.1 Track a habit (UM-06)</a></li></ol></li><li><a href="#d10-settings">6 Settings</a><ol><li><a href="#UM-07">6.1 Change your profile and preferences (UM-07)</a></li><li><a href="#UM-08">6.2 Export your habit history (UM-08)</a></li><li><a href="#UM-09">6.3 Change password or delete your account (UM-09)</a></li></ol></li><li><a href="#d10-working-offline">7 Working offline</a><ol><li><a href="#UM-10">7.1 Understand the sync banner (UM-10)</a></li><li><a href="#UM-11">7.2 Resolve a conflict (UM-11)</a></li></ol></li></ol></nav>
 
 
 <h2 id="d10-before-you-start"><span class="num">1</span>Before you start</h2>
@@ -40,7 +40,7 @@
 <li>Your first registration or sign-in must happen while the device can reach the Nexus server. After that you can keep working offline.</li>
 <li>Nexus has one kind of user. Everything you create is private to your account, and there are no shared projects.</li>
 </ul>
-<div class="callout"><p>Screen labels in this manual are the English ones. If you choose isiZulu or Setswana, the sign-in screens and some labels change language; most other screens stay in English.</p></div>
+<div class="callout"><p>Screen labels in this manual are the English ones. Choose isiZulu or Setswana on the Login screen or in Settings → Language, and every screen, message and notification switches language.</p></div>
 
 <h2 id="d10-account"><span class="num">2</span>Account</h2>
 <h3 id="UM-01"><span class="num">2.1</span>Create an account (UM-01)</h3>
@@ -51,13 +51,15 @@
 <li>Enter <strong>Display Name</strong>, <strong>Email</strong> and a <strong>Password</strong> of at least 6 characters, then tap <strong>Create Account</strong>.</li>
 <li>The Today screen opens. You stay signed in when you close and reopen the app (for up to 24 hours per sign-in).</li>
 </ol>
-<p>If you see "Something went wrong. Please try again." when registering, the email may already be registered, or you made too many attempts in a short time. Try signing in instead, or wait 15 minutes.</p>
+<p>If the email is already registered, the app says so. Sign in instead.</p>
 <h3 id="UM-02"><span class="num">2.2</span>Sign in and sign out (UM-02)</h3>
 <ol>
 <li>On Login, enter your Email and Password and tap <strong>Sign In</strong>.</li>
 <li>To sign out, tap <strong>Log Out</strong> on the Today screen or in Settings, then confirm.</li>
 </ol>
-<p>If a wrong password is entered, the app currently says "Your session has expired. Please log in again." Check your password and try again. This message is a known issue (<a href="08-engineering-audit.html#AUD-18">AUD-18</a>).</p>
+<p>If the email or password is wrong, the app says "Email or password is incorrect." After 10 attempts in 15 minutes it asks you to wait.</p>
+<h3 id="UM-12"><span class="num">2.3</span>Continue with Google (UM-12)</h3>
+<ol><li>On Login or Register, tap <strong>Continue with Google</strong>. This button only appears in builds configured for Google sign-in.</li><li>Choose your Google account. Your Nexus account is created on first use, or linked if you already registered with the same email.</li><li>Accounts created with Google have no Nexus password; keep using <strong>Continue with Google</strong>.</li></ol>
 <p>Changes you saved while offline stay on the device after you sign out. They upload the next time <em>you</em> sign in on that device. Another person signing in on the same phone will not see them.</p>
 
 <h2 id="d10-today-screen"><span class="num">3</span>Today screen</h2>
@@ -73,7 +75,7 @@
 <li>Use <strong>Search projects</strong> to filter the list by name.</li>
 <li>Tap a project to open it. There you can rename it (<strong>Save Project</strong>), add tasks, open the task list (<strong>Open Tasks Screen</strong>) or <strong>Delete Project</strong>.</li>
 </ol>
-<p><strong>Deleting a project also deletes all its tasks.</strong> List deletes do not ask for confirmation, and there is no undo.</p>
+<p><strong>Deleting a project also deletes all its tasks.</strong> Nexus asks you to confirm every delete; there is no undo afterwards.</p>
 <h3 id="UM-04"><span class="num">4.2</span>Add and edit tasks (UM-04)</h3>
 <ol>
 <li>In a project's task list, tap <strong>+</strong> (New Task).</li>
@@ -96,7 +98,7 @@
 <li>Each day you do the habit, tap <strong>Complete today</strong>. Tap it again (it reads <strong>Completed today</strong>) to undo.</li>
 <li>Use the pencil icon to edit, or the delete icon to remove a habit.</li>
 </ol>
-<p>The stats card shows your level, points, current and best streak (in days), completion rate and badges ("3-day streak", "7-day streak", "Reliable habit builder"). With more than one habit, the completion rate shown is lower than your real rate (<a href="08-engineering-audit.html#AUD-17">AUD-17</a>).</p>
+<p>The stats card shows your level, points, current and best streak (in days), completion rate and badges ("3-day streak", "7-day streak", "Reliable habit builder"). The completion rate counts each habit against its own schedule.</p>
 
 <h2 id="d10-settings"><span class="num">6</span>Settings</h2>
 <h3 id="UM-07"><span class="num">6.1</span>Change your profile and preferences (UM-07)</h3>
@@ -104,11 +106,12 @@
 <li><strong>Display Name</strong>: edit it in the User Profile section and tap <strong>Save Changes</strong>. Your email cannot be changed.</li>
 <li><strong>Appearance</strong>: System, Light or Dark. This applies to this device only.</li>
 <li><strong>Language</strong>: English, isiZulu or Setswana. It is saved to your account.</li>
-<li><strong>Task due-date reminders</strong>: this switch is saved, but Nexus does not send reminders yet (<a href="08-engineering-audit.html#AUD-10">AUD-10</a>).</li>
+<li><strong>Task due-date reminders</strong>: when on, Nexus notifies you about overdue and due-today tasks, about twice a day, even offline. On Android 13 and later, allow notifications when asked. You also get an alert when your account changes on another of your devices.</li>
+<li><strong>Send test notification</strong>: shows a notification on this phone and reports whether the server could push to your devices.</li>
 <li><strong>Sync account</strong> reloads your profile from the server.</li>
 </ul>
 <h3 id="UM-08"><span class="num">6.2</span>Export your habit history (UM-08)</h3>
-<ol><li>In Settings, tap <strong>Export habits CSV</strong>, then <strong>Share CSV</strong>.</li><li>Choose an app (email, Drive, etc.). The file lists habit, frequency and each completed date. Avoid commas in habit names; they break the CSV columns (<a href="08-engineering-audit.html#AUD-11">AUD-11</a>).</li></ol>
+<ol><li>In Settings, tap <strong>Export habits CSV</strong>, then <strong>Share CSV</strong>.</li><li>Choose an app (email, Drive, etc.). The file lists habit, frequency and each completed date. Habit names with commas or quotes are exported correctly.</li></ol>
 <h3 id="UM-09"><span class="num">6.3</span>Change password or delete your account (UM-09)</h3>
 <ul>
 <li><strong>Change password</strong>: enter your current password and a new one (6+ characters), then tap Save. You must be online.</li>
@@ -138,7 +141,7 @@
 </ol>
 <p>Until you discard the conflicting item, none of your other pending changes upload (<a href="08-engineering-audit.html#AUD-19">AUD-19</a>). They stay safely on your device.</p>
 
-<footer class="docfoot">NX-10-UM &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+<footer class="docfoot">NX-10-UM &middot; v2.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
 </main>
 </body>
 </html>
