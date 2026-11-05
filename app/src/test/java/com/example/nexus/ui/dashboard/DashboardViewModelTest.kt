@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,7 +20,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModelTest {
@@ -39,179 +39,172 @@ class DashboardViewModelTest {
         unmockkAll()
     }
 
-    @Test fun successfulLoad_exposesDashboardAndCachedTasks() =
-        runTest(scheduler) {
-            val task = Task(id = "task-1", projectId = "project-1", title = "Write tests")
-            val fakeDashboardRepo = FakeDashboardRepository(dashboardData = DashboardData(projects = 2, tasks = 3, activity = 4))
-            val fakeTaskRepo = FakeTaskRepository(initialCachedTasks = listOf(task))
+    @Test fun successfulLoad_exposesDashboardAndCachedTasks() = runTest(scheduler) {
+        val task = Task(id = "task-1", projectId = "project-1", title = "Write tests")
+        val fakeDashboardRepo = FakeDashboardRepository(dashboardData = DashboardData(projects = 2, tasks = 3, activity = 4))
+        val fakeTaskRepo = FakeTaskRepository(initialCachedTasks = listOf(task))
 
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
-
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value as DashboardState.Success
-            assertEquals(2, state.data.projects)
-            assertEquals(listOf(task), state.cachedTasks)
-        }
-
-    @Test fun emptyLoad_exposesZeroCountsAndNoTasks() =
-        runTest(scheduler) {
-            val fakeDashboardRepo = FakeDashboardRepository(dashboardData = DashboardData(projects = 0, tasks = 0, activity = 0))
-            val fakeTaskRepo = FakeTaskRepository(initialCachedTasks = emptyList())
-
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
-
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value as DashboardState.Success
-            assertEquals(0, state.data.projects)
-            assertTrue(state.cachedTasks.isEmpty())
-        }
-
-    @Test fun failedLoad_exposesFriendlyError() =
-        runTest(scheduler) {
-            val fakeDashboardRepo = FakeDashboardRepository(dashboardError = IOException("offline"))
-            val fakeTaskRepo = FakeTaskRepository()
-
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
-
-            advanceUntilIdle()
-
-            assertEquals(
-                "No internet connection. Check your network and try again.",
-                (viewModel.uiState.value as DashboardState.Error).message,
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
             )
-        }
 
-    @Test fun cachedEmission_marksStateStaleUntilFreshFetchLands() =
-        runTest(scheduler) {
-            val gate = CompletableDeferred<DashboardData>()
-            val fakeDashboardRepo =
-                FakeDashboardRepository(
-                    cachedDashboardData = DashboardData(projects = 1, tasks = 2, activity = 3),
-                    dashboardAction = { gate.await() },
-                )
-            val fakeTaskRepo = FakeTaskRepository()
+        advanceUntilIdle()
 
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
+        val state = viewModel.uiState.value as DashboardState.Success
+        assertEquals(2, state.data.projects)
+        assertEquals(listOf(task), state.cachedTasks)
+    }
 
-            advanceUntilIdle()
+    @Test fun emptyLoad_exposesZeroCountsAndNoTasks() = runTest(scheduler) {
+        val fakeDashboardRepo = FakeDashboardRepository(dashboardData = DashboardData(projects = 0, tasks = 0, activity = 0))
+        val fakeTaskRepo = FakeTaskRepository(initialCachedTasks = emptyList())
 
-            val cachedState = viewModel.uiState.value as DashboardState.Success
-            assertTrue(cachedState.isStale)
-            assertEquals(1, cachedState.data.projects)
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
+            )
 
-            gate.complete(DashboardData(projects = 9, tasks = 8, activity = 7))
-            advanceUntilIdle()
+        advanceUntilIdle()
 
-            val freshState = viewModel.uiState.value as DashboardState.Success
-            assertFalse(freshState.isStale)
-            assertEquals(9, freshState.data.projects)
-        }
+        val state = viewModel.uiState.value as DashboardState.Success
+        assertEquals(0, state.data.projects)
+        assertTrue(state.cachedTasks.isEmpty())
+    }
 
-    @Test fun failedRefresh_keepsCachedDataAndMarksItStale() =
-        runTest(scheduler) {
-            val fakeDashboardRepo =
-                FakeDashboardRepository(
-                    dashboardError = IOException("offline"),
-                    cachedDashboardData = DashboardData(projects = 4, tasks = 5, activity = 6),
-                )
-            val fakeTaskRepo = FakeTaskRepository()
+    @Test fun failedLoad_exposesFriendlyError() = runTest(scheduler) {
+        val fakeDashboardRepo = FakeDashboardRepository(dashboardError = IOException("offline"))
+        val fakeTaskRepo = FakeTaskRepository()
 
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
+            )
 
-            advanceUntilIdle()
+        advanceUntilIdle()
 
-            val state = viewModel.uiState.value as DashboardState.Success
-            assertTrue(state.isStale)
-            assertEquals(4, state.data.projects)
-        }
+        assertEquals(
+            "No internet connection. Check your network and try again.",
+            (viewModel.uiState.value as DashboardState.Error).message,
+        )
+    }
 
-    @Test fun softRefresh_keepsPreviousPayloadWhileNetworkIsInFlight() =
-        runTest(scheduler) {
-            val gate = CompletableDeferred<DashboardData>()
-            var loads = 0
-            val fakeDashboardRepo =
-                FakeDashboardRepository(
-                    dashboardAction = {
-                        loads++
-                        if (loads == 1) DashboardData(projects = 1, tasks = 2, activity = 3) else gate.await()
-                    },
-                )
-            val fakeTaskRepo = FakeTaskRepository()
+    @Test fun cachedEmission_marksStateStaleUntilFreshFetchLands() = runTest(scheduler) {
+        val gate = CompletableDeferred<DashboardData>()
+        val fakeDashboardRepo =
+            FakeDashboardRepository(
+                cachedDashboardData = DashboardData(projects = 1, tasks = 2, activity = 3),
+                dashboardAction = { gate.await() },
+            )
+        val fakeTaskRepo = FakeTaskRepository()
 
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
+            )
 
-            advanceUntilIdle()
-            assertEquals(1, (viewModel.uiState.value as DashboardState.Success).data.projects)
+        advanceUntilIdle()
 
-            viewModel.fetchDashboard(softRefresh = true)
-            advanceUntilIdle()
+        val cachedState = viewModel.uiState.value as DashboardState.Success
+        assertTrue(cachedState.isStale)
+        assertEquals(1, cachedState.data.projects)
 
-            val inFlight = viewModel.uiState.value as DashboardState.Success
-            assertEquals(1, inFlight.data.projects)
-            assertTrue(inFlight.isStale)
+        gate.complete(DashboardData(projects = 9, tasks = 8, activity = 7))
+        advanceUntilIdle()
 
-            gate.complete(DashboardData(projects = 7, tasks = 8, activity = 9))
-            advanceUntilIdle()
+        val freshState = viewModel.uiState.value as DashboardState.Success
+        assertFalse(freshState.isStale)
+        assertEquals(9, freshState.data.projects)
+    }
 
-            val fresh = viewModel.uiState.value as DashboardState.Success
-            assertEquals(7, fresh.data.projects)
-            assertFalse(fresh.isStale)
-        }
+    @Test fun failedRefresh_keepsCachedDataAndMarksItStale() = runTest(scheduler) {
+        val fakeDashboardRepo =
+            FakeDashboardRepository(
+                dashboardError = IOException("offline"),
+                cachedDashboardData = DashboardData(projects = 4, tasks = 5, activity = 6),
+            )
+        val fakeTaskRepo = FakeTaskRepository()
 
-    @Test fun failedSoftRefresh_keepsPreviousPayloadAsStale() =
-        runTest(scheduler) {
-            var loads = 0
-            val fakeDashboardRepo =
-                FakeDashboardRepository(
-                    dashboardAction = {
-                        loads++
-                        if (loads == 1) {
-                            DashboardData(projects = 3, tasks = 4, activity = 5)
-                        } else {
-                            throw IOException("offline")
-                        }
-                    },
-                )
-            val fakeTaskRepo = FakeTaskRepository()
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
+            )
 
-            val viewModel =
-                DashboardViewModel(
-                    dashboardRepository = fakeDashboardRepo,
-                    taskRepository = fakeTaskRepo,
-                )
-            advanceUntilIdle()
+        advanceUntilIdle()
 
-            viewModel.fetchDashboard(softRefresh = true)
-            advanceUntilIdle()
+        val state = viewModel.uiState.value as DashboardState.Success
+        assertTrue(state.isStale)
+        assertEquals(4, state.data.projects)
+    }
 
-            val state = viewModel.uiState.value as DashboardState.Success
-            assertTrue(state.isStale)
-            assertEquals(3, state.data.projects)
-        }
+    @Test fun softRefresh_keepsPreviousPayloadWhileNetworkIsInFlight() = runTest(scheduler) {
+        val gate = CompletableDeferred<DashboardData>()
+        var loads = 0
+        val fakeDashboardRepo =
+            FakeDashboardRepository(
+                dashboardAction = {
+                    loads++
+                    if (loads == 1) DashboardData(projects = 1, tasks = 2, activity = 3) else gate.await()
+                },
+            )
+        val fakeTaskRepo = FakeTaskRepository()
+
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
+            )
+
+        advanceUntilIdle()
+        assertEquals(1, (viewModel.uiState.value as DashboardState.Success).data.projects)
+
+        viewModel.fetchDashboard(softRefresh = true)
+        advanceUntilIdle()
+
+        val inFlight = viewModel.uiState.value as DashboardState.Success
+        assertEquals(1, inFlight.data.projects)
+        assertTrue(inFlight.isStale)
+
+        gate.complete(DashboardData(projects = 7, tasks = 8, activity = 9))
+        advanceUntilIdle()
+
+        val fresh = viewModel.uiState.value as DashboardState.Success
+        assertEquals(7, fresh.data.projects)
+        assertFalse(fresh.isStale)
+    }
+
+    @Test fun failedSoftRefresh_keepsPreviousPayloadAsStale() = runTest(scheduler) {
+        var loads = 0
+        val fakeDashboardRepo =
+            FakeDashboardRepository(
+                dashboardAction = {
+                    loads++
+                    if (loads == 1) {
+                        DashboardData(projects = 3, tasks = 4, activity = 5)
+                    } else {
+                        throw IOException("offline")
+                    }
+                },
+            )
+        val fakeTaskRepo = FakeTaskRepository()
+
+        val viewModel =
+            DashboardViewModel(
+                dashboardRepository = fakeDashboardRepo,
+                taskRepository = fakeTaskRepo,
+            )
+        advanceUntilIdle()
+
+        viewModel.fetchDashboard(softRefresh = true)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as DashboardState.Success
+        assertTrue(state.isStale)
+        assertEquals(3, state.data.projects)
+    }
 }

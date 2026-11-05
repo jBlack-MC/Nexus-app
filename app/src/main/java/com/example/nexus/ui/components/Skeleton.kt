@@ -24,10 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun SkeletonBlock(
-    modifier: Modifier = Modifier,
-    height: Dp = 18.dp,
-) {
+fun SkeletonBlock(modifier: Modifier = Modifier, height: Dp = 18.dp,) {
     // Shimmer-style alpha pulse; held static when the system has animations disabled.
     val reduceMotion = rememberReduceMotion()
     val alpha =
@@ -38,21 +35,21 @@ fun SkeletonBlock(
                 initialValue = 0.45f,
                 targetValue = 0.85f,
                 animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(1000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Reverse,
-                    ),
+                infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
                 label = "skeletonAlpha",
             ).value
         }
     Spacer(
         modifier =
-            modifier
-                .height(height)
-                .background(
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha),
-                    RoundedCornerShape(8.dp),
-                ),
+        modifier
+            .height(height)
+            .background(
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha),
+                RoundedCornerShape(8.dp),
+            ),
     )
 }
 
@@ -60,18 +57,18 @@ fun SkeletonBlock(
 fun ListSkeleton(labelWidth: Float = 0.55f) {
     Column(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md),
+        Modifier
+            .fillMaxWidth()
+            .padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.smd),
     ) {
         repeat(5) {
             Column(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
-                        .padding(Spacing.md),
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                    .padding(Spacing.md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.mdCompact),
             ) {
                 SkeletonBlock(modifier = Modifier.fillMaxWidth(labelWidth))
@@ -85,9 +82,9 @@ fun ListSkeleton(labelWidth: Float = 0.55f) {
 fun DetailSkeleton() {
     Column(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md),
+        Modifier
+            .fillMaxWidth()
+            .padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.smd),
     ) {
         SkeletonBlock(modifier = Modifier.fillMaxWidth(0.65f), height = 28.dp)
@@ -105,9 +102,9 @@ fun DetailSkeleton() {
 fun DashboardSkeleton() {
     Column(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md),
+        Modifier
+            .fillMaxWidth()
+            .padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(Spacing.smd),
     ) {
         Row(

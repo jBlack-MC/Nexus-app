@@ -32,10 +32,35 @@ open class DashboardRepository(
                     db.withTransaction {
                         db.projectDao().clearForUser(userId)
                         db.taskDao().clearForUser(userId)
-                        db.projectDao().insertProjects(projects.map { ProjectEntity(it.id, userId, it.name, it.description, it.createdAt, it.updatedAt) })
+                        db.projectDao().insertProjects(
+                            projects.map {
+                                ProjectEntity(
+                                    it.id,
+                                    userId,
+                                    it.name,
+                                    it.description,
+                                    it.createdAt,
+                                    it.updatedAt,
+                                )
+                            }
+                        )
                         db.taskDao().insertTasks(
                             tasks.map {
-                                TaskEntity(it.id, userId, it.projectId, it.title, it.description, it.isCompleted, it.dueDate, it.priority, it.status, it.labels, it.checklist, it.createdAt, it.updatedAt)
+                                TaskEntity(
+                                    it.id,
+                                    userId,
+                                    it.projectId,
+                                    it.title,
+                                    it.description,
+                                    it.isCompleted,
+                                    it.dueDate,
+                                    it.priority,
+                                    it.status,
+                                    it.labels,
+                                    it.checklist,
+                                    it.createdAt,
+                                    it.updatedAt,
+                                )
                             }
                         )
                         db.dashboardDao().insertDashboard(DashboardEntity(userId, data.projects, data.tasks, data.activity))

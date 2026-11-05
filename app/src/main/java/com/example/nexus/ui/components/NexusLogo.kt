@@ -24,13 +24,7 @@ import com.example.nexus.ui.theme.BrandPurple
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun NexusLogo(
-    modifier: Modifier = Modifier,
-    iconSize: Dp = 40.dp,
-    textSize: Int = 28,
-    showText: Boolean = true,
-    isDark: Boolean = true,
-) {
+fun NexusLogo(modifier: Modifier = Modifier, iconSize: Dp = 40.dp, textSize: Int = 28, showText: Boolean = true, isDark: Boolean = true,) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -38,10 +32,10 @@ fun NexusLogo(
     ) {
         Box(
             modifier =
-                Modifier
-                    .size(iconSize)
-                    .clip(RoundedCornerShape(iconSize * 0.25f))
-                    .background(if (isDark) BrandIconBg else Color.Transparent),
+            Modifier
+                .size(iconSize)
+                .clip(RoundedCornerShape(iconSize * 0.25f))
+                .background(if (isDark) BrandIconBg else Color.Transparent),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -56,12 +50,12 @@ fun NexusLogo(
             Text(
                 text = "Nexus",
                 style =
-                    TextStyle(
-                        brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
-                        fontSize = textSize.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = (-0.5).sp,
-                    ),
+                TextStyle(
+                    brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
+                    fontSize = textSize.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.5).sp,
+                ),
             )
         }
     }

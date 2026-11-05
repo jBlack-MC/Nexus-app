@@ -47,7 +47,10 @@ open class ProjectRepository(
 
     open suspend fun getProject(projectId: String): Project {
         val db = database ?: return apiService?.getProject(projectId) ?: throw IllegalStateException("No service")
-        val api = apiService ?: return db.projectDao().getProjectById(owner() ?: "", projectId)?.toModel() ?: throw IllegalStateException("No project")
+        val api = apiService ?: return db.projectDao().getProjectById(
+            owner() ?: "",
+            projectId,
+        )?.toModel() ?: throw IllegalStateException("No project")
         val userId = owner() ?: return api.getProject(projectId)
         if (sync != null) {
             return sync.read(

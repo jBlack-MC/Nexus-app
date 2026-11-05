@@ -11,23 +11,23 @@ import androidx.compose.runtime.remember
  */
 object Motion {
     /** Forward screen enter (slide + fade). */
-    const val screenEnterMs = 220
+    const val SCREEN_ENTER_MS = 220
 
     /** Screen exit (keeps enter/exit asymmetrical but consistent). */
-    const val screenExitMs = 180
+    const val SCREEN_EXIT_MS = 180
 
     /** Lazy list item placement/reflow. */
-    const val itemMs = 220
+    const val ITEM_MS = 220
 
     /** Lazy list item fade in/out. */
-    const val fadeMs = 150
+    const val FADE_MS = 150
 
     /** Checkbox completion bounce (90ms pop + 140ms settle). */
-    const val bouncePopMs = 90
-    const val bounceSettleMs = 140
+    const val BOUNCE_POP_MS = 90
+    const val BOUNCE_SETTLE_MS = 140
 
     /** Task-created success checkmark. */
-    const val successMs = 260
+    const val SUCCESS_MS = 260
 }
 
 /**
@@ -41,7 +41,6 @@ object Motion {
  * final/static state (nav transitions, list reflow, bounces, shimmer, success checkmark).
  */
 @Composable
-fun rememberReduceMotion(): Boolean =
-    remember {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled()
-    }
+fun rememberReduceMotion(): Boolean = remember {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled()
+}

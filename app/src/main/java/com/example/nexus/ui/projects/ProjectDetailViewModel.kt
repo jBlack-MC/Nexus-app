@@ -85,10 +85,7 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun updateProject(
-        name: String,
-        description: String,
-    ) {
+    fun updateProject(name: String, description: String,) {
         val id = projectId ?: return
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
@@ -119,17 +116,11 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun createTask(
-        title: String,
-        description: String,
-    ) {
+    fun createTask(title: String, description: String,) {
         createTask(TaskDraft(title = title, description = description))
     }
 
-    fun updateTask(
-        taskId: String,
-        draft: TaskDraft,
-    ) {
+    fun updateTask(taskId: String, draft: TaskDraft,) {
         if (draft.title.isBlank()) return
         viewModelScope.launch {
             runCatching {
@@ -142,12 +133,7 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun updateTask(
-        task: Task,
-        title: String,
-        description: String,
-        isCompleted: Boolean,
-    ) {
+    fun updateTask(task: Task, title: String, description: String, isCompleted: Boolean,) {
         updateTask(
             task.id,
             TaskDraft(
@@ -187,28 +173,26 @@ class ProjectDetailViewModel(
         }
     }
 
-    private fun TaskDraft.toCreateRequest() =
-        CreateTaskRequest(
-            title = title.trim(),
-            description = description?.trim()?.ifBlank { null },
-            dueDate = dueDate,
-            priority = priority,
-            status = status,
-            labels = labels,
-            checklist = checklist,
-        )
+    private fun TaskDraft.toCreateRequest() = CreateTaskRequest(
+        title = title.trim(),
+        description = description?.trim()?.ifBlank { null },
+        dueDate = dueDate,
+        priority = priority,
+        status = status,
+        labels = labels,
+        checklist = checklist,
+    )
 
-    private fun TaskDraft.toUpdateRequest() =
-        UpdateTaskRequest(
-            title = title.trim(),
-            description = description?.trim()?.ifBlank { null },
-            isCompleted = status == TaskStatus.DONE,
-            dueDate = dueDate,
-            priority = priority,
-            status = status,
-            labels = labels,
-            checklist = checklist,
-        )
+    private fun TaskDraft.toUpdateRequest() = UpdateTaskRequest(
+        title = title.trim(),
+        description = description?.trim()?.ifBlank { null },
+        isCompleted = status == TaskStatus.DONE,
+        dueDate = dueDate,
+        priority = priority,
+        status = status,
+        labels = labels,
+        checklist = checklist,
+    )
 
     private fun handleError(error: Throwable) {
         val apiError = error.toApiError()

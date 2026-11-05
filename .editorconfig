@@ -12,3 +12,8 @@ ktlint_standard_parameter-list-wrapping = disabled
 ktlint_standard_argument-list-wrapping = disabled
 
 ktlint_standard_string-template-indent = disabled
+# Project style decisions (2026-11-05, Part 3 lint gate):
+# - Parameter lists end with a trailing comma written as `x: T,)`; this rule would demand `x: T, )`.
+# - Compose packages (layout.*, material3.*, runtime.*) are imported on demand, as in Android Studio's default.
+ktlint_standard_parameter-list-spacing = disabled
+ktlint_standard_no-wildcard-imports = disabled

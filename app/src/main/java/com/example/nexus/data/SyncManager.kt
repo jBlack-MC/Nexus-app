@@ -46,7 +46,12 @@ interface PendingChangeDao {
 }
 
 data class SyncRequest(val operationId: String, val resource: String, val entityId: String, val action: String, val payload: JsonObject)
-data class SyncStatus(val pending: Int = 0, val syncing: Boolean = false, val message: String = "Changes saved on this device", val conflict: Boolean = false)
+data class SyncStatus(
+    val pending: Int = 0,
+    val syncing: Boolean = false,
+    val message: String = "Changes saved on this device",
+    val conflict: Boolean = false,
+)
 
 /** Local writes and their outbox records commit together. A failed upload never loses a save. */
 class SyncManager(private val database: NexusDatabase, private val api: ApiService, private val owner: () -> String?) {
@@ -86,7 +91,10 @@ class SyncManager(private val database: NexusDatabase, private val api: ApiServi
                     )
                 )
             }
-            mutableStatus.value = SyncStatus(database.pendingChangeDao().getPending(userId).size, message = "Saved on device · waiting to sync")
+            mutableStatus.value = SyncStatus(
+                database.pendingChangeDao().getPending(userId).size,
+                message = "Saved on device · waiting to sync",
+            )
         }
     }
 
@@ -105,7 +113,15 @@ class SyncManager(private val database: NexusDatabase, private val api: ApiServi
             for ((index, change) in pending.withIndex()) {
                 if (owner() != userId) return false
                 failedChange = change
-                api.sync(SyncRequest(change.operationId, change.resource, change.entityId, change.action, gson.fromJson(change.payload, JsonObject::class.java)))
+                api.sync(
+                    SyncRequest(
+                        change.operationId,
+                        change.resource,
+                        change.entityId,
+                        change.action,
+                        gson.fromJson(change.payload, JsonObject::class.java),
+                    )
+                )
                 database.pendingChangeDao().delete(change.sequence)
                 mutableStatus.value = SyncStatus(pending.size - index - 1, true, "Syncing changes…")
             }

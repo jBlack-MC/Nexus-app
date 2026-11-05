@@ -7,9 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 object AuthSession {
-    /** Tokens minted by the offline fallback embed the account email. */
-    const val OFFLINE_TOKEN_PREFIX = "offline_token_"
-
     private var tokenStore: TokenStore? = null
     private var onSessionCleared: (() -> Unit)? = null
     private val _isAuthenticated = MutableStateFlow(false)
@@ -57,9 +54,6 @@ object AuthSession {
     }
 
     private fun cacheOwnerIdOf(token: String): String? {
-        if (token.startsWith(OFFLINE_TOKEN_PREFIX)) {
-            return token.removePrefix(OFFLINE_TOKEN_PREFIX).trim().lowercase().ifBlank { null }
-        }
         // Server JWTs carry a stable account id in the "sub" claim. The signature is intentionally
         // not verified here: this value only scopes a local cache and is never trusted as auth.
         val subject =

@@ -18,8 +18,21 @@ open class TaskRepository(
     private fun TaskEntity.toModel() =
         Task(id, projectId, title, description, isCompleted, dueDate, priority, status, labels, checklist, createdAt, updatedAt)
 
-    private fun Task.toEntity(userId: String) =
-        TaskEntity(id, userId, projectId, title, description, isCompleted, dueDate, priority, status, labels, checklist, createdAt, updatedAt)
+    private fun Task.toEntity(userId: String) = TaskEntity(
+        id,
+        userId,
+        projectId,
+        title,
+        description,
+        isCompleted,
+        dueDate,
+        priority,
+        status,
+        labels,
+        checklist,
+        createdAt,
+        updatedAt,
+    )
 
     open suspend fun getTasks(projectId: String): List<Task> {
         val db = database ?: return apiService?.getTasks(projectId) ?: emptyList()
@@ -57,7 +70,12 @@ open class TaskRepository(
         if (sync != null) {
             val task = Task(
                 java.util.UUID.randomUUID().toString(), projectId, request.title, request.description,
-                request.status == com.example.nexus.api.TaskStatus.DONE, request.dueDate, request.priority, request.status, request.labels, request.checklist
+                request.status == com.example.nexus.api.TaskStatus.DONE,
+                request.dueDate,
+                request.priority,
+                request.status,
+                request.labels,
+                request.checklist
             )
             sync.save("tasks", task.id, "create", task) { db.taskDao().insertTask(task.toEntity(it)) }
             return task
@@ -72,10 +90,16 @@ open class TaskRepository(
         val api = apiService ?: throw IllegalStateException("No service")
         val userId = owner() ?: return api.updateTask(taskId, request)
         if (sync != null) {
-            val previous = db.taskDao().getAllTasks(userId).firstOrNull { it.id == taskId } ?: error("Open this task before editing offline")
+            val previous = db.taskDao().getAllTasks(userId).firstOrNull { it.id == taskId }
+                ?: error("Open this task before editing offline")
             val task = Task(
                 taskId, previous.projectId, request.title, request.description,
-                request.status == com.example.nexus.api.TaskStatus.DONE, request.dueDate, request.priority, request.status, request.labels, request.checklist,
+                request.status == com.example.nexus.api.TaskStatus.DONE,
+                request.dueDate,
+                request.priority,
+                request.status,
+                request.labels,
+                request.checklist,
                 previous.createdAt, previous.updatedAt
             )
             sync.save("tasks", taskId, "update", task) { db.taskDao().insertTask(task.toEntity(it)) }
