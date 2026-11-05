@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NX-05-DATA Backend and Data Schema - Nexus</title>
+<link rel="stylesheet" href="../tools/style.css">
+<style>@media print { @page { @top-left { content: "NX-05-DATA \00B7  Backend and Data Schema \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+</head>
+<body>
+<main class="doc">
+<header class="titlepage" id="NX-05-DATA">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 05</p>
+  <h1>Backend and Data Schema</h1>
+  <p class="subtitle">Entities, relationships, key fields, storage locations and data flows on the server and the device.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-05-DATA</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Developers changing the API or Room schema; assessor checking the data design</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d05-storage-overview">1 Storage overview</a></li><li><a href="#d05-server-data-model">2 Server data model</a><ol><li><a href="#ENT-USER">2.1 User (ENT-USER)</a></li><li><a href="#ENT-PROJECT">2.2 Project (ENT-PROJECT)</a></li><li><a href="#ENT-TASK">2.3 Task (ENT-TASK)</a></li><li><a href="#ENT-HABIT">2.4 Habit (ENT-HABIT)</a></li></ol></li><li><a href="#d05-device-room-schema-version-5">3 Device (Room) schema, version 5</a><ol><li><a href="#d05-migration-history">3.1 Migration history</a></li></ol></li><li><a href="#d05-data-flows">4 Data flows</a></li><li><a href="#d05-data-retention-and-privacy-notes">5 Data retention and privacy notes</a></li></ol></nav>
+
+
+<h2 id="d05-storage-overview"><span class="num">1</span>Storage overview</h2>
+<table>
+<caption>Where Nexus data lives</caption>
+<thead><tr><th scope="col">Store</th><th scope="col">Location</th><th scope="col">Contents</th><th scope="col">Protection</th></tr></thead>
+<tbody>
+<tr><td>API document store</td><td><code>DATABASE_PATH</code> (default <code>backend/nexus-data.json</code>; <code>/data/nexus-data.json</code> in the container)</td><td>users, projects, tasks, habits, sync receipts</td><td>File-system permissions only; not encrypted at rest. Git-ignored.</td></tr>
+<tr><td>Room database</td><td>App-private <code>nexus_database</code>, schema version 5</td><td>Cached projects, tasks, habits, dashboard counts, pending upload queue</td><td>App sandbox; included in Android backup (<a href="08-engineering-audit.html#AUD-05">AUD-05</a>)</td></tr>
+<tr><td>Encrypted preferences</td><td><code>nexus_secure_prefs</code></td><td>JWT (<code>jwt_token</code>)</td><td>AES-256 GCM/SIV via AndroidX Security; excluded from backup</td></tr>
+<tr><td>Plain preferences</td><td>Settings store; <code>cached_profiles</code></td><td><code>theme_mode</code>, <code>notifications_enabled</code>, <code>language</code>, language-sync flag; profile JSON per owner (<code>profile:&lt;owner&gt;</code>)</td><td>App sandbox; excluded from backup</td></tr>
+</tbody>
+</table>
+
+<h2 id="d05-server-data-model"><span class="num">2</span>Server data model</h2>
+<p><code>server.js</code> keeps four in-memory <code>Map</code>s, persisted as one JSON document <code>{ users: [...], projects: {userId: [...]}, tasks: {userId: [...]}, habits: {userId: [...]} }</code>. Ownership is structural: every collection is keyed by the owner's user id, so there are no cross-user references <span class="tag fact">Implemented</span>.</p>
+
+<figure class="diagram" id="DIAG-03">
+<svg viewBox="0 0 760 250" role="img" aria-labelledby="d3t d3d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="12.5">
+<title id="d3t">Entity relationships</title>
+<desc id="d3d">A User owns many Projects and many Habits. A Project has many Tasks. A Task embeds many checklist items and labels. A User has many sync operation receipts.</desc>
+<defs><marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16151d"/></marker></defs>
+<g fill="#fff" stroke="#4b2f9e"><rect x="20" y="95" width="130" height="60" rx="6"/><rect x="250" y="20" width="130" height="60" rx="6"/><rect x="250" y="170" width="130" height="60" rx="6"/><rect x="480" y="20" width="130" height="60" rx="6"/><rect x="640" y="20" width="110" height="60" rx="6" fill="#f4f3f9"/><rect x="20" y="185" width="160" height="55" rx="6" fill="#f4f3f9"/></g>
+<g text-anchor="middle" font-weight="700"><text x="85" y="122">User</text><text x="315" y="47">Project</text><text x="315" y="197">Habit</text><text x="545" y="47">Task</text><text x="695" y="47">ChecklistItem</text><text x="100" y="208">Sync receipt</text></g>
+<g text-anchor="middle" font-size="11"><text x="85" y="140">id (UUID), email</text><text x="315" y="65">id, name</text><text x="315" y="215">id, name, frequency</text><text x="545" y="65">id, projectId, status</text><text x="695" y="65">embedded</text><text x="100" y="226">operationId (in User)</text></g>
+<g stroke="#16151d" stroke-width="1.4" fill="none" marker-end="url(#m3)"><path d="M150,112 L250,55"/><path d="M150,140 L250,195"/><path d="M380,50 L480,50"/><path d="M610,50 L640,50"/><path d="M85,155 L85,185"/></g>
+<g font-size="11"><text x="200" y="66" text-anchor="end">owns 0..*</text><text x="212" y="157">owns 0..*</text><text x="430" y="42" text-anchor="middle">has 0..*</text><text x="92" y="174">records 0..*</text></g>
+</svg>
+<figcaption>Figure 3. Logical entities. Tasks are stored per user and linked to a project by <code>projectId</code>; checklist items and labels are embedded arrays.</figcaption>
+</figure>
+
+<h3 id="ENT-USER"><span class="num">2.1</span>User (ENT-USER)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code></td><td>UUID string</td><td><code>randomUUID()</code> at registration; JWT <code>sub</code></td></tr>
+<tr><td><code>email</code></td><td>string</td><td>Valid email; unique (exact, case-sensitive match) <span class="tag fact">Implemented</span></td></tr>
+<tr><td><code>displayName</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>passwordHash</code></td><td>string</td><td>bcrypt cost 12. A non-bcrypt value is compared as plain text once and then rehashed (<a href="08-engineering-audit.html#AUD-16">AUD-16</a>). Never returned by the API.</td></tr>
+<tr><td><code>language</code></td><td>string</td><td>Default <code>"en"</code>; any string accepted by the API, the app sends en/zu/tn</td></tr>
+<tr><td><code>notificationsEnabled</code></td><td>boolean</td><td>Default <code>true</code></td></tr>
+<tr><td><code>syncOperations</code></td><td>string[]</td><td>Applied <code>operationId</code>s; grows without limit (<a href="08-engineering-audit.html#AUD-07">AUD-07</a>)</td></tr>
+</tbody></table>
+
+<h3 id="ENT-PROJECT"><span class="num">2.2</span>Project (ENT-PROJECT)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code></td><td>UUID string</td><td>Server-generated (REST) or device-generated (sync)</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>description</code></td><td>string | null</td><td>Optional</td></tr>
+<tr><td><code>createdAt</code>, <code>updatedAt</code></td><td>ISO-8601 timestamp</td><td>Set by the server</td></tr>
+</tbody></table>
+<p>Deleting a project deletes its tasks (REST and sync paths) <span class="tag fact">Implemented</span>.</p>
+
+<h3 id="ENT-TASK"><span class="num">2.3</span>Task (ENT-TASK)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code>, <code>projectId</code></td><td>UUID strings</td><td>The project must belong to the same user (404 on REST, 409 on sync)</td></tr>
+<tr><td><code>title</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>description</code></td><td>string | null</td><td>Optional</td></tr>
+<tr><td><code>dueDate</code></td><td>string | null</td><td>Pattern <code>yyyy-MM-dd</code> (format only; the calendar date is not checked)</td></tr>
+<tr><td><code>priority</code></td><td>enum</td><td><code>NONE</code> (default), <code>LOW</code>, <code>MEDIUM</code>, <code>HIGH</code></td></tr>
+<tr><td><code>status</code></td><td>enum</td><td><code>TODO</code> (default), <code>IN_PROGRESS</code>, <code>DONE</code></td></tr>
+<tr><td><code>isCompleted</code></td><td>boolean</td><td>Derived: always <code>status === "DONE"</code> after a write</td></tr>
+<tr><td><code>labels</code></td><td>string[]</td><td>Free text</td></tr>
+<tr><td><code>checklist</code></td><td>{id?, title, isCompleted?}[]</td><td>Title non-empty</td></tr>
+<tr><td><code>createdAt</code>, <code>updatedAt</code></td><td>ISO-8601</td><td>Server-set</td></tr>
+</tbody></table>
+
+<h3 id="ENT-HABIT"><span class="num">2.4</span>Habit (ENT-HABIT)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code></td><td>UUID string</td><td></td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>description</code></td><td>string | null</td><td>Optional</td></tr>
+<tr><td><code>frequency</code></td><td>enum</td><td><code>DAILY</code> (default), <code>WEEKLY</code>, <code>CUSTOM</code></td></tr>
+<tr><td><code>targetDays</code></td><td>number[]</td><td>Accepted but not used by the app's scoring</td></tr>
+<tr><td><code>completedDates</code></td><td>string[]</td><td><code>yyyy-MM-dd</code> by convention; no format validation on the server</td></tr>
+<tr><td><code>createdAt</code> (+ <code>updatedAt</code> via sync)</td><td>ISO-8601</td><td></td></tr>
+</tbody></table>
+
+<h2 id="d05-device-room-schema-version-5"><span class="num">3</span>Device (Room) schema, version 5</h2>
+<table>
+<caption>Room entities in data/Database.kt and data/SyncManager.kt</caption>
+<thead><tr><th scope="col">Table</th><th scope="col">Primary key</th><th scope="col">Columns</th></tr></thead>
+<tbody>
+<tr id="ENT-ROOM-PROJECTS"><td><code>projects</code></td><td><code>id</code></td><td><code>userId</code>, name, description, createdAt, updatedAt</td></tr>
+<tr id="ENT-ROOM-TASKS"><td><code>tasks</code></td><td><code>id</code></td><td><code>userId</code>, projectId, title, description, isCompleted, dueDate, priority, status, labels (JSON), checklist (JSON), createdAt, updatedAt</td></tr>
+<tr id="ENT-ROOM-HABITS"><td><code>habits</code></td><td><code>id</code></td><td><code>userId</code>, name, description, frequency, targetDays (JSON), completedDates (JSON), createdAt</td></tr>
+<tr id="ENT-ROOM-DASH"><td><code>dashboard</code></td><td><code>userId</code></td><td>projects, tasks, activity (counts)</td></tr>
+<tr id="ENT-ROOM-QUEUE"><td><code>pending_changes</code></td><td><code>sequence</code> (autoincrement)</td><td><code>userId</code>, operationId (UUID), resource (projects|tasks|habits), entityId, action (create|update|delete), payload (JSON)</td></tr>
+</tbody>
+</table>
+<p>List columns are stored as Gson JSON strings by <code>TaskConverters</code>. <code>userId</code> is the cache owner id: the JWT <code>sub</code>, or a hash of the token if no <code>sub</code> exists. No foreign keys or indices are declared <span class="tag fact">Implemented</span>.</p>
+<h3 id="d05-migration-history"><span class="num">3.1</span>Migration history</h3>
+<table><thead><tr><th scope="col">Migration</th><th scope="col">Change</th><th scope="col">Data effect</th></tr></thead><tbody>
+<tr><td>1→2, 2→3</td><td>Not present in code (version 2 added task fields, per commit 8b31aa3)</td><td>Upgrading from v1 or v2 would fail to open the database (<a href="08-engineering-audit.html#AUD-12">AUD-12</a>)</td></tr>
+<tr><td>3→4</td><td>Adds <code>userId</code> to projects, tasks and habits; rebuilds <code>dashboard</code> keyed by user</td><td>Deletes all cached rows (they could not be attributed to an owner)</td></tr>
+<tr><td>4→5</td><td>Creates <code>pending_changes</code></td><td>Keeps existing rows</td></tr>
+</tbody></table>
+
+<h2 id="d05-data-flows"><span class="num">4</span>Data flows</h2>
+<table>
+<caption>Principal data flows</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Flow</th><th scope="col">Path</th></tr></thead>
+<tbody>
+<tr id="DF-01"><td class="id">DF-01</td><td>Local write</td><td>ViewModel → Repository → <code>SyncManager.save()</code> → Room entity + <code>pending_changes</code> (one transaction). See <a href="03-application-flow.html#SEQ-01">SEQ-01</a>.</td></tr>
+<tr id="DF-02"><td class="id">DF-02</td><td>Upload</td><td><code>pending_changes</code> (ordered) → <code>POST /api/sync</code> → in-memory map → <code>saveDatabase()</code> (<code>.tmp</code> then <code>rename</code>) → receipt stored → queue row deleted</td></tr>
+<tr id="DF-03"><td class="id">DF-03</td><td>Refresh</td><td><code>GET /projects</code> + <code>GET /projects/:id/tasks</code> for each project (N+1 requests) → replaces the account's cached projects and tasks → dashboard counts computed on the device</td></tr>
+<tr id="DF-04"><td class="id">DF-04</td><td>Account deletion</td><td><code>DELETE /users/me</code> → server removes the user and all collections → app purges that owner's Room rows and queue under the sync mutex</td></tr>
+<tr id="DF-05"><td class="id">DF-05</td><td>Export</td><td>Habits (cache or API) → CSV string in memory → Android share sheet. Nothing is written to shared storage.</td></tr>
+</tbody>
+</table>
+
+<h2 id="d05-data-retention-and-privacy-notes"><span class="num">5</span>Data retention and privacy notes</h2>
+<ul>
+<li>Personal data held: email, display name, password hash, and the user's own content. No analytics or third-party data processors are wired in <span class="tag fact">Implemented</span>.</li>
+<li>Retention: data is kept until the user deletes it or the account. There are no server-side backups or expiry <span class="tag fact">Implemented</span>.</li>
+<li>Logs: Pino redacts password fields, <code>passwordHash</code>, <code>token</code> and the authorization header. pino-http's default serializers do not log request bodies, so emails in bodies do not reach the logs, but remote IP addresses are logged <span class="tag fact">Implemented</span>.</li>
+</ul>
+
+<footer class="docfoot">NX-05-DATA &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+</main>
+</body>
+</html>

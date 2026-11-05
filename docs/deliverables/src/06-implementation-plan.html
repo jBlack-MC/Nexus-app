@@ -1,0 +1,52 @@
+<!--meta
+id: NX-06-PLAN
+title: Implementation Plan
+subtitle: Completed work with evidence, and remaining work ordered by dependency with priorities, estimates, acceptance criteria and tests.
+audience: Development team planning the final PoE; assessor reviewing project management
+-->
+
+<h2>Completed work</h2>
+<p>This history is reconstructed from <code>PROJECT_IMPROVEMENTS.md</code>, merged pull requests and commit messages. Dates are commit or merge dates {{F}}.</p>
+<table>
+<caption>Delivered increments</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">Increment</th><th scope="col">Evidence</th><th scope="col">Requirements</th></tr></thead>
+<tbody>
+<tr><td>2026-08-23</td><td>Initial Android app with auth integration, secure token storage, nav flow, splash animation</td><td>Commits 65385b2, 0496717, 964cbf5</td><td>[[FR-01]], [[FR-02]], [[FR-19]]</td></tr>
+<tr><td>2026-09-22</td><td>CI workflow, Room read cache, task due date / priority / status / labels / checklist, dashboard insights, auth validation</td><td>PRs #10–#16; commit 8b31aa3</td><td>[[FR-09]], [[FR-11]]</td></tr>
+<tr><td>2026-09-23</td><td>Backend remediation: mutex + atomic writes, Zod validation, JWT secret check, bcrypt, rate limiting, health check, Pino; task detail screen</td><td>PR #23; <code>server.test.js</code></td><td>[[NFR-01]], [[NFR-04]], [[FR-12]]</td></tr>
+<tr><td>2026-09-24</td><td>Android structural remediation: six repositories, manual DI, <code>HabitScoring</code> domain, feature packages, type-safe routes, shared fakes</td><td>PR #24</td><td>[[TR-01]] to [[TR-03]], [[FR-14]]</td></tr>
+<tr><td>2026-09-26</td><td>UI refinement: theme colours, logo component</td><td>PR #25</td><td>[[NX-04-DES]]</td></tr>
+<tr><td>2026-10-04</td><td>Offline upload queue and <code>/api/sync</code>, sync banner, conflict review, project search, task filters, zu/tn resources, configurable <code>NEXUS_API_URL</code>, HTTPS-only release, Dockerfile/compose</td><td>PR #26 (commit 3a3f275)</td><td>[[FR-16]], [[FR-17]], [[FR-18]], [[TR-07]]</td></tr>
+</tbody>
+</table>
+
+<h2>Remaining work</h2>
+<p>Tasks are ordered so that each depends only on tasks above it. Priority: <strong>P0</strong> blocks a credible release or submission, <strong>P1</strong> is needed before real users, <strong>P2</strong> is improvement. All effort figures are {{E}} person-day estimates by the document author, not team commitments, and should be re-estimated by the team.</p>
+<table>
+<caption>Dependency-ordered backlog</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Task</th><th scope="col">Pri.</th><th scope="col">Depends on</th><th scope="col">Est. (days)</th><th scope="col">Acceptance criteria</th><th scope="col">Tests</th></tr></thead>
+<tbody>
+<tr id="IMP-01"><td class="id">IMP-01</td><td>Restore GitHub Actions execution (resolve the account billing lock shown in run annotations) and re-run CI on <code>main</code></td><td>P0</td><td>None</td><td>0.25 {{E}}</td><td>Android CI and Backend CI both green on <code>main</code> at or after 3a3f275</td><td>Existing CI jobs ([[CI-01]], [[CI-02]])</td></tr>
+<tr id="IMP-02"><td class="id">IMP-02</td><td>Fix Zod 4 compatibility before merging PR #27: use <code>error.issues</code>; give <code>z.record</code> a key schema</td><td>P0</td><td>IMP-01</td><td>0.5 {{E}}</td><td>Backend tests pass on Zod 4; validation still returns 400 <code>VALIDATION_ERROR</code></td><td><code>npm test</code>; existing Zod tests</td></tr>
+<tr id="IMP-03"><td class="id">IMP-03</td><td>Fail safe on an unreadable data file: refuse to start (or start read-only) instead of starting empty</td><td>P0</td><td>None</td><td>0.5 {{E}}</td><td>A corrupt <code>nexus-data.json</code> stops the process with a clear log line and leaves the file untouched</td><td>New Jest test with a corrupt fixture ([[AUD-01]])</td></tr>
+<tr id="IMP-04"><td class="id">IMP-04</td><td>Correct the auth error messages: 401 at login gives "Email or password is incorrect"; 409 gives "Email already registered"; 429 gives "Too many attempts"</td><td>P0</td><td>None</td><td>0.5 {{E}}</td><td>Each status shows its own message; session expiry still shows the expiry text elsewhere</td><td><code>AuthViewModelTest</code> cases per status ([[AUD-18]])</td></tr>
+<tr id="IMP-05"><td class="id">IMP-05</td><td>Remove or fix the root <code>docker-compose.yml</code>; document <code>backend/compose.yaml</code> as the single container path</td><td>P1</td><td>None</td><td>0.25 {{E}}</td><td><code>docker compose up</code> from the documented path persists data across restarts</td><td>Backend CI smoke test plus a manual restart check ([[AUD-02]])</td></tr>
+<tr id="IMP-06"><td class="id">IMP-06</td><td>Add <code>app.set("trust proxy", 1)</code> (configurable) for TLS-proxy hosting</td><td>P1</td><td>IMP-05</td><td>0.25 {{E}}</td><td>The rate limit keys on the client IP behind the chosen proxy</td><td>Supertest with <code>X-Forwarded-For</code> ([[AUD-06]])</td></tr>
+<tr id="IMP-07"><td class="id">IMP-07</td><td>Provision the hosted API and release signing; set the <code>NEXUS_API_URL</code> repository variable</td><td>P1</td><td>IMP-01, IMP-03, IMP-05, IMP-06</td><td>1–2 {{E}}</td><td><code>/health</code> reachable over HTTPS; signed release APK/AAB produced by CI</td><td>Release checklist in [[NX-07-CICD]] ([[AUD-08]])</td></tr>
+<tr id="IMP-08"><td class="id">IMP-08</td><td>Due-date reminders, or hide the switch (decision [[OQ-01]])</td><td>P1</td><td>OQ-01</td><td>0.25 (hide) / 3–5 (build) {{E}}</td><td>The switch either has a visible effect or is not shown</td><td>Unit test on the scheduler, or UI test that the switch is absent ([[AUD-10]])</td></tr>
+<tr id="IMP-09"><td class="id">IMP-09</td><td>Exclude the Room database from backup, or document the choice</td><td>P1</td><td>None</td><td>0.25 {{E}}</td><td><code>backup_rules.xml</code> and <code>data_extraction_rules.xml</code> exclude <code>nexus_database</code></td><td>Manual <code>adb shell bmgr</code> check ([[AUD-05]])</td></tr>
+<tr id="IMP-10"><td class="id">IMP-10</td><td>Enforce lint in CI (<code>ktlintCheck</code>, <code>detekt</code>) and fix the ktlint parse failure; delete the placeholder <code>blank.yml</code> and <code>build-verification.log</code></td><td>P1</td><td>IMP-01</td><td>1 {{E}}</td><td>CI fails on lint violations; the log file is no longer tracked</td><td>CI run ([[AUD-13]])</td></tr>
+<tr id="IMP-11"><td class="id">IMP-11</td><td>Accessibility pass: TalkBack walkthrough, contrast measurement, 48 dp targets</td><td>P1</td><td>None</td><td>1–2 {{E}}</td><td>Results recorded; issues fixed or logged</td><td>Accessibility Scanner report; Compose semantics tests</td></tr>
+<tr id="IMP-12"><td class="id">IMP-12</td><td>Undo for list deletes of projects, tasks and habits</td><td>P2</td><td>None</td><td>1 {{E}}</td><td>Snackbar "Undo" restores the item before upload</td><td>ViewModel tests</td></tr>
+<tr id="IMP-13"><td class="id">IMP-13</td><td>CSV export escaping (RFC 4180 quoting)</td><td>P2</td><td>None</td><td>0.25 {{E}}</td><td>A habit named <code>Read, write</code> exports as one quoted field</td><td><code>SettingsViewModelTest</code> ([[AUD-11]])</td></tr>
+<tr id="IMP-14"><td class="id">IMP-14</td><td>Fix the habit completion-rate formula: count habit-date pairs</td><td>P2</td><td>None</td><td>0.25 {{E}}</td><td>Two daily habits both done for 30 days gives 100%</td><td><code>HabitScoringTest</code> ([[AUD-17]])</td></tr>
+<tr id="IMP-15"><td class="id">IMP-15</td><td>Enable Room <code>exportSchema</code> and add <code>MigrationTestHelper</code> tests for 3→4→5</td><td>P2</td><td>None</td><td>1 {{E}}</td><td>Schema JSON committed; migration tests pass</td><td>Instrumented tests ([[AUD-12]])</td></tr>
+<tr id="IMP-16"><td class="id">IMP-16</td><td>Documentation corrections: README contents links, admin role label, translation claim, recaptured screenshots</td><td>P2</td><td>IMP-07</td><td>0.5 {{E}}</td><td>Every README link resolves; screenshots match their file names</td><td>Link check ([[AUD-09]], [[AUD-21]])</td></tr>
+<tr id="IMP-17"><td class="id">IMP-17</td><td>Complete feature-screen localisation (zu/tn)</td><td>P2</td><td>None</td><td>3–5 {{E}}</td><td>No hard-coded user-facing English strings remain in <code>ui/</code></td><td>Lint <code>HardcodedText</code>; pseudo-locale run ([[FR-18]])</td></tr>
+<tr id="IMP-18"><td class="id">IMP-18</td><td>Final-PoE features (Google SSO, push notifications), as decided in [[OQ-04]]</td><td>P2</td><td>IMP-07, OQ-04</td><td>{{U}}</td><td>Defined per feature in <code>docs/POE_PART_2_ADDENDUM.md</code></td><td>Server and end-to-end tests required by the addendum</td></tr>
+</tbody>
+</table>
+<p>Total for P0 and P1 excluding IMP-08 "build" and IMP-18: about 5–7 person-days {{E}}.</p>
+
+<h2>Definition of done</h2>
+<p>Adopted from the quality checklist in <code>PROJECT_IMPROVEMENTS.md</code>: API models and validation first; a Room migration for any schema change; loading, offline, retry, unauthorised and validation states covered; ViewModel unit tests plus instrumented coverage of the main path; accessibility checked; README and the improvements log updated {{F}}. {{R}} Add "CI green on the PR" once [[IMP-01]] is done.</p>

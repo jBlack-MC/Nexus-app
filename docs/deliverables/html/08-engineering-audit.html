@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NX-08-AUD Engineering Audit - Nexus</title>
+<link rel="stylesheet" href="../tools/style.css">
+<style>@media print { @page { @top-left { content: "NX-08-AUD \00B7  Engineering Audit \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+</head>
+<body>
+<main class="doc">
+<header class="titlepage" id="NX-08-AUD">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 08</p>
+  <h1>Engineering Audit</h1>
+  <p class="subtitle">Evidence-based findings with severity, confidence, affected area and recommended action, plus an addendum verifying earlier remediation.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-08-AUD</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Development team prioritising fixes; assessor reviewing quality assurance</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d08-scope-and-method">1 Scope and method</a><ol><li><a href="#d08-ratings">1.1 Ratings</a></li></ol></li><li><a href="#d08-summary">2 Summary</a></li><li><a href="#d08-findings">3 Findings</a></li><li><a href="#AUD-ADDENDUM">4 Addendum: verification of earlier remediation</a></li></ol></nav>
+
+
+<h2 id="d08-scope-and-method"><span class="num">1</span>Scope and method</h2>
+<p>This audit covers the repository at the evidence baseline: Android source, backend source, build and CI configuration, tests, and existing documentation. The methods were code reading, running both test suites, retrieving GitHub Actions run history, and one targeted reproduction (AUD-01) in a scratch directory.</p>
+<div class="callout warn">
+<p><strong>Not a security audit.</strong> No penetration test, threat model, dependency vulnerability scan (<code>npm audit</code>/OWASP) or formal security review was performed. Security-relevant observations below come from reading code and must not be read as a security assessment.</p>
+</div>
+<h3 id="d08-ratings"><span class="num">1.1</span>Ratings</h3>
+<ul>
+<li><span class="sev high">High</span>: likely data loss, broken core function, or blocked release. <span class="sev medium">Medium</span>: real user or operational impact under plausible conditions. <span class="sev low">Low</span>: limited impact or quality debt. <span class="sev info">Info</span>: observation.</li>
+<li>Confidence: <strong>Verified</strong> (reproduced or shown in logs/tests), <strong>High</strong> (unambiguous in code/config), <strong>Medium</strong> (depends on environment or library behaviour not exercised here).</li>
+</ul>
+
+<h2 id="d08-summary"><span class="num">2</span>Summary</h2>
+<table>
+<caption>Findings by severity</caption>
+<thead><tr><th scope="col">Severity</th><th scope="col">Count</th><th scope="col">IDs</th></tr></thead>
+<tbody>
+<tr><td><span class="sev high">High</span></td><td>3</td><td><a href="#AUD-01">AUD-01</a>, <a href="#AUD-03">AUD-03</a>, <a href="#AUD-04">AUD-04</a></td></tr>
+<tr><td><span class="sev medium">Medium</span></td><td>6</td><td><a href="#AUD-02">AUD-02</a>, <a href="#AUD-05">AUD-05</a>, <a href="#AUD-06">AUD-06</a>, <a href="#AUD-08">AUD-08</a>, <a href="#AUD-18">AUD-18</a>, <a href="#AUD-19">AUD-19</a></td></tr>
+<tr><td><span class="sev low">Low</span></td><td>10</td><td><a href="#AUD-07">AUD-07</a>, <a href="#AUD-09">AUD-09</a>, <a href="#AUD-10">AUD-10</a>, <a href="#AUD-11">AUD-11</a>, <a href="#AUD-12">AUD-12</a>, <a href="#AUD-13">AUD-13</a>, <a href="#AUD-14">AUD-14</a>, <a href="#AUD-16">AUD-16</a>, <a href="#AUD-17">AUD-17</a>, <a href="#AUD-21">AUD-21</a></td></tr>
+<tr><td><span class="sev info">Info</span></td><td>2</td><td><a href="#AUD-15">AUD-15</a>, <a href="#AUD-20">AUD-20</a></td></tr>
+</tbody>
+</table>
+<p>Strengths observed: transactional offline outbox with idempotent server receipts; consistent per-account data scoping on both tiers; strict startup secret check; atomic file writes; standard error shape; injected fakes that make ViewModels testable; honest scoping in the existing docs (the addendum explicitly forbids claiming unbuilt features).</p>
+
+<h2 id="d08-findings"><span class="num">3</span>Findings</h2>
+<table>
+<caption>Engineering findings</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Finding and evidence</th><th scope="col">Severity / confidence</th><th scope="col">Area</th><th scope="col">Recommended action</th></tr></thead>
+<tbody>
+<tr id="AUD-01"><td class="id">AUD-01</td><td><strong>Unreadable data file is silently replaced with an empty store.</strong> <code>loadDatabase()</code> catches a JSON parse error, logs it, and continues with empty maps; the next write overwrites the file. Reproduced 2026-11-05: a truncated file loaded as 0 users and was rewritten as <code>{"users":[],...}</code> by the first <code>saveDatabase()</code>.</td><td><span class="sev high">High</span> / Verified</td><td>Backend persistence</td><td>Exit non-zero on a parse failure; keep a <code>.bak</code> before each rename. <a href="06-implementation-plan.html#IMP-03">IMP-03</a></td></tr>
+<tr id="AUD-03"><td class="id">AUD-03</td><td><strong>Open Dependabot PR #27 (Zod 4) breaks all request validation.</strong> <code>validate()</code> reads <code>result.error.errors</code>, which is undefined on Zod 4. CI run 2026-10-31 shows <code>TypeError … reading 'map'</code> at <code>server.js:133</code>, so invalid input would return 500 instead of 400. <code>z.record(z.unknown())</code> in <code>syncSchema</code> also uses the single-argument form that Zod 4 changed (not verified).</td><td><span class="sev high">High</span> (if merged) / Verified</td><td>Backend dependencies</td><td>Do not merge as-is; migrate to <code>error.issues</code> and <code>z.record(z.string(), z.unknown())</code>. <a href="06-implementation-plan.html#IMP-02">IMP-02</a></td></tr>
+<tr id="AUD-04"><td class="id">AUD-04</td><td><strong>The current code has never passed CI.</strong> Every workflow run for PRs #25 and #26 and their merges failed in 3–5 s with the annotation "job was not started because your account is locked due to a billing issue". The last green Android CI on main was 2026-09-24 (<a href="07-cicd-release.html#CI-RUN-GREEN">CI-RUN-GREEN</a>).</td><td><span class="sev high">High</span> / Verified</td><td>Delivery</td><td>Resolve the account lock and re-run CI on main. <a href="06-implementation-plan.html#IMP-01">IMP-01</a></td></tr>
+<tr id="AUD-02"><td class="id">AUD-02</td><td><strong>Root <code>docker-compose.yml</code> conflicts with the Docker image.</strong> It sets <code>DATABASE_PATH=/usr/src/app/nexus-data.json</code> and bind-mounts a single host file there. The image runs as <code>node</code> with <code>WORKDIR /app</code>, so the server cannot create <code>nexus-data.json.tmp</code> in the root-owned <code>/usr/src/app</code>, and renaming over a bind-mounted file is not possible. If the host file does not exist, Docker creates a directory in its place. <code>backend/compose.yaml</code> (named volume at <code>/data</code>) is consistent.</td><td><span class="sev medium">Medium</span> / Medium (not executed; Docker daemon unavailable)</td><td>Deployment config</td><td>Delete the root file or align it with <code>backend/compose.yaml</code>. <a href="06-implementation-plan.html#IMP-05">IMP-05</a></td></tr>
+<tr id="AUD-05"><td class="id">AUD-05</td><td><strong>Cached user content is included in Android backups.</strong> <code>allowBackup="true"</code>; the backup and extraction rules exclude only <code>sharedpref</code>, so <code>nexus_database</code> (projects, tasks, habits, pending queue) goes to cloud backup and device transfer.</td><td><span class="sev medium">Medium</span> / High</td><td>Android privacy</td><td>Exclude the <code>database</code> domain, or document the decision. <a href="06-implementation-plan.html#IMP-09">IMP-09</a></td></tr>
+<tr id="AUD-06"><td class="id">AUD-06</td><td><strong>Auth rate limiting will misbehave behind a TLS proxy.</strong> <code>trust proxy</code> is not set, so <code>req.ip</code> is the proxy address and all users would share one 10-per-15-min bucket. Hosting requires a TLS proxy (<a href="02-technical-requirements.html#OPS-01">OPS-01</a>).</td><td><span class="sev medium">Medium</span> / Medium</td><td>Backend security / ops</td><td>Configure <code>trust proxy</code> for the chosen host. <a href="06-implementation-plan.html#IMP-06">IMP-06</a></td></tr>
+<tr id="AUD-08"><td class="id">AUD-08</td><td><strong>No release signing configuration.</strong> <code>app/build.gradle.kts</code> defines no <code>signingConfig</code>, so CI release artifacts would be unsigned and could not be installed or published.</td><td><span class="sev medium">Medium</span> / High</td><td>Release</td><td>Add signing from CI secrets. <a href="06-implementation-plan.html#IMP-07">IMP-07</a></td></tr>
+<tr id="AUD-18"><td class="id">AUD-18</td><td><strong>Misleading sign-in and registration errors.</strong> <code>toApiError()</code> maps every 401/403 to <code>SessionExpired</code>, so a wrong password shows "Your session has expired. Please log in again." A 409 (email taken) and a 429 (rate-limited) both show "Something went wrong. Please try again."</td><td><span class="sev medium">Medium</span> / High</td><td>Android auth UX</td><td>Map auth-endpoint statuses separately. <a href="06-implementation-plan.html#IMP-04">IMP-04</a></td></tr>
+<tr id="AUD-19"><td class="id">AUD-19</td><td><strong>One rejected operation blocks the whole upload queue.</strong> Uploads stop at the first failure; a 400 or 409 needs the user to choose "Discard item edits". Until then no later change for any item uploads, though they stay saved locally.</td><td><span class="sev medium">Medium</span> / High</td><td>Sync design</td><td>Keep the ordering guarantee per entity only, or surface the blocked item by name in Review. Document it in the user manual (done in <a href="10-user-manual.html#NX-10-UM">NX-10-UM</a>).</td></tr>
+<tr id="AUD-07"><td class="id">AUD-07</td><td><strong>Throughput is bounded by one global lock.</strong> Every authenticated handler, including bcrypt cost-12 hashing and full-file rewrites, runs under <code>dbMutex</code>. Sync receipts (<code>syncOperations</code>) grow without limit, and dashboard refresh makes one request per project.</td><td><span class="sev low">Low</span> / High</td><td>Backend performance</td><td>Hash outside the lock; cap or expire receipts; add a bulk tasks endpoint. Revisit with the SQLite plan.</td></tr>
+<tr id="AUD-09"><td class="id">AUD-09</td><td><strong>Documentation drift.</strong> README contents links to five sections that do not exist (Roadmap, Continuous Integration, Part 2 PoE Evidence, Security and Release Notes, Contributing). It claims "MyMemory translation fallback", but <code>OnlineLanguageRepository</code> has no callers. It labels a test user "Global system administrator" though no roles exist. It lists full multi-language support, which is partial. The project list header shows a stray "?" (encoding).</td><td><span class="sev low">Low</span> / High</td><td>Documentation</td><td><a href="06-implementation-plan.html#IMP-16">IMP-16</a></td></tr>
+<tr id="AUD-10"><td class="id">AUD-10</td><td><strong>"Task due-date reminders" switch has no effect.</strong> No notification permission, channel, WorkManager or AlarmManager code exists; the switch only stores a preference.</td><td><span class="sev low">Low</span> / High</td><td>Android feature</td><td>Hide it, or implement reminders (<a href="01-product-requirements.html#OQ-01">OQ-01</a>, <a href="06-implementation-plan.html#IMP-08">IMP-08</a>).</td></tr>
+<tr id="AUD-11"><td class="id">AUD-11</td><td><strong>CSV export is not escaped.</strong> Rows are <code>"${name},${frequency},$date"</code>; commas, quotes or newlines in a habit name corrupt the file.</td><td><span class="sev low">Low</span> / High</td><td>Android export</td><td><a href="06-implementation-plan.html#IMP-13">IMP-13</a></td></tr>
+<tr id="AUD-12"><td class="id">AUD-12</td><td><strong>Room migrations are untested and incomplete.</strong> <code>exportSchema = false</code>; there are no migrations for 1→2 or 2→3, and no destructive fallback, so a device with a v1/v2 database would fail to open it. There are no migration tests.</td><td><span class="sev low">Low</span> (no public release yet) / High</td><td>Android data</td><td><a href="06-implementation-plan.html#IMP-15">IMP-15</a></td></tr>
+<tr id="AUD-13"><td class="id">AUD-13</td><td><strong>Lint is configured but not enforced.</strong> ktlint, detekt and Kover are in the build, but CI runs only <code>test</code>/<code>assemble</code>. The committed <code>build-verification.log</code> (UTF-16) records a failed local <code>ktlintFormat</code> ("KtLint failed to parse file … app/build.gradle.kts"). <code>blank.yml</code> is a starter template.</td><td><span class="sev low">Low</span> / High</td><td>Code quality / CI</td><td><a href="06-implementation-plan.html#IMP-10">IMP-10</a></td></tr>
+<tr id="AUD-14"><td class="id">AUD-14</td><td><strong>Test account passwords are committed.</strong> <code>docs/seed_test_users.ps1</code> and the README contain plain-text passwords for three seed accounts. This is acceptable for local development, but the accounts must never be seeded on a hosted API.</td><td><span class="sev low">Low</span> / High</td><td>Security hygiene</td><td>Release checklist item <a href="07-cicd-release.html#REL-09">REL-09</a>; consider generating the passwords at seed time.</td></tr>
+<tr id="AUD-16"><td class="id">AUD-16</td><td><strong>Minor auth weaknesses.</strong> Login returns before any bcrypt work for unknown emails, so timing could reveal registered emails. A legacy path accepts a stored non-bcrypt value as a plain-text password. Email uniqueness is case-sensitive.</td><td><span class="sev low">Low</span> / High</td><td>Backend auth</td><td>Compare against a dummy hash; remove the legacy path once no such records exist; normalise emails to lower case.</td></tr>
+<tr id="AUD-17"><td class="id">AUD-17</td><td><strong>Habit completion rate is understated with several habits.</strong> <code>HabitScoring</code> counts distinct dates across all habits but sums the schedule per habit. Two daily habits both done for 30 days score 50%. Streaks also count a day if <em>any</em> habit was done.</td><td><span class="sev low">Low</span> / High</td><td>Domain logic</td><td><a href="06-implementation-plan.html#IMP-14">IMP-14</a></td></tr>
+<tr id="AUD-21"><td class="id">AUD-21</td><td><strong>UI screenshot set does not show the screens it names.</strong> <code>docs/screenshots/ui-audit/</code> holds 9 files but only 4 distinct images (MD5): <code>dashboard-offline</code>, <code>profile</code>, <code>project-list</code> and <code>settings</code> are identical. <code>habits</code>, <code>project-list-skeleton</code>, <code>login</code> and <code>register</code> are also skeleton states, and <code>splash.png</code> shows the Login screen.</td><td><span class="sev low">Low</span> / Verified</td><td>Evidence / documentation</td><td>Recapture before submission; do not present these files as evidence of named screens. <a href="06-implementation-plan.html#IMP-16">IMP-16</a></td></tr>
+<tr id="AUD-15"><td class="id">AUD-15</td><td><strong>Dead code.</strong> <code>AuthSession.OFFLINE_TOKEN_PREFIX</code> handling remains after synthetic offline auth was removed; <code>setOnSessionCleared</code> is never registered; <code>OnlineLanguageRepository</code> and <code>languageInstance</code> are unused.</td><td><span class="sev info">Info</span> / High</td><td>Android</td><td>Remove during the next refactor.</td></tr>
+<tr id="AUD-20"><td class="id">AUD-20</td><td><strong>Inert or ordering quirks in the API.</strong> <code>registrationEnabled</code> in <code>/app/config</code> is not enforced. Validation runs before authentication on several routes, so an unauthenticated request with a bad body gets 400 instead of 401. CORS is <code>*</code> (documented as intentional).</td><td><span class="sev info">Info</span> / High</td><td>Backend</td><td>Address when roles or a web client are introduced.</td></tr>
+</tbody>
+</table>
+
+<h2 id="AUD-ADDENDUM"><span class="num">4</span>Addendum: verification of earlier remediation</h2>
+<p><code>PROJECT_IMPROVEMENTS.md</code> records two remediation passes (2026-09-23 backend, 2026-09-24 Android). Each claim was checked against the baseline code and test evidence.</p>
+<table>
+<caption>Remediation claims versus evidence</caption>
+<thead><tr><th scope="col">Claimed remediation</th><th scope="col">Code evidence</th><th scope="col">Test evidence (2026-11-05)</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr><td>AsyncMutex + atomic <code>.tmp</code>/<code>rename</code> writes</td><td><code>AsyncMutex</code>, <code>withDb</code>, <code>saveDatabase()</code></td><td>"Concurrent PATCH requests …" passed</td><td>Confirmed; see <a href="#AUD-01">AUD-01</a> for the remaining load-path gap</td></tr>
+<tr><td>Zod validation on all write endpoints</td><td>Schemas for register, login, profile, password, project, task, habit, sync</td><td>Validation tests passed (Zod 3)</td><td>Confirmed on Zod 3; at risk with Zod 4 (<a href="#AUD-03">AUD-03</a>)</td></tr>
+<tr><td>JWT secret ≥ 32 chars, 24 h expiry, bcrypt 12, 10/15 min rate limit</td><td><code>server.js</code> lines for each</td><td>Startup-refusal, expired-token and 429 tests passed</td><td>Confirmed; proxy caveat <a href="#AUD-06">AUD-06</a></td></tr>
+<tr><td><code>/health</code> + Pino with redaction</td><td>Routes and <code>redact.paths</code></td><td>Health test passed</td><td>Confirmed</td></tr>
+<tr><td>Repository split, manual DI, <code>HabitScoring</code>, type-safe routes, shared fakes</td><td><code>data/*Repository.kt</code>, <code>NexusApp</code>, <code>domain/</code>, <code>Route</code>, <code>test/fakes/</code></td><td>32/32 unit tests passed</td><td>Confirmed</td></tr>
+<tr><td>Synthetic offline authentication removed</td><td>No code mints offline tokens</td><td>Not separately tested</td><td>Confirmed, with leftover parsing code (<a href="#AUD-15">AUD-15</a>)</td></tr>
+</tbody>
+</table>
+
+<footer class="docfoot">NX-08-AUD &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+</main>
+</body>
+</html>

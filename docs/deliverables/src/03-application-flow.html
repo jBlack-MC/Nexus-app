@@ -1,0 +1,95 @@
+<!--meta
+id: NX-03-FLOW
+title: Application Flow
+subtitle: Navigation map, key user journeys, system interactions and error/alternate flows.
+audience: Testers, developers and the assessor following the demo
+-->
+
+<h2>Navigation map</h2>
+<p>Routes are type-safe <code>@Serializable</code> objects in <code>NexusNavHost.kt</code>. The app starts at <code>Splash</code>. An auth guard sends any signed-out user on a protected route to <code>Login</code>, and sends a signed-in user on Login/Register to <code>Dashboard</code> {{F}}. A bottom navigation bar (Today, Projects, Habits, Settings) appears on those four top-level routes only. A sync status banner appears on every authenticated screen except Splash.</p>
+
+<figure class="diagram" id="DIAG-02">
+<svg viewBox="0 0 760 300" role="img" aria-labelledby="d2t d2d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+<title id="d2t">Screen navigation map</title>
+<desc id="d2d">Splash leads to Login if signed out or Dashboard if signed in. Login links to Register. Dashboard (Today) links to Projects, Habits, Settings and Profile. Projects lead to Project detail, then Tasks, then Task detail. Profile links to Settings.</desc>
+<defs><marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16151d"/></marker></defs>
+<g fill="#fff" stroke="#4b2f9e">
+<rect x="10" y="125" width="90" height="40" rx="6"/><rect x="150" y="40" width="90" height="40" rx="6"/>
+<rect x="290" y="210" width="110" height="40" rx="6" fill="#ece7fb"/><rect x="290" y="40" width="90" height="40" rx="6"/>
+<rect x="450" y="130" width="100" height="40" rx="6" fill="#ece7fb"/><rect x="450" y="200" width="100" height="40" rx="6" fill="#ece7fb"/>
+<rect x="450" y="260" width="100" height="34" rx="6" fill="#ece7fb"/><rect x="450" y="60" width="100" height="40" rx="6"/>
+<rect x="600" y="130" width="120" height="40" rx="6"/><rect x="600" y="60" width="120" height="40" rx="6"/><rect x="600" y="200" width="120" height="40" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text x="55" y="150">Splash</text><text x="195" y="65">Login</text><text x="335" y="65">Register</text>
+<text x="345" y="235">Dashboard·Today</text>
+<text x="500" y="155">Projects</text><text x="500" y="225">Habits</text><text x="500" y="282">Settings</text><text x="500" y="85">Profile</text>
+<text x="660" y="155">Project detail</text><text x="660" y="85">Tasks (list)</text><text x="660" y="225">Task detail</text>
+</g>
+<g stroke="#16151d" stroke-width="1.4" fill="none" marker-end="url(#m2)">
+<path d="M100,140 L150,65"/><path d="M100,155 L290,228"/><path d="M240,60 L290,60"/>
+<path d="M400,222 L450,150"/><path d="M400,230 L450,220"/><path d="M400,240 L450,275"/><path d="M400,215 L450,85"/>
+<path d="M550,150 L600,150"/><path d="M660,130 L660,100"/><path d="M720,80 Q750,150 720,220"/><path d="M550,75 Q575,210 550,270"/>
+<path d="M210,80 L330,210"/>
+</g>
+<g font-size="11" fill="#4a4858"><text x="272" y="138">sign-in success</text><text x="62" y="95">signed out</text><text x="110" y="222">already signed in</text></g>
+</svg>
+<figcaption>Figure 2. Navigation map. Shaded boxes are bottom-bar destinations. Back navigation pops the stack.</figcaption>
+</figure>
+
+<h2>Key user journeys</h2>
+<p>Each journey lists the requirements it exercises. Steps reflect the implemented UI labels.</p>
+<table>
+<caption>User journeys</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Journey</th><th scope="col">Main path</th><th scope="col">Requirements</th></tr></thead>
+<tbody>
+<tr id="UF-01"><td class="id">UF-01</td><td>First launch and registration</td><td>Splash animation, then Login, then "Need an account? Register". Enter Display Name, Email and Password, tap Create Account. A JWT is saved and the Dashboard opens with an empty state, "Start your first project".</td><td>[[FR-01]], [[FR-19]]</td></tr>
+<tr id="UF-02"><td class="id">UF-02</td><td>Returning user</td><td>Splash, then Dashboard directly (token present). The Dashboard refresh uploads queued changes, then downloads projects and all their tasks into Room.</td><td>[[FR-02]], [[FR-09]], [[FR-16]]</td></tr>
+<tr id="UF-03"><td class="id">UF-03</td><td>Plan a project</td><td>Projects tab, then the + (New Project) button. Enter a name, create, and open the project. Use "Add Task" or "Open Tasks Screen", then + (New Task): set title, due date, priority, status, labels and checklist, and save.</td><td>[[FR-10]], [[FR-11]]</td></tr>
+<tr id="UF-04"><td class="id">UF-04</td><td>Decide what to do today</td><td>The Today tab shows the Overdue / Due today / Upcoming cards. In a project's task list, use search, the status chips or "High priority"; open a task for its detail view; mark it complete.</td><td>[[FR-09]], [[FR-12]]</td></tr>
+<tr id="UF-05"><td class="id">UF-05</td><td>Daily habit check-in</td><td>Habits tab, then + (Add habit), name it and choose a frequency. Tap "Complete today" each day; stats (level, points, streaks, badges) recalculate on the device.</td><td>[[FR-13]], [[FR-14]]</td></tr>
+<tr id="UF-06"><td class="id">UF-06</td><td>Work offline</td><td>With the API unreachable, create or edit items as usual. The banner reads "Saved on device · waiting to sync" with "<em>n</em> pending changes". When the network returns (network callback, the 30 s loop, or tapping Sync), the queue uploads in order and the banner shows "All changes synced".</td><td>[[FR-16]], [[TR-04]]</td></tr>
+<tr id="UF-07"><td class="id">UF-07</td><td>Resolve a conflict</td><td>An upload is rejected with 409 (or 400). The banner shows "An item changed on another device · review required" with a Review button. The dialog offers "Keep changes" (the queue stays blocked and the edits are kept) or "Discard item edits" (that entity's queued operations and its local row are removed, then the rest of the queue retries).</td><td>[[FR-17]], [[AUD-19]]</td></tr>
+<tr id="UF-08"><td class="id">UF-08</td><td>Session expiry during sync</td><td>Upload returns 401, the banner says "Sign in again to sync saved changes", and a "Sign in" button clears the token and opens Login. Queued changes stay on the device for the same account.</td><td>[[FR-02]], [[FR-16]]</td></tr>
+<tr id="UF-09"><td class="id">UF-09</td><td>Manage account</td><td>Settings tab: edit Display Name; choose Appearance (System/Light/Dark) and Language; toggle reminders; "Sync account"; "Export habits CSV", then "Share CSV"; "Change password"; "Delete account and data" (confirm); "Log Out".</td><td>[[FR-04]] to [[FR-08]], [[FR-15]]</td></tr>
+<tr id="UF-10"><td class="id">UF-10</td><td>Shared device, account switch</td><td>User A signs out with pending changes and user B signs in. B sees only B's rows. A's queue is neither shown nor uploaded until A signs in again.</td><td>[[FR-03]], [[NFR-03]]</td></tr>
+</tbody>
+</table>
+
+<h2>System interactions</h2>
+<h3 id="SEQ-01">Offline save and upload (SEQ-01)</h3>
+<ol>
+<li>The ViewModel calls a repository write, for example <code>TaskRepository.createTask()</code>. The repository generates a UUID for new entities on the device.</li>
+<li><code>SyncManager.save()</code> takes the mutex, then in one Room transaction writes the entity row and a <code>pending_changes</code> row (<code>operationId</code>, <code>resource</code>, <code>entityId</code>, <code>action</code>, JSON <code>payload</code>).</li>
+<li>Later, <code>flushLocked()</code> reads the account's pending rows by <code>sequence</code> and posts each one to <code>POST /api/sync</code>. A row is deleted only after a 2xx response.</li>
+<li>Server: if the <code>operationId</code> is already in the user's receipts it returns 204. Otherwise it validates the payload against the resource schema, checks for conflicts (update of a missing item, duplicate create, or a task whose project does not exist for this user), applies the change, records the receipt, saves atomically and returns 204. If the save fails, the in-memory change is rolled back.</li>
+<li>The first failure stops the loop. Its HTTP status decides the banner message and whether Review is offered (400/409).</li>
+</ol>
+<h3 id="SEQ-02">Read with cache fallback (SEQ-02)</h3>
+<ol>
+<li><code>SyncManager.read()</code> takes the mutex and flushes pending changes first.</li>
+<li>If the flush fails, Room data is returned, so unsent edits are never overwritten by server data.</li>
+<li>If the flush succeeds, the remote call runs and replaces the account's cached rows in one transaction. On <code>IOException</code> the cache is returned and the banner reads "Offline · showing saved data". Other HTTP errors (for example 401) are passed up to the ViewModel.</li>
+</ol>
+<h3 id="SEQ-03">Authentication (SEQ-03)</h3>
+<ol>
+<li>Login/Register posts credentials; the API checks them with bcrypt and returns a JWT with <code>sub</code> = user id, valid for 24 h.</li>
+<li><code>AuthSession.saveToken()</code> stores it encrypted. The cache owner id is decoded from the <code>sub</code> claim (not verified on the device; used only to scope the cache).</li>
+<li>The OkHttp interceptor adds <code>Authorization: Bearer</code> to every Nexus API request.</li>
+</ol>
+
+<h2>Error and alternate flows</h2>
+<table>
+<caption>How failures surface to the user</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Condition</th><th scope="col">System behaviour</th><th scope="col">User sees</th></tr></thead>
+<tbody>
+<tr id="EF-01"><td class="id">EF-01</td><td>API unreachable or timed out (5 s connect, 15 s call)</td><td>Writes are queued; reads fall back to Room.</td><td>Banner "Offline · changes saved on device" or "Offline · showing saved data"; Dashboard "Showing saved data". Sign-in shows "No internet connection. Check your network and try again."</td></tr>
+<tr id="EF-02"><td class="id">EF-02</td><td>401/403 on a screen request</td><td><code>ApiError.SessionExpired</code>; Settings clears the session.</td><td>"Your session has expired. Please log in again." This is also shown for a wrong password at sign-in ([[AUD-18]]).</td></tr>
+<tr id="EF-03"><td class="id">EF-03</td><td>409 at registration (email exists) or 429 (rate limit)</td><td>Mapped to <code>ApiError.Unknown</code>.</td><td>"Something went wrong. Please try again." ([[AUD-18]])</td></tr>
+<tr id="EF-04"><td class="id">EF-04</td><td>409/400 during sync</td><td>The queue stops at the failing operation; <code>conflict=true</code>.</td><td>Review button ([[UF-07]])</td></tr>
+<tr id="EF-05"><td class="id">EF-05</td><td>5xx from the API</td><td><code>ApiError.ServerError</code>. In production the API hides internal messages.</td><td>"Something went wrong on our end. Please try again shortly." Sync banner: "Sync needs attention · saved changes kept on device".</td></tr>
+<tr id="EF-06"><td class="id">EF-06</td><td>Item not available offline</td><td>Room has no row (never downloaded).</td><td>Error state with Retry, e.g. "Project is not available offline" ([[CON-05]])</td></tr>
+<tr id="EF-07"><td class="id">EF-07</td><td>Maintenance mode or announcement in <code>/app/config</code></td><td>Dashboard banner. The API currently hard-codes maintenance off.</td><td>Maintenance message or the first announcement</td></tr>
+<tr id="EF-08"><td class="id">EF-08</td><td>Delete account fails (offline or error)</td><td>The session is kept and nothing is purged.</td><td>Error message in Settings</td></tr>
+</tbody>
+</table>

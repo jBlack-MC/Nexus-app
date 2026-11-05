@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NX-09-TDH Testing, Deployment and Handover - Nexus</title>
+<link rel="stylesheet" href="../tools/style.css">
+<style>@media print { @page { @top-left { content: "NX-09-TDH \00B7  Testing, Deployment and Handover \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+</head>
+<body>
+<main class="doc">
+<header class="titlepage" id="NX-09-TDH">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 09</p>
+  <h1>Testing, Deployment and Handover</h1>
+  <p class="subtitle">Test strategy and verified results, deployment summary, operational handover, known limitations and runbooks.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-09-TDH</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Incoming maintainers and operators; assessor checking test evidence</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d09-test-strategy">1 Test strategy</a></li><li><a href="#d09-verified-results">2 Verified results</a><ol><li><a href="#d09-coverage-gaps">2.1 Coverage gaps</a></li></ol></li><li><a href="#d09-deployment-summary">3 Deployment summary</a></li><li><a href="#d09-operational-handover">4 Operational handover</a></li><li><a href="#d09-known-limitations">5 Known limitations</a></li><li><a href="#d09-runbooks">6 Runbooks</a></li></ol></nav>
+
+
+<h2 id="d09-test-strategy"><span class="num">1</span>Test strategy</h2>
+<table>
+<caption>Test levels in the repository</caption>
+<thead><tr><th scope="col">Level</th><th scope="col">Tooling</th><th scope="col">What it covers</th><th scope="col">Runs in CI</th></tr></thead>
+<tbody>
+<tr><td>Backend unit/integration</td><td>Jest + Supertest against the in-process Express app</td><td>Validation, auth, rate limiting, error shape, health, body limit, concurrency, sync replay, ownership and conflicts</td><td>Yes (<a href="07-cicd-release.html#CI-01">CI-01</a>, <a href="07-cicd-release.html#CI-02">CI-02</a>)</td></tr>
+<tr><td>Android unit (JVM)</td><td>JUnit 4, MockK, coroutines-test, shared fakes</td><td>ViewModels (auth, dashboard, projects, settings), <code>SyncManager</code>, <code>HabitScoring</code></td><td>Yes (<code>./gradlew test</code>)</td></tr>
+<tr><td>Android instrumented</td><td>AndroidX JUnit, Compose UI test</td><td>Room offline persistence and ownership, splash with reduced motion, screenshot-capture wait conditions</td><td>No; needs an emulator or device</td></tr>
+<tr><td>Container smoke</td><td>Docker + curl <code>/health</code></td><td>Image builds and starts in production mode</td><td>Backend CI only; never succeeded (<a href="07-cicd-release.html#CI-02">CI-02</a>)</td></tr>
+<tr><td>Manual acceptance</td><td><code>docs/ONLINE_OFFLINE.md</code> six-step check; <code>docs/DEMO_SCRIPT.md</code></td><td>Online/offline round trip, account switch, conflicts</td><td>No. No recorded results in the repository <span class="tag unk">Unknown</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d09-verified-results"><span class="num">2</span>Verified results</h2>
+<p>Run on 2026-11-05 against the baseline working tree (no local modifications to application code).</p>
+<table>
+<caption>Backend: <code>cd backend; npm test</code>, 2 suites, 16 tests, 16 passed, 31.7 s</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Suite</th><th scope="col">Tests</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr id="TST-01"><td class="id">TST-01</td><td><code>tests/server.test.js</code>: JWT secret refusal; concurrent updates; Zod validation (register, task enum/date, strict profile); error shape and production masking; expired token 401; 429 after 10 logins; <code>/health</code>; 413 over 1 MB</td><td>11</td><td>Passed</td></tr>
+<tr id="TST-02"><td class="id">TST-02</td><td><code>tests/sync.test.js</code>: ordered replay with cascade delete; lost response plus restart does not duplicate or resurrect; cross-account project rejected; invalid payload 400 and no-auth 401; edit of deleted item gives 409</td><td>5</td><td>Passed</td></tr>
+</tbody>
+</table>
+<table>
+<caption>Android: <code>./gradlew :app:testDebugUnitTest --rerun</code>, 7 classes, 32 tests, 0 failures, BUILD SUCCESSFUL</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Class</th><th scope="col">Tests</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr id="TST-03"><td class="id">TST-03</td><td><code>AuthViewModelTest</code></td><td>9</td><td>Passed</td></tr>
+<tr id="TST-04"><td class="id">TST-04</td><td><code>DashboardViewModelTest</code></td><td>7</td><td>Passed</td></tr>
+<tr id="TST-05"><td class="id">TST-05</td><td><code>SyncManagerTest</code>: acknowledged operations removed in sequence; network failure keeps pending changes; pending writes block refresh overwrite; offline reads use cache while auth errors surface</td><td>4</td><td>Passed</td></tr>
+<tr id="TST-06"><td class="id">TST-06</td><td><code>HabitScoringTest</code></td><td>4</td><td>Passed</td></tr>
+<tr id="TST-07"><td class="id">TST-07</td><td><code>SettingsViewModelTest</code></td><td>4</td><td>Passed</td></tr>
+<tr id="TST-08"><td class="id">TST-08</td><td><code>ProjectListViewModelTest</code></td><td>3</td><td>Passed</td></tr>
+<tr id="TST-09"><td class="id">TST-09</td><td><code>ExampleUnitTest</code> (template)</td><td>1</td><td>Passed</td></tr>
+</tbody>
+</table>
+<table>
+<caption>Not executed for this package</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Test</th><th scope="col">Count</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr id="TST-10"><td class="id">TST-10</td><td>Instrumented: <code>OfflinePersistenceTest</code> (1), <code>SplashIntroScreenTest</code> (4), <code>ScreenshotCaptureTest</code> (10), <code>ExampleInstrumentedTest</code> (1)</td><td>16</td><td>Not run; no device attached <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-11"><td class="id">TST-11</td><td>Docker build and smoke test</td><td>1</td><td>Not run; Docker daemon not running <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-12"><td class="id">TST-12</td><td>Manual acceptance check (<code>ONLINE_OFFLINE.md</code>)</td><td>6 steps</td><td>No recorded execution <span class="tag unk">Unknown</span></td></tr>
+</tbody>
+</table>
+<h3 id="d09-coverage-gaps"><span class="num">2.1</span>Coverage gaps</h3>
+<ul>
+<li>No unit tests for <code>ProjectDetailViewModel</code>, <code>TaskListViewModel</code>, <code>HabitsViewModel</code>, <code>RemoteConfigViewModel</code>, or the repositories' Room paths <span class="tag fact">Implemented</span>.</li>
+<li>No backend tests for habits CRUD, password change, account deletion or the localisation/config endpoints <span class="tag fact">Implemented</span>.</li>
+<li>No Room migration tests (<a href="08-engineering-audit.html#AUD-12">AUD-12</a>); no tests for the defects in <a href="08-engineering-audit.html#AUD-01">AUD-01</a>, <a href="08-engineering-audit.html#AUD-11">AUD-11</a>, <a href="08-engineering-audit.html#AUD-17">AUD-17</a> and <a href="08-engineering-audit.html#AUD-18">AUD-18</a>.</li>
+<li>A Kover report is configured but no coverage figure was produced or recorded <span class="tag unk">Unknown</span>.</li>
+</ul>
+
+<h2 id="d09-deployment-summary"><span class="num">3</span>Deployment summary</h2>
+<p>Full procedures are in <a href="11-deployment-guide.html#NX-11-DEP">NX-11-DEP</a>; release gating is in <a href="07-cicd-release.html#REL-CHECK">REL-CHECK</a>. In short: run the API with a persistent <code>JWT_SECRET</code> and persistent storage (Node host or <code>backend/compose.yaml</code>), put it behind HTTPS, and build the app with <code>-PNEXUS_API_URL=https://…/api/</code>. No environment beyond local development exists today (<a href="01-product-requirements.html#CON-02">CON-02</a>).</p>
+
+<h2 id="d09-operational-handover"><span class="num">4</span>Operational handover</h2>
+<table>
+<caption>Handover register</caption>
+<thead><tr><th scope="col">Item</th><th scope="col">Current state</th></tr></thead>
+<tbody>
+<tr><td>Source repository</td><td><code>github.com/jBlack-MC/Nexus-app</code>; default branch <code>main</code>; working branch <code>New-Changes</code> <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Repository owner / admins</td><td>Owner account <code>jBlack-MC</code>; other collaborators <span class="tag unk">Unknown</span></td></tr>
+<tr><td>Secrets in use</td><td><code>JWT_SECRET</code> (API runtime; set per environment, never committed). CI uses a hard-coded test-only value. No signing keystore exists <span class="tag fact">Implemented</span></td></tr>
+<tr><td>CI variables</td><td><code>NEXUS_API_URL</code> (enables release artifacts). Whether it is set: <span class="tag unk">Unknown</span>. Release jobs were skipped in the retrieved runs <span class="tag inf">Inferred</span></td></tr>
+<tr><td>Hosted services</td><td>None <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Monitoring and alerting</td><td><code>/health</code> endpoint and Docker <code>HEALTHCHECK</code>. No external monitoring <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Backups</td><td>None configured <span class="tag fact">Implemented</span>. See <a href="#RB-04">RB-04</a></td></tr>
+<tr><td>Open pull requests</td><td>#27 Dependabot Zod 4. Do not merge until <a href="06-implementation-plan.html#IMP-02">IMP-02</a> is done</td></tr>
+</tbody>
+</table>
+
+<h2 id="d09-known-limitations"><span class="num">5</span>Known limitations</h2>
+<ul>
+<li>Single-instance JSON store (<a href="01-product-requirements.html#CON-01">CON-01</a>); not suited to concurrent hosting or large data.</li>
+<li>No background sync while the app process is stopped (<a href="01-product-requirements.html#CON-03">CON-03</a>).</li>
+<li>Last-upload-wins for edits; no field-level merge (<a href="01-product-requirements.html#FR-17">FR-17</a>).</li>
+<li>Reminders, push notifications, account recovery and collaboration are not implemented (<a href="01-product-requirements.html#NX-01-PRD">NX-01-PRD</a> scope).</li>
+<li>Localisation is partial (<a href="01-product-requirements.html#FR-18">FR-18</a>).</li>
+<li>Open defects: see <a href="08-engineering-audit.html#NX-08-AUD">NX-08-AUD</a>.</li>
+</ul>
+
+<h2 id="d09-runbooks"><span class="num">6</span>Runbooks</h2>
+<table>
+<caption>Operational runbooks</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Situation</th><th scope="col">Steps</th></tr></thead>
+<tbody>
+<tr id="RB-01"><td class="id">RB-01</td><td>API exits at start with "FATAL: JWT_SECRET is missing, too short…"</td><td>Generate a secret: <code>node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"</code>. Set <code>JWT_SECRET</code> in the host's secret store (not in git) and restart. Reuse the same value on later restarts.</td></tr>
+<tr id="RB-02"><td class="id">RB-02</td><td>Health check</td><td><code>curl -s https://&lt;host&gt;/health</code> should return <code>{"status":"ok","uptime":…}</code>. Locally: <code>http://localhost:5263/health</code>.</td></tr>
+<tr id="RB-03"><td class="id">RB-03</td><td>All users suddenly see empty data after a restart</td><td>Likely <a href="08-engineering-audit.html#AUD-01">AUD-01</a>. <strong>Stop the API immediately</strong> so no further writes occur. Inspect logs for "Failed to load database". Restore the data file from the latest backup (<a href="#RB-04">RB-04</a>) and restart. Without a backup, the data overwritten by the empty store cannot be recovered.</td></tr>
+<tr id="RB-04"><td class="id">RB-04</td><td>Back up and restore data <span class="tag rec">Recommendation</span></td><td>Back up: stop the API, or accept a crash-consistent copy (writes are atomic renames), then copy <code>nexus-data.json</code> (container: <code>docker compose cp api:/data/nexus-data.json ./backup-YYYYMMDD.json</code>). Restore: stop the API, replace the file, start the API, check <a href="#RB-02">RB-02</a>. Treat backups as personal data.</td></tr>
+<tr id="RB-05"><td class="id">RB-05</td><td>Users cannot sign in (HTTP 429)</td><td>The limit is 10 auth requests per 15 minutes per IP, held in memory. Wait 15 minutes or restart the API. Behind a proxy, check <a href="08-engineering-audit.html#AUD-06">AUD-06</a>.</td></tr>
+<tr id="RB-06"><td class="id">RB-06</td><td>Rotate <code>JWT_SECRET</code></td><td>Set the new value and restart. Every existing session becomes invalid; users see "Sign in again to sync saved changes", and their queued changes upload after they sign in.</td></tr>
+<tr id="RB-07"><td class="id">RB-07</td><td>A user reports the sync banner stuck on "review required"</td><td>Ask them to tap Review. "Discard item edits" removes only that item's queued edits, then the rest uploads. If they choose "Keep changes", nothing uploads until the conflict is resolved (<a href="08-engineering-audit.html#AUD-19">AUD-19</a>).</td></tr>
+<tr id="RB-08"><td class="id">RB-08</td><td>CI runs fail within seconds</td><td>Open the run with <code>gh run view &lt;id&gt;</code> and read the annotations. If they show "job was not started", the cause is an account or billing restriction, not the code (<a href="08-engineering-audit.html#AUD-04">AUD-04</a>).</td></tr>
+</tbody>
+</table>
+
+<footer class="docfoot">NX-09-TDH &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+</main>
+</body>
+</html>

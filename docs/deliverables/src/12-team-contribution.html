@@ -1,0 +1,58 @@
+<!--meta
+id: NX-12-TCR
+title: Team Contribution Report
+subtitle: Verifiable contribution evidence from the repository and GitHub, with unavailable evidence marked as unknown.
+audience: Module assessor; team members confirming their contributions
+-->
+
+<h2>Basis of this report</h2>
+<p>This report lists only what the repository and the GitHub API record. It does not judge the size or quality of anyone's contribution, and it does not infer contribution from commit counts. Work done outside GitHub (testing sessions, design, reviews in person, recording the demo) leaves no trace here. Its absence from this report is <em>not</em> evidence that it did not happen.</p>
+<p>Sources queried on 2026-11-05: <code>git log --all</code>, <code>git shortlog</code>, <code>gh pr list</code>, PR reviews, <code>gh issue list</code>, the repository collaborators API, and the README team table.</p>
+
+<h2>Declared team</h2>
+<table>
+<caption>Team as declared in README.md (self-reported; student numbers are listed there)</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Declared role</th><th scope="col">Linked GitHub account</th></tr></thead>
+<tbody>
+<tr id="TM-01"><td>Clarity Masuku</td><td>Backend/API Integration Android App Developer / UI &amp; Authentication</td><td>{{U}} Not stated in the repository; the team should confirm</td></tr>
+<tr id="TM-02"><td>Sibusiso Mabena</td><td>Testing &amp; Quality Assurance</td><td>{{U}} Not stated in the repository; the team should confirm</td></tr>
+</tbody>
+</table>
+<p>Repository collaborators (GitHub API): <code>jBlack-MC</code> (owner) and <code>SibusisoMabena05</code> {{F}}. The similarity between the second account name and a declared member is noted, but it is not treated as proof of identity.</p>
+
+<h2>Recorded activity by account</h2>
+<table>
+<caption>Activity recorded on GitHub and in git</caption>
+<thead><tr><th scope="col">Account</th><th scope="col">Commits (all refs)</th><th scope="col">Pull requests opened</th><th scope="col">PR reviews</th><th scope="col">Issues opened</th></tr></thead>
+<tbody>
+<tr><td><code>jBlack-MC</code></td><td>97, including 25 automatic "cline checkpoint" entries and stash-style "index on"/"untracked files on" entries created by tooling</td><td>18 (all merged)</td><td>18 "commented" reviews, all on its own PRs</td><td>8 (#1–#8)</td></tr>
+<tr><td><code>SibusisoMabena05</code></td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td><code>copilot-swe-agent[bot]</code></td><td>2 (PR #23: "Clarify Android CI workflow", merge of main)</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td><code>dependabot[bot]</code></td><td>1</td><td>1 (#27, open)</td><td>None</td><td>None</td></tr>
+</tbody>
+</table>
+<p>No pull request has an approving review from a second person {{F}}.</p>
+
+<h2>Tool-assisted work</h2>
+<p>Commit history shows AI-assisted tooling: Cline checkpoints, two commits by GitHub's Copilot coding agent, and Dependabot {{F}}. This documentation package was itself prepared with Claude Code. Commits made through an account do not show whether a person or a tool wrote the change, so authorship within <code>jBlack-MC</code> commits cannot be split further {{U}}.</p>
+
+<h2>Contribution areas</h2>
+<table>
+<caption>Areas of the project and attributable evidence</caption>
+<thead><tr><th scope="col">Area</th><th scope="col">Evidence of who did the work</th></tr></thead>
+<tbody>
+<tr><td>Android app (UI, auth, data, sync)</td><td>Commits and PRs from <code>jBlack-MC</code> {{F}}; individual person {{U}}</td></tr>
+<tr><td>Backend API</td><td>Commits and PRs from <code>jBlack-MC</code> {{F}}; individual person {{U}}</td></tr>
+<tr><td>Testing and QA</td><td>Test files were committed by <code>jBlack-MC</code> {{F}}. Manual test sessions, test planning or QA sign-off by the declared QA member: {{U}} (no records in the repository)</td></tr>
+<tr><td>CI configuration</td><td><code>jBlack-MC</code> commits; one clarification commit by the Copilot agent {{F}}</td></tr>
+<tr><td>Demo recording and Part 2 PDF</td><td><code>docs/Nexus-Part-2-Submission.pdf</code> committed by <code>jBlack-MC</code> {{F}}; who produced it {{U}}</td></tr>
+</tbody>
+</table>
+
+<h2>Gaps and how to close them</h2>
+<ul>
+<li>{{Q}} Each member confirms which GitHub account is theirs (if any), and the README is updated with that mapping.</li>
+<li>{{R}} Record non-code work in the repository: test-session notes with dates and results under <code>docs/</code>, issues assigned to the person doing the work, and PR reviews from the other member, which also adds a second-person review gate.</li>
+<li>{{R}} If both members commit from a shared machine, set per-person <code>git config user.name</code>/<code>user.email</code>, or use <code>Co-authored-by:</code> trailers.</li>
+</ul>
+<p>Until these gaps are closed, individual contribution claims in the PoE should rest on the members' own statements, not on this report.</p>

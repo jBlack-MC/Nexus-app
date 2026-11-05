@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NX-04-DES Design Brief - Nexus</title>
+<link rel="stylesheet" href="../tools/style.css">
+<style>@media print { @page { @top-left { content: "NX-04-DES \00B7  Design Brief \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+</head>
+<body>
+<main class="doc">
+<header class="titlepage" id="NX-04-DES">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 04</p>
+  <h1>Design Brief</h1>
+  <p class="subtitle">Design goals, navigation, visual conventions, accessibility and responsive behaviour as evidenced in the app.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-04-DES</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Designers and developers changing the UI; assessor reviewing UX decisions</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d04-design-goals">1 Design goals</a></li><li><a href="#d04-navigation-model">2 Navigation model</a></li><li><a href="#d04-visual-conventions">3 Visual conventions</a><ol><li><a href="#d04-colour">3.1 Colour</a></li><li><a href="#d04-shape-spacing-and-type">3.2 Shape, spacing and type</a></li><li><a href="#d04-motion">3.3 Motion</a></li></ol></li><li><a href="#d04-accessibility">4 Accessibility</a></li><li><a href="#d04-responsive-behaviour">5 Responsive behaviour</a></li><li><a href="#d04-screen-evidence">6 Screen evidence</a></li></ol></nav>
+
+
+<h2 id="d04-design-goals"><span class="num">1</span>Design goals</h2>
+<p>The README's product principles are the stated design intent. The table shows how far the code follows each one.</p>
+<table>
+<caption>Principles versus implementation</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Principle (README)</th><th scope="col">Where it shows up in the app</th></tr></thead>
+<tbody>
+<tr id="DS-01"><td class="id">DS-01</td><td>Focus over clutter</td><td>The Today dashboard limits Upcoming to 3 tasks and shows "Nothing here." for empty cards <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="DS-02"><td class="id">DS-02</td><td>Fast capture</td><td>Floating + buttons on Projects, Tasks and Habits; dialogs need only a name or title; priority defaults to None and status to To do <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="DS-03"><td class="id">DS-03</td><td>Progress with context</td><td>Task list progress bar with "x of y tasks complete"; habit level, points and streaks <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="DS-04"><td class="id">DS-04</td><td>Calm by default</td><td>Short motion (150–300 ms), skeleton loaders instead of spinners, friendly empty states such as "A little progress, every day." <span class="tag fact">Implemented</span></td></tr>
+<tr id="DS-05"><td class="id">DS-05</td><td>Trustworthy data</td><td>A persistent sync banner always states whether changes are saved, pending, synced or in conflict <span class="tag fact">Implemented</span>.</td></tr>
+</tbody>
+</table>
+
+<h2 id="d04-navigation-model"><span class="num">2</span>Navigation model</h2>
+<ul>
+<li>Bottom <code>NavigationBar</code> with four destinations: Today, Projects, Habits, Settings. Navigating between them saves and restores state and uses <code>launchSingleTop</code> <span class="tag fact">Implemented</span>.</li>
+<li>Second-level screens (Project detail, Tasks, Task detail, Profile) use a top app bar with a Back arrow ("Back" content description) <span class="tag fact">Implemented</span>.</li>
+<li>Create and edit actions use modal dialogs (project, task editor, habit, password), not separate screens <span class="tag fact">Implemented</span>.</li>
+<li>Destructive actions confirm first: log out and delete account. Deleting a project, task or habit from a list has no confirmation dialog <span class="tag fact">Implemented</span> (<span class="tag rec">Recommendation</span> add an undo snackbar; see <a href="06-implementation-plan.html#IMP-12">IMP-12</a>).</li>
+</ul>
+<p>The full map is in <a href="03-application-flow.html#DIAG-02">DIAG-02</a>.</p>
+
+<h2 id="d04-visual-conventions"><span class="num">3</span>Visual conventions</h2>
+<h3 id="d04-colour"><span class="num">3.1</span>Colour</h3>
+<table>
+<caption>Colour tokens from ui/theme/Color.kt and Theme.kt</caption>
+<thead><tr><th scope="col">Token</th><th scope="col">Value</th><th scope="col">Use</th></tr></thead>
+<tbody>
+<tr><td>Brand purple / green</td><td><code>#A855F7</code> / <code>#22C55E</code></td><td>Logo gradient and wordmark</td></tr>
+<tr><td>Light primary / secondary</td><td><code>#6141B5</code> / <code>#236B54</code></td><td>Fallback scheme on Android 11 and earlier (commit log: "accessible fallback brand colors")</td></tr>
+<tr><td>Dark primary / secondary</td><td><code>#D0BCFF</code> / <code>#22C55E</code></td><td>Fallback dark scheme</td></tr>
+<tr><td>Background (light / dark)</td><td><code>#F7F7FC</code> / <code>#12131B</code></td><td>Overrides even when dynamic colour is on</td></tr>
+<tr><td>Surface (light / dark)</td><td><code>#FFFFFF</code> / <code>#191A24</code></td><td>Cards and sheets</td></tr>
+</tbody>
+</table>
+<p>On Android 12 and later, Material You dynamic colour supplies primary, secondary and tertiary from the wallpaper, while background and surface stay fixed to the values above <span class="tag fact">Implemented</span>. Contrast was not measured for this package <span class="tag unk">Unknown</span>.</p>
+<h3 id="d04-shape-spacing-and-type"><span class="num">3.2</span>Shape, spacing and type</h3>
+<ul>
+<li>Shapes: small 12 dp, medium 20 dp, large 28 dp rounded corners <span class="tag fact">Implemented</span>.</li>
+<li>Spacing scale in <code>Spacing.kt</code>: 2, 4, 6, 8, 10, 12, 16, 20, 22, 24, 32 dp. Top-bar logo 32 dp; auth logo 80 dp <span class="tag fact">Implemented</span>.</li>
+<li>Typography: the system sans-serif for every Material 3 style; body large 16 sp, body medium 14 sp <span class="tag fact">Implemented</span>. No custom font is bundled.</li>
+<li>Components: <code>NexusPrimaryButton</code>, <code>NexusSecondaryButton</code>, <code>NexusDestructiveIconButton</code>, <code>StatCard</code>, <code>Skeleton</code>, <code>FeedbackState</code> (empty/error with Retry), <code>NexusLogo</code> <span class="tag fact">Implemented</span>.</li>
+</ul>
+<h3 id="d04-motion"><span class="num">3.3</span>Motion</h3>
+<p><code>Motion.kt</code> fixes durations: screen enter 220 ms, exit 180 ms, list item 220 ms, fade 150 ms, completion bounce 90 + 140 ms, success check 260 ms. Screen transitions slide a quarter width and fade <span class="tag fact">Implemented</span>.</p>
+
+<h2 id="d04-accessibility"><span class="num">4</span>Accessibility</h2>
+<table>
+<caption>Accessibility evidence</caption>
+<thead><tr><th scope="col">Aspect</th><th scope="col">Evidence</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>Reduced motion</td><td><code>rememberReduceMotion()</code> checks <code>ValueAnimator.areAnimatorsEnabled()</code>; navigation transitions, list reflow, shimmer and splash are skipped. <code>SplashIntroScreenTest</code> covers the splash.</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Screen reader labels</td><td>Icon buttons have descriptions such as "Back", "New Project", "Add habit", "Edit habit", "Remove label …", "Clear due date". Bottom-bar icons use <code>null</code> descriptions, with the visible text label as the accessible name.</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Not relying on colour alone</td><td>Priority and status are shown as text chips ("Priority · High"), not colour only.</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Keyboard / IME</td><td><code>windowSoftInputMode="adjustResize"</code>; auth forms scroll above the keyboard (improvements log).</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Contrast, touch targets, TalkBack walkthrough</td><td>No measurements or audit records in the repository.</td><td><span class="tag unk">Unknown</span> → <a href="06-implementation-plan.html#IMP-11">IMP-11</a></td></tr>
+<tr><td>Localised content</td><td>en/zu/tn resource strings for auth and a few labels; feature screens are English-only.</td><td>Partial (<a href="01-product-requirements.html#FR-18">FR-18</a>)</td></tr>
+</tbody>
+</table>
+
+<h2 id="d04-responsive-behaviour"><span class="num">5</span>Responsive behaviour</h2>
+<p>Layouts are single-column phone layouts built with <code>fillMaxWidth</code>, <code>LazyColumn</code> and horizontally scrolling chip rows. Window insets are handled with <code>statusBarsPadding</code>. No window size classes or tablet layouts exist; tablet layouts are listed as planned <span class="tag fact">Implemented</span>. Landscape behaviour has not been tested <span class="tag unk">Unknown</span>.</p>
+
+<h2 id="d04-screen-evidence"><span class="num">6</span>Screen evidence</h2>
+<p>Only two distinct, correctly identified screenshots exist in the repository. The UI-audit folder <code>docs/screenshots/ui-audit/</code> contains nine files, but they are only four distinct images, and their file names do not match their content (<a href="08-engineering-audit.html#AUD-21">AUD-21</a>). Both images below were captured on 2026-09-25, before the 2026-10-04 navigation and sync-banner changes, so they may not match the current UI.</p>
+<figure class="shots" id="FIG-SHOTS">
+<div><img src="../../screenshots/ui-audit/splash.png" alt="Login screen: Nexus logo, Language picker set to English, Welcome Back heading, Email and Password fields, disabled Sign In button, and a Need an account? Register link."><figcaption>Login screen (stored as <code>splash.png</code>).</figcaption></div>
+<div><img src="../../screenshots/ui-audit/dashboard-offline.png" alt="Skeleton loading state: top bar with back arrow, Nexus logo and English label, then grey placeholder blocks."><figcaption>Skeleton loading state (stored under four names, including <code>dashboard-offline.png</code>).</figcaption></div>
+</figure>
+<p><span class="tag rec">Recommendation</span> Recapture the screen set from a running build and replace the folder contents (<a href="06-implementation-plan.html#IMP-16">IMP-16</a>); <a href="10-user-manual.html#NX-10-UM">NX-10-UM</a> intentionally uses text-only instructions until then.</p>
+
+<footer class="docfoot">NX-04-DES &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NX-12-TCR Team Contribution Report - Nexus</title>
+<link rel="stylesheet" href="../tools/style.css">
+<style>@media print { @page { @top-left { content: "NX-12-TCR \00B7  Team Contribution Report \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+</head>
+<body>
+<main class="doc">
+<header class="titlepage" id="NX-12-TCR">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 12</p>
+  <h1>Team Contribution Report</h1>
+  <p class="subtitle">Verifiable contribution evidence from the repository and GitHub, with unavailable evidence marked as unknown.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-12-TCR</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Module assessor; team members confirming their contributions</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d12-basis-of-this-report">1 Basis of this report</a></li><li><a href="#d12-declared-team">2 Declared team</a></li><li><a href="#d12-recorded-activity-by-account">3 Recorded activity by account</a></li><li><a href="#d12-tool-assisted-work">4 Tool-assisted work</a></li><li><a href="#d12-contribution-areas">5 Contribution areas</a></li><li><a href="#d12-gaps-and-how-to-close-them">6 Gaps and how to close them</a></li></ol></nav>
+
+
+<h2 id="d12-basis-of-this-report"><span class="num">1</span>Basis of this report</h2>
+<p>This report lists only what the repository and the GitHub API record. It does not judge the size or quality of anyone's contribution, and it does not infer contribution from commit counts. Work done outside GitHub (testing sessions, design, reviews in person, recording the demo) leaves no trace here. Its absence from this report is <em>not</em> evidence that it did not happen.</p>
+<p>Sources queried on 2026-11-05: <code>git log --all</code>, <code>git shortlog</code>, <code>gh pr list</code>, PR reviews, <code>gh issue list</code>, the repository collaborators API, and the README team table.</p>
+
+<h2 id="d12-declared-team"><span class="num">2</span>Declared team</h2>
+<table>
+<caption>Team as declared in README.md (self-reported; student numbers are listed there)</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Declared role</th><th scope="col">Linked GitHub account</th></tr></thead>
+<tbody>
+<tr id="TM-01"><td>Clarity Masuku</td><td>Backend/API Integration Android App Developer / UI &amp; Authentication</td><td><span class="tag unk">Unknown</span> Not stated in the repository; the team should confirm</td></tr>
+<tr id="TM-02"><td>Sibusiso Mabena</td><td>Testing &amp; Quality Assurance</td><td><span class="tag unk">Unknown</span> Not stated in the repository; the team should confirm</td></tr>
+</tbody>
+</table>
+<p>Repository collaborators (GitHub API): <code>jBlack-MC</code> (owner) and <code>SibusisoMabena05</code> <span class="tag fact">Implemented</span>. The similarity between the second account name and a declared member is noted, but it is not treated as proof of identity.</p>
+
+<h2 id="d12-recorded-activity-by-account"><span class="num">3</span>Recorded activity by account</h2>
+<table>
+<caption>Activity recorded on GitHub and in git</caption>
+<thead><tr><th scope="col">Account</th><th scope="col">Commits (all refs)</th><th scope="col">Pull requests opened</th><th scope="col">PR reviews</th><th scope="col">Issues opened</th></tr></thead>
+<tbody>
+<tr><td><code>jBlack-MC</code></td><td>97, including 25 automatic "cline checkpoint" entries and stash-style "index on"/"untracked files on" entries created by tooling</td><td>18 (all merged)</td><td>18 "commented" reviews, all on its own PRs</td><td>8 (#1–#8)</td></tr>
+<tr><td><code>SibusisoMabena05</code></td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td><code>copilot-swe-agent[bot]</code></td><td>2 (PR #23: "Clarify Android CI workflow", merge of main)</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td><code>dependabot[bot]</code></td><td>1</td><td>1 (#27, open)</td><td>None</td><td>None</td></tr>
+</tbody>
+</table>
+<p>No pull request has an approving review from a second person <span class="tag fact">Implemented</span>.</p>
+
+<h2 id="d12-tool-assisted-work"><span class="num">4</span>Tool-assisted work</h2>
+<p>Commit history shows AI-assisted tooling: Cline checkpoints, two commits by GitHub's Copilot coding agent, and Dependabot <span class="tag fact">Implemented</span>. This documentation package was itself prepared with Claude Code. Commits made through an account do not show whether a person or a tool wrote the change, so authorship within <code>jBlack-MC</code> commits cannot be split further <span class="tag unk">Unknown</span>.</p>
+
+<h2 id="d12-contribution-areas"><span class="num">5</span>Contribution areas</h2>
+<table>
+<caption>Areas of the project and attributable evidence</caption>
+<thead><tr><th scope="col">Area</th><th scope="col">Evidence of who did the work</th></tr></thead>
+<tbody>
+<tr><td>Android app (UI, auth, data, sync)</td><td>Commits and PRs from <code>jBlack-MC</code> <span class="tag fact">Implemented</span>; individual person <span class="tag unk">Unknown</span></td></tr>
+<tr><td>Backend API</td><td>Commits and PRs from <code>jBlack-MC</code> <span class="tag fact">Implemented</span>; individual person <span class="tag unk">Unknown</span></td></tr>
+<tr><td>Testing and QA</td><td>Test files were committed by <code>jBlack-MC</code> <span class="tag fact">Implemented</span>. Manual test sessions, test planning or QA sign-off by the declared QA member: <span class="tag unk">Unknown</span> (no records in the repository)</td></tr>
+<tr><td>CI configuration</td><td><code>jBlack-MC</code> commits; one clarification commit by the Copilot agent <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Demo recording and Part 2 PDF</td><td><code>docs/Nexus-Part-2-Submission.pdf</code> committed by <code>jBlack-MC</code> <span class="tag fact">Implemented</span>; who produced it <span class="tag unk">Unknown</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d12-gaps-and-how-to-close-them"><span class="num">6</span>Gaps and how to close them</h2>
+<ul>
+<li><span class="tag oq">Open question</span> Each member confirms which GitHub account is theirs (if any), and the README is updated with that mapping.</li>
+<li><span class="tag rec">Recommendation</span> Record non-code work in the repository: test-session notes with dates and results under <code>docs/</code>, issues assigned to the person doing the work, and PR reviews from the other member, which also adds a second-person review gate.</li>
+<li><span class="tag rec">Recommendation</span> If both members commit from a shared machine, set per-person <code>git config user.name</code>/<code>user.email</code>, or use <code>Co-authored-by:</code> trailers.</li>
+</ul>
+<p>Until these gaps are closed, individual contribution claims in the PoE should rest on the members' own statements, not on this report.</p>
+
+<footer class="docfoot">NX-12-TCR &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+</main>
+</body>
+</html>

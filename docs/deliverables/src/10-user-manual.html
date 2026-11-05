@@ -1,0 +1,110 @@
+<!--meta
+id: NX-10-UM
+title: User Manual
+subtitle: Task-based instructions for Nexus users: account, projects, tasks, habits, settings and working offline.
+audience: People using the Nexus Android app (signed-in users) and testers following the demo
+-->
+
+<h2>Before you start</h2>
+<ul>
+<li>You need an Android phone or emulator running Android 7.0 or later, with the Nexus app installed from a build provided by the team. No app-store listing exists.</li>
+<li>Your first registration or sign-in must happen while the device can reach the Nexus server. After that you can keep working offline.</li>
+<li>Nexus has one kind of user. Everything you create is private to your account, and there are no shared projects.</li>
+</ul>
+<div class="callout"><p>Screen labels in this manual are the English ones. If you choose isiZulu or Setswana, the sign-in screens and some labels change language; most other screens stay in English.</p></div>
+
+<h2>Account</h2>
+<h3 id="UM-01">Create an account (UM-01)</h3>
+<ol>
+<li>Open Nexus and wait for the intro animation to finish. The Login screen opens.</li>
+<li>Optional: choose your language in the <strong>Language</strong> box.</li>
+<li>Tap <strong>Need an account? Register</strong>.</li>
+<li>Enter <strong>Display Name</strong>, <strong>Email</strong> and a <strong>Password</strong> of at least 6 characters, then tap <strong>Create Account</strong>.</li>
+<li>The Today screen opens. You stay signed in when you close and reopen the app (for up to 24 hours per sign-in).</li>
+</ol>
+<p>If you see "Something went wrong. Please try again." when registering, the email may already be registered, or you made too many attempts in a short time. Try signing in instead, or wait 15 minutes.</p>
+<h3 id="UM-02">Sign in and sign out (UM-02)</h3>
+<ol>
+<li>On Login, enter your Email and Password and tap <strong>Sign In</strong>.</li>
+<li>To sign out, tap <strong>Log Out</strong> on the Today screen or in Settings, then confirm.</li>
+</ol>
+<p>If a wrong password is entered, the app currently says "Your session has expired. Please log in again." Check your password and try again. This message is a known issue ([[AUD-18]]).</p>
+<p>Changes you saved while offline stay on the device after you sign out. They upload the next time <em>you</em> sign in on that device. Another person signing in on the same phone will not see them.</p>
+
+<h2>Today screen</h2>
+<p>The <strong>Today</strong> tab shows how many projects and tasks you have and how many tasks you've completed ("Activity"). Under <strong>Your schedule</strong> are three cards:</p>
+<ul><li><strong>Overdue</strong>: unfinished tasks with a due date before today.</li><li><strong>Due today</strong>: unfinished tasks due today.</li><li><strong>Upcoming</strong>: the next three unfinished tasks with a future due date.</li></ul>
+<p>Tasks without a due date do not appear in these cards. "Showing saved data" means the numbers come from your device because the server could not be reached.</p>
+
+<h2>Projects and tasks</h2>
+<h3 id="UM-03">Create and manage a project (UM-03)</h3>
+<ol>
+<li>Tap the <strong>Projects</strong> tab, then the <strong>+</strong> button.</li>
+<li>Enter a <strong>Name</strong> and an optional description, then confirm.</li>
+<li>Use <strong>Search projects</strong> to filter the list by name.</li>
+<li>Tap a project to open it. There you can rename it (<strong>Save Project</strong>), add tasks, open the task list (<strong>Open Tasks Screen</strong>) or <strong>Delete Project</strong>.</li>
+</ol>
+<p><strong>Deleting a project also deletes all its tasks.</strong> List deletes do not ask for confirmation, and there is no undo.</p>
+<h3 id="UM-04">Add and edit tasks (UM-04)</h3>
+<ol>
+<li>In a project's task list, tap <strong>+</strong> (New Task).</li>
+<li>Enter a <strong>Title</strong>. Optionally add a description, a <strong>Due date</strong> (calendar picker; the × clears it), <strong>Priority</strong> (None, Low, Medium, High) and <strong>Status</strong> (To do, In progress, Done).</li>
+<li>To add labels, type in <strong>Add label</strong> and tap <strong>Add</strong>; tap × on a label to remove it. Add checklist steps the same way with <strong>Add step</strong>.</li>
+<li>Save. Tap a task to see its details, then <strong>Edit task</strong> to change it. Setting the status to Done marks the task complete.</li>
+</ol>
+<h3 id="UM-05">Find tasks (UM-05)</h3>
+<ul>
+<li><strong>Search tasks or labels</strong> matches titles and labels.</li>
+<li>Status chips: <strong>All</strong>, <strong>Open</strong>, <strong>In progress</strong>, <strong>Done</strong>. Tap <strong>High priority</strong> to show only high-priority tasks.</li>
+<li>The bar at the top shows "x of y tasks complete".</li>
+</ul>
+
+<h2>Habits</h2>
+<h3 id="UM-06">Track a habit (UM-06)</h3>
+<ol>
+<li>Tap the <strong>Habits</strong> tab, then <strong>+</strong> (Add habit).</li>
+<li>Enter a <strong>Habit name</strong>, choose <strong>Daily</strong>, <strong>Weekly</strong> or <strong>Custom</strong>, and tap <strong>Create</strong>.</li>
+<li>Each day you do the habit, tap <strong>Complete today</strong>. Tap it again (it reads <strong>Completed today</strong>) to undo.</li>
+<li>Use the pencil icon to edit, or the delete icon to remove a habit.</li>
+</ol>
+<p>The stats card shows your level, points, current and best streak (in days), completion rate and badges ("3-day streak", "7-day streak", "Reliable habit builder"). With more than one habit, the completion rate shown is lower than your real rate ([[AUD-17]]).</p>
+
+<h2>Settings</h2>
+<h3 id="UM-07">Change your profile and preferences (UM-07)</h3>
+<ul>
+<li><strong>Display Name</strong>: edit it in the User Profile section and tap <strong>Save Changes</strong>. Your email cannot be changed.</li>
+<li><strong>Appearance</strong>: System, Light or Dark. This applies to this device only.</li>
+<li><strong>Language</strong>: English, isiZulu or Setswana. It is saved to your account.</li>
+<li><strong>Task due-date reminders</strong>: this switch is saved, but Nexus does not send reminders yet ([[AUD-10]]).</li>
+<li><strong>Sync account</strong> reloads your profile from the server.</li>
+</ul>
+<h3 id="UM-08">Export your habit history (UM-08)</h3>
+<ol><li>In Settings, tap <strong>Export habits CSV</strong>, then <strong>Share CSV</strong>.</li><li>Choose an app (email, Drive, etc.). The file lists habit, frequency and each completed date. Avoid commas in habit names; they break the CSV columns ([[AUD-11]]).</li></ol>
+<h3 id="UM-09">Change password or delete your account (UM-09)</h3>
+<ul>
+<li><strong>Change password</strong>: enter your current password and a new one (6+ characters), then tap Save. You must be online.</li>
+<li><strong>Delete account and data</strong>: confirm <strong>Delete</strong>. Your account and everything in it are permanently removed from the server and this device. This cannot be undone. You must be online.</li>
+</ul>
+
+<h2>Working offline</h2>
+<h3 id="UM-10">Understand the sync banner (UM-10)</h3>
+<p>The banner at the top of every screen tells you where your changes are:</p>
+<table>
+<caption>Sync banner messages</caption>
+<thead><tr><th scope="col">Message</th><th scope="col">Meaning</th><th scope="col">What to do</th></tr></thead>
+<tbody>
+<tr><td>Saved on device · waiting to sync (<em>n</em> pending changes)</td><td>Your change is safe on the phone and not yet on the server.</td><td>Nothing. It uploads automatically when you're online, or tap <strong>Sync</strong>.</td></tr>
+<tr><td>All changes synced</td><td>The server has everything.</td><td>Nothing.</td></tr>
+<tr><td>Offline · changes saved on device / Offline · showing saved data</td><td>The server can't be reached.</td><td>Keep working; reconnect later.</td></tr>
+<tr><td>Sign in again to sync saved changes</td><td>Your session expired.</td><td>Tap <strong>Sign in</strong>. Your saved changes are kept.</td></tr>
+<tr><td>An item changed on another device · review required</td><td>The server rejected one change, for example because you edited an item that was deleted elsewhere.</td><td>See UM-11.</td></tr>
+</tbody>
+</table>
+<p>Uploads happen while Nexus is open. If Android closes the app, uploading resumes when you open it again. Items you never opened or refreshed while online won't be available offline.</p>
+<h3 id="UM-11">Resolve a conflict (UM-11)</h3>
+<ol>
+<li>Tap <strong>Review</strong> on the banner.</li>
+<li>Choose <strong>Discard item edits</strong> to drop your unsent changes to that one item. Your other changes then upload. Or choose <strong>Keep changes</strong> to decide later.</li>
+<li>Refresh the screen to load the server's current copy.</li>
+</ol>
+<p>Until you discard the conflicting item, none of your other pending changes upload ([[AUD-19]]). They stay safely on your device.</p>

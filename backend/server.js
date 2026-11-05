@@ -6,15 +6,24 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import cors from "cors";
 import { existsSync } from "node:fs";
-import { readFile, writeFile, rename } from "node:fs/promises";
+import { readFile, writeFile, rename, copyFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pino from "pino";
 import pinoHttp from "pino-http";
+import { OAuth2Client } from "google-auth-library";
+import { initPush, isPushConfigured, notifyUser } from "./push.js";
 
 const app = express();
 const port = process.env.PORT || 5263;
+
+// Behind a TLS-terminating proxy, req.ip must come from X-Forwarded-For so auth rate limiting is per client (AUD-06).
+// TRUST_PROXY accepts a hop count ("1") or an Express trust-proxy expression; unset means "trust nothing".
+if (process.env.TRUST_PROXY) {
+  const value = process.env.TRUST_PROXY;
+  app.set("trust proxy", /^\d+$/.test(value) ? Number(value) : value);
+}
 
 // Configure structured logger with sensitive field redaction
 const logger = pino({
@@ -72,14 +81,17 @@ const authLimiter = rateLimit({
 });
 
 // Zod validation schemas matching Android client API models exactly
+// Emails are normalised to lower case so uniqueness and sign-in are case-insensitive (AUD-16).
+const emailField = z.string().trim().email().transform((value) => value.toLowerCase());
+
 const registerSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
   password: z.string().min(6),
   displayName: z.string().min(1)
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
   password: z.string().min(1)
 });
 
@@ -130,7 +142,8 @@ function validate(schema) {
   return (req, res, next) => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
-      const message = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      // `issues` exists in both Zod 3 and Zod 4 (`errors` was removed in Zod 4, see AUD-03).
+      const message = result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
       return next(new AppError(message, 400, "VALIDATION_ERROR"));
     }
     req.body = result.data;
@@ -167,19 +180,25 @@ let habits = new Map();
 let projects = new Map();
 let tasks = new Map();
 
+/**
+ * Loads the JSON store. An unreadable file is a hard error (AUD-01): starting with an empty
+ * state would overwrite every user's data on the next write. The caller refuses to start, and
+ * the operator restores from `nexus-data.json.bak` (written before every save) or a backup.
+ */
 async function loadDatabase() {
-  if (existsSync(databaseFile)) {
-    try {
-      const content = await readFile(databaseFile, "utf8");
-      const database = JSON.parse(content);
-      users = new Map((database.users || []).map((user) => [user.id, user]));
-      habits = new Map(Object.entries(database.habits || {}));
-      projects = new Map(Object.entries(database.projects || {}));
-      tasks = new Map(Object.entries(database.tasks || {}));
-    } catch (e) {
-      logger.error({ err: e }, "Failed to load database, starting with empty state");
-    }
+  if (!existsSync(databaseFile)) return;
+  let database;
+  try {
+    database = JSON.parse(await readFile(databaseFile, "utf8"));
+  } catch (e) {
+    const error = new Error(`Data file ${databaseFile} could not be read: ${e.message}`);
+    error.code = "DATABASE_UNREADABLE";
+    throw error;
   }
+  users = new Map((database.users || []).map((user) => [user.id, user]));
+  habits = new Map(Object.entries(database.habits || {}));
+  projects = new Map(Object.entries(database.projects || {}));
+  tasks = new Map(Object.entries(database.tasks || {}));
 }
 
 /**
@@ -199,6 +218,8 @@ async function saveDatabase() {
   const jsonContent = JSON.stringify(data, null, 2);
   const tempFile = databaseFile + ".tmp";
   await writeFile(tempFile, jsonContent, "utf8");
+  // Keep the last good version so a damaged file can be restored (see runbook RB-03).
+  if (existsSync(databaseFile)) await copyFile(databaseFile, databaseFile + ".bak");
   await rename(tempFile, databaseFile);
 }
 
@@ -277,7 +298,7 @@ app.get("/api/app/config", withDb((_req, res) => {
     maintenanceMode: false,
     maintenanceMessage: "",
     registrationEnabled: true,
-    featureFlags: { habits: true, remoteLocalization: true, announcements: true },
+    featureFlags: { habits: true, remoteLocalization: true, announcements: true, googleSignIn: googleClientIds.length > 0, pushNotifications: isPushConfigured() },
     announcements: []
   });
 }));
@@ -296,9 +317,18 @@ function tokenFor(user) {
   return jwt.sign({ sub: user.id, email: user.email }, secret, { expiresIn: "24h" });
 }
 
+/** Case-insensitive lookup so accounts created before email normalisation still match. */
+function findUserByEmail(email) {
+  const wanted = String(email).toLowerCase();
+  return [...users.values()].find((user) => String(user.email).toLowerCase() === wanted);
+}
+
+// Compared against when the email is unknown, so response time does not reveal registered emails (AUD-16).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("nexus-timing-equaliser", 12);
+
 app.post("/api/auth/register", authLimiter, validate(registerSchema), withDb(async (req, res, next) => {
   const { email, password, displayName } = req.body;
-  if ([...users.values()].some((user) => user.email === email)) {
+  if (findUserByEmail(email)) {
     return next(new AppError("Email already registered", 409, "EMAIL_ALREADY_REGISTERED"));
   }
   // Passwords hashed with bcrypt, work factor (cost) 12
@@ -309,11 +339,15 @@ app.post("/api/auth/register", authLimiter, validate(registerSchema), withDb(asy
 }));
 
 app.post("/api/auth/login", authLimiter, validate(loginSchema), withDb(async (req, res, next) => {
-  const user = [...users.values()].find((candidate) => candidate.email === req.body.email);
-  if (!user) return next(new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS"));
+  const user = findUserByEmail(req.body.email);
+  if (!user || !user.passwordHash) {
+    // Unknown email, or an account that only uses Google sign-in: spend the same bcrypt time, then fail.
+    await bcrypt.compare(req.body.password || "", DUMMY_PASSWORD_HASH);
+    return next(new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS"));
+  }
 
   let passwordMatch = false;
-  if (user.passwordHash && user.passwordHash.startsWith("$2")) {
+  if (user.passwordHash.startsWith("$2")) {
     passwordMatch = await bcrypt.compare(req.body.password || "", user.passwordHash);
   } else {
     // Transparent migration path for legacy or non-bcrypt password hashes
@@ -326,6 +360,57 @@ app.post("/api/auth/login", authLimiter, validate(loginSchema), withDb(async (re
 
   if (!passwordMatch) return next(new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS"));
   res.json({ token: tokenFor(user) });
+}));
+
+// ---------------------------------------------------------------------------------------------
+// Google single sign-on (SSO). The app obtains a Google ID token with Android Credential Manager
+// and posts it here. The server verifies the token's signature, audience and expiry with Google's
+// public keys (google-auth-library), then issues the normal Nexus JWT, so the rest of the API is
+// unchanged. Configure GOOGLE_CLIENT_ID with the *Web* OAuth client ID from Google Cloud Console.
+// Reference: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+// ---------------------------------------------------------------------------------------------
+const googleClientIds = (process.env.GOOGLE_CLIENT_ID || "").split(",").map((id) => id.trim()).filter(Boolean);
+const googleClient = new OAuth2Client();
+
+let verifyGoogleIdToken = async (idToken) => {
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: googleClientIds });
+  return ticket.getPayload();
+};
+
+/** Test hook: replaces Google verification with a stub so tests never call Google. */
+export function setGoogleTokenVerifier(fn) {
+  verifyGoogleIdToken = fn;
+}
+
+const googleSignInSchema = z.object({ idToken: z.string().min(20) }).strict();
+
+app.post("/api/auth/google", authLimiter, validate(googleSignInSchema), withDb(async (req, res, next) => {
+  if (googleClientIds.length === 0 && process.env.NODE_ENV !== "test") {
+    return next(new AppError("Google sign-in is not configured on this server", 503, "SSO_NOT_CONFIGURED"));
+  }
+  let payload;
+  try {
+    payload = await verifyGoogleIdToken(req.body.idToken);
+  } catch (error) {
+    req.log?.warn({ err: error }, "Google ID token rejected");
+    return next(new AppError("Google sign-in could not be verified", 401, "INVALID_GOOGLE_TOKEN"));
+  }
+  if (!payload?.sub || !payload.email || payload.email_verified === false) {
+    return next(new AppError("Google account email is not verified", 401, "INVALID_GOOGLE_TOKEN"));
+  }
+  const email = payload.email.toLowerCase();
+  let user = [...users.values()].find((candidate) => candidate.googleSub === payload.sub) || findUserByEmail(email);
+  let status = 200;
+  if (!user) {
+    // First Google sign-in creates the account; there is no password until the user sets one.
+    user = { id: randomUUID(), email, displayName: payload.name || email.split("@")[0], language: "en", notificationsEnabled: true };
+    users.set(user.id, user);
+    status = 201;
+  }
+  user.googleSub = payload.sub; // links an existing email/password account to the Google identity
+  await saveDatabase();
+  req.log?.info({ userId: user.id, created: status === 201 }, "Google sign-in");
+  res.status(status).json({ token: tokenFor(user) });
 }));
 
 app.get("/api/users/me", withAuthAndDb((req, res) => {
@@ -345,6 +430,9 @@ app.patch("/api/users/me", validate(updateProfileSchema), withAuthAndDb(async (r
 }));
 
 app.post("/api/users/me/password", validate(changePasswordSchema), withAuthAndDb(async (req, res, next) => {
+  if (!req.user.passwordHash) {
+    return next(new AppError("This account signs in with Google and has no password", 409, "PASSWORD_NOT_SET"));
+  }
   if (!(await bcrypt.compare(req.body.currentPassword || "", req.user.passwordHash))) {
     return next(new AppError("Current password is incorrect", 401, "INCORRECT_CURRENT_PASSWORD"));
   }
@@ -362,6 +450,34 @@ app.delete("/api/users/me", withAuthAndDb(async (req, res) => {
   res.status(204).end();
 }));
 
+// --- Push notification device registration ------------------------------------------------
+const deviceSchema = z.object({ token: z.string().min(10).max(4096) }).strict();
+const MAX_DEVICES_PER_USER = 10;
+
+app.post("/api/users/me/devices", validate(deviceSchema), withAuthAndDb(async (req, res) => {
+  const tokens = (req.user.deviceTokens || []).filter((token) => token !== req.body.token);
+  // Newest last; keep the most recent devices only.
+  req.user.deviceTokens = [...tokens, req.body.token].slice(-MAX_DEVICES_PER_USER);
+  await saveDatabase();
+  res.status(204).end();
+}));
+
+app.delete("/api/users/me/devices/:token", withAuthAndDb(async (req, res) => {
+  req.user.deviceTokens = (req.user.deviceTokens || []).filter((token) => token !== req.params.token);
+  await saveDatabase();
+  res.status(204).end();
+}));
+
+/** Sends a test push to all of the caller's devices (used from Settings and in the demo). */
+app.post("/api/users/me/notifications/test", withAuthAndDb(async (req, res) => {
+  const result = await notifyUser(req.user, {
+    title: "Nexus",
+    body: "Push notifications are working on this device.",
+    data: { type: "test" },
+  }, { logger: req.log });
+  res.json({ configured: result.configured, sent: result.sent, devices: (req.user.deviceTokens || []).length });
+}));
+
 app.get("/api/dashboard", withAuthAndDb((req, res) => {
   const userProjects = projects.get(req.user.id) || [];
   const userTasks = tasks.get(req.user.id) || [];
@@ -374,7 +490,7 @@ const syncSchema = z.object({
   resource: z.enum(["projects", "tasks", "habits"]),
   entityId: z.string().uuid(),
   action: z.enum(["create", "update", "delete"]),
-  payload: z.record(z.unknown())
+  payload: z.record(z.string(), z.unknown())
 }).strict();
 
 app.post("/api/sync", validate(syncSchema), withAuthAndDb(async (req, res, next) => {
@@ -418,7 +534,24 @@ app.post("/api/sync", validate(syncSchema), withAuthAndDb(async (req, res, next)
     throw error;
   }
   res.status(204).end();
+  // Real-time update: tell the user's *other* devices that something changed. Not awaited, so the
+  // database lock is not held during the network call.
+  void notifyUser(req.user, syncNotification(resource, action, payload), {
+    excludeToken: req.headers["x-nexus-device-token"],
+    logger: req.log,
+  });
 }));
+
+function syncNotification(resource, action, payload) {
+  const kind = { projects: "Project", tasks: "Task", habits: "Habit" }[resource];
+  const name = payload?.title || payload?.name;
+  const verb = { create: "added", update: "updated", delete: "deleted" }[action];
+  return {
+    title: "Nexus updated",
+    body: name ? `${kind} "${String(name).slice(0, 60)}" ${verb} on another device` : `A ${kind.toLowerCase()} was ${verb} on another device`,
+    data: { type: "sync", resource, action },
+  };
+}
 
 app.get("/api/projects", withAuthAndDb((req, res) => res.json(projects.get(req.user.id) || [])));
 app.post("/api/projects", validate(projectSchema), withAuthAndDb(async (req, res) => {
@@ -552,9 +685,16 @@ app.use((err, req, res, next) => {
 });
 
 if (process.env.NODE_ENV !== "test") {
-  loadDatabase().then(() => {
-    app.listen(port, () => logger.info(`Nexus API listening on http://localhost:${port}/api`));
-  });
+  try {
+    await loadDatabase();
+  } catch (error) {
+    // Refuse to start rather than overwrite the store with an empty state (AUD-01).
+    logger.fatal({ err: error }, "Refusing to start: restore the data file (see nexus-data.json.bak) and restart");
+    process.exit(1);
+  }
+  await initPush(logger);
+  if (googleClientIds.length === 0) logger.info("Google sign-in disabled: GOOGLE_CLIENT_ID is not set");
+  app.listen(port, () => logger.info(`Nexus API listening on http://localhost:${port}/api`));
 }
 
 export { app, loadDatabase, saveDatabase, users, tasks, projects, habits, databaseFile, AppError, logger };
