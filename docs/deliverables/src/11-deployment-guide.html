@@ -1,0 +1,88 @@
+<!--meta
+id: NX-11-DEP
+title: Deployment Guide
+subtitle: How the API and app are actually deployed today (local), the container path the repository supports, and labelled recommendations for public hosting.
+audience: Developers and operators setting up the API and building the app
+-->
+
+<h2>Current deployment position</h2>
+<div class="callout warn">
+<p><strong>No hosting platform is configured.</strong> The repository contains no provider-specific configuration: no cloud manifests, infrastructure-as-code or deploy workflow. The README states that public deployment "still needs a hosted API URL" and that the earlier production hostname "was not a configured service" {{F}}. Sections 3 and 4 document what the repository supports, and section 5 contains recommendations only.</p>
+</div>
+<table>
+<caption>Supported deployment targets</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Target</th><th scope="col">Defined by</th><th scope="col">Verified</th></tr></thead>
+<tbody>
+<tr id="DEP-01"><td class="id">DEP-01</td><td>Local Node process (development)</td><td><code>backend/package.json</code> <code>start</code>/<code>dev</code>, <code>docs/ONLINE_OFFLINE.md</code></td><td>Server module loaded and tested in process (16/16) {{F}}; listening server not started for this package</td></tr>
+<tr id="DEP-02"><td class="id">DEP-02</td><td>Single container with a named volume</td><td><code>backend/Dockerfile</code>, <code>backend/compose.yaml</code></td><td>Not executed {{U}}; CI smoke test never succeeded ([[CI-02]])</td></tr>
+<tr id="DEP-03"><td class="id">DEP-03</td><td>Root <code>docker-compose.yml</code></td><td>Repository root</td><td>{{I}} Will not persist data correctly. Do not use ([[AUD-02]])</td></tr>
+<tr id="DEP-04"><td class="id">DEP-04</td><td>Android debug/release builds</td><td><code>app/build.gradle.kts</code>, Android CI</td><td>Debug build last green in CI on 2026-09-24; release never built in the retrieved history</td></tr>
+</tbody>
+</table>
+
+<h2>Prerequisites</h2>
+<ul>
+<li>API: Node.js 20 (CI) or 22 (Docker image); npm. For containers: Docker with Compose v2.</li>
+<li>App: Android Studio with SDK Platform 37; JDK 17+ (the build uses a 17 toolchain); an emulator or device on API 24+.</li>
+<li>A strong <code>JWT_SECRET</code> of 32+ characters, stored outside git (<code>.env*</code> files are git-ignored).</li>
+</ul>
+
+<h2>Run the API locally (DEP-01)</h2>
+<pre><code># PowerShell, from backend/
+npm.cmd ci
+$env:JWT_SECRET = node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+npm.cmd start          # listens on http://localhost:5263
+curl.exe http://localhost:5263/health</code></pre>
+<ul>
+<li>Data is written to <code>backend/nexus-data.json</code> unless <code>DATABASE_PATH</code> is set. The file is git-ignored.</li>
+<li>Keep the same secret across restarts, or every session becomes invalid ([[RB-06]]).</li>
+<li>Optional test accounts: run <code>docs/seed_test_users.ps1</code> against a <strong>local</strong> API only ([[AUD-14]]).</li>
+</ul>
+<h3>Point the app at the local API</h3>
+<table>
+<caption>Debug build targets</caption>
+<thead><tr><th scope="col">Device</th><th scope="col">Command</th></tr></thead>
+<tbody>
+<tr><td>Emulator</td><td>Run from Android Studio, or <code>.\gradlew.bat :app:assembleDebug</code>. The default URL <code>http://10.0.2.2:5263/api/</code> reaches the host.</td></tr>
+<tr><td>Phone on the same LAN</td><td><code>.\gradlew.bat :app:assembleDebug -PNEXUS_API_URL=http://&lt;your-LAN-IP&gt;:5263/api/</code>, and allow port 5263 through the firewall.</td></tr>
+</tbody>
+</table>
+<p>The URL must end in <code>/</code> and match <code>https?://host[:port]/path/</code>, or the Gradle build fails at configuration time ([[TR-07]]).</p>
+
+<h2>Run the API in a container (DEP-02)</h2>
+<pre><code># from backend/, with JWT_SECRET exported in the shell or a git-ignored .env file
+docker compose up --build -d
+docker compose ps          # STATUS should become "healthy"
+curl http://localhost:5263/health</code></pre>
+<ul>
+<li>The image is <code>node:22-alpine</code>. It installs production dependencies only, runs as the non-root <code>node</code> user, exposes 5263, and stores data at <code>/data/nexus-data.json</code> on the <code>nexus-data</code> named volume.</li>
+<li>A Docker <code>HEALTHCHECK</code> calls <code>/health</code> every 30 s. <code>restart: unless-stopped</code> is set.</li>
+<li>Compose refuses to start if <code>JWT_SECRET</code> is unset (<code>${JWT_SECRET:?…}</code>).</li>
+<li>Run <strong>one</strong> replica only ([[CON-01]]). Back up the volume ([[RB-04]]).</li>
+</ul>
+
+<h2>Public hosting (recommendations)</h2>
+<p>Everything in this section is {{R}}. It describes the minimum the code requires from any host; it does not select a provider.</p>
+<table>
+<caption>Host requirements derived from the code</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">Why</th></tr></thead>
+<tbody>
+<tr id="DEP-R1"><td class="id">DEP-R1</td><td>Runs a Node 20+ process or an OCI container, with exactly one instance</td><td>In-memory state and single-file store ([[CON-01]])</td></tr>
+<tr id="DEP-R2"><td class="id">DEP-R2</td><td>Persistent disk or volume mounted at <code>/data</code> (or <code>DATABASE_PATH</code>) that survives redeploys</td><td>Ephemeral file systems would lose all data</td></tr>
+<tr id="DEP-R3"><td class="id">DEP-R3</td><td>HTTPS termination with a valid certificate and a stable domain</td><td>Release builds reject HTTP ([[NFR-02]])</td></tr>
+<tr id="DEP-R4"><td class="id">DEP-R4</td><td>Secret store for <code>JWT_SECRET</code>; <code>NODE_ENV=production</code></td><td>Startup check; production error masking</td></tr>
+<tr id="DEP-R5"><td class="id">DEP-R5</td><td>Health check against <code>/health</code></td><td>Liveness</td></tr>
+<tr id="DEP-R6"><td class="id">DEP-R6</td><td>Configure Express <code>trust proxy</code> before go-live</td><td>Rate limiting behind the proxy ([[AUD-06]], [[IMP-06]])</td></tr>
+<tr id="DEP-R7"><td class="id">DEP-R7</td><td>Fix [[AUD-01]] and set up scheduled backups before real users</td><td>Data-loss risk</td></tr>
+</tbody>
+</table>
+<h3>Building a release that uses the hosted API</h3>
+<ol>
+<li>Confirm <code>https://&lt;host&gt;/health</code> responds.</li>
+<li>Locally: <code>.\gradlew.bat :app:assembleRelease -PNEXUS_API_URL=https://&lt;host&gt;/api/</code>; or set the GitHub repository variable <code>NEXUS_API_URL</code> so CI builds the release APK and AAB ([[CI-01]]).</li>
+<li>Sign the artifacts. Signing is not configured in the repository ([[AUD-08]]).</li>
+<li>Complete the release checklist ([[REL-CHECK]]).</li>
+</ol>
+
+<h2>Rollback</h2>
+<p>No versioned deployments exist, so rollback is manual {{F}}. {{R}} Tag each deployed commit. To roll back, redeploy the previous tag against the same data volume. Data written by a newer version stays in the file (the JSON store has no schema version), so take a backup before every deploy.</p>

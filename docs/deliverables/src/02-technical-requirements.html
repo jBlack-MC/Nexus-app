@@ -1,0 +1,137 @@
+<!--meta
+id: NX-02-TRD
+title: Technical Requirements
+subtitle: Architecture, technology stack, interfaces, quality attributes and operational requirements.
+audience: Developers and operators maintaining Nexus; assessor checking technical depth
+-->
+
+<h2>System context</h2>
+<p>Nexus has two deployable parts: the Android app (<code>app/</code>, package <code>com.example.nexus</code>) and the Nexus API (<code>backend/server.js</code>). The app talks only to the Nexus API over REST/JSON. A Retrofit client for the public MyMemory translation API is defined, but nothing in the app calls it ({{F}}, [[AUD-09]]).</p>
+
+<figure class="diagram" id="DIAG-01">
+<svg viewBox="0 0 760 330" role="img" aria-labelledby="diag01t diag01d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+<title id="diag01t">Nexus architecture</title>
+<desc id="diag01d">The Android app has Compose screens, ViewModels, repositories, a SyncManager and a Room database. Repositories call the Nexus API through Retrofit. The API is a single Express process that keeps data in memory and persists it to one JSON file.</desc>
+<rect x="10" y="10" width="420" height="310" rx="8" fill="#f4f3f9" stroke="#4b2f9e"/>
+<text x="24" y="34" font-weight="700" fill="#4b2f9e">Android app (Kotlin, Jetpack Compose)</text>
+<rect x="30" y="50" width="380" height="40" rx="5" fill="#fff" stroke="#8a87a0"/><text x="44" y="75">UI: Compose screens + NexusNavHost (type-safe routes)</text>
+<rect x="30" y="100" width="380" height="40" rx="5" fill="#fff" stroke="#8a87a0"/><text x="44" y="125">ViewModels (StateFlow) + domain/HabitScoring</text>
+<rect x="30" y="150" width="380" height="40" rx="5" fill="#fff" stroke="#8a87a0"/><text x="44" y="175">Repositories: Project, Task, Habit, Dashboard, User, Config</text>
+<rect x="30" y="200" width="180" height="50" rx="5" fill="#fff" stroke="#8a87a0"/><text x="42" y="222">SyncManager</text><text x="42" y="240" font-size="11">ordered outbox, mutex</text>
+<rect x="230" y="200" width="180" height="50" rx="5" fill="#fff" stroke="#8a87a0"/><text x="242" y="222">Room (nexus_database)</text><text x="242" y="240" font-size="11">schema v5, per-account rows</text>
+<rect x="30" y="262" width="180" height="46" rx="5" fill="#fff" stroke="#8a87a0"/><text x="42" y="282">Retrofit + OkHttp</text><text x="42" y="299" font-size="11">Bearer interceptor</text>
+<rect x="230" y="262" width="180" height="46" rx="5" fill="#fff" stroke="#8a87a0"/><text x="242" y="282">EncryptedSharedPrefs</text><text x="242" y="299" font-size="11">JWT; plain prefs: theme</text>
+<rect x="500" y="60" width="250" height="210" rx="8" fill="#f4f3f9" stroke="#4b2f9e"/>
+<text x="514" y="84" font-weight="700" fill="#4b2f9e">Nexus API (Node.js, Express 4)</text>
+<text x="514" y="110">helmet, cors, express.json (1 MB)</text>
+<text x="514" y="132">Zod validation, JWT auth</text>
+<text x="514" y="154">express-rate-limit on /auth/*</text>
+<text x="514" y="176">AsyncMutex around every handler</text>
+<text x="514" y="198">Pino logs with redaction</text>
+<rect x="514" y="212" width="222" height="44" rx="5" fill="#fff" stroke="#8a87a0"/><text x="526" y="232">nexus-data.json</text><text x="526" y="249" font-size="11">atomic write: .tmp then rename()</text>
+<line x1="430" y1="165" x2="500" y2="165" stroke="#16151d" stroke-width="1.5" marker-end="url(#a)"/>
+<g font-size="10.5" text-anchor="middle" fill="#4a4858"><text x="465" y="140">REST/JSON</text><text x="465" y="153">HTTPS</text><text x="465" y="186">HTTP in</text><text x="465" y="198">debug only</text></g>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16151d"/></marker></defs>
+</svg>
+<figcaption>Figure 1. Component view at the evidence baseline. Arrows show request direction only.</figcaption>
+</figure>
+
+<h2>Technology stack</h2>
+<table>
+<caption>Versions as declared in build files</caption>
+<thead><tr><th scope="col">Layer</th><th scope="col">Technology and version</th><th scope="col">Source</th></tr></thead>
+<tbody>
+<tr><td>Android language / build</td><td>Kotlin 2.0.21, AGP 9.3.1, Gradle 9.7.1 wrapper, JDK 17 target, KSP 2.0.21-1.0.28</td><td><code>build.gradle.kts</code>, <code>gradle-wrapper.properties</code></td></tr>
+<tr><td>SDK levels</td><td>minSdk 24, targetSdk 37, compileSdk 37; versionCode 1, versionName 1.0</td><td><code>app/build.gradle.kts</code></td></tr>
+<tr><td>UI</td><td>Jetpack Compose (BOM 2026.02.01), Material 3, Navigation Compose 2.8.0 with kotlinx-serialization routes, material-icons-extended</td><td><code>libs.versions.toml</code>, <code>app/build.gradle.kts</code></td></tr>
+<tr><td>Networking</td><td>Retrofit 3.0.0 + Gson converter, OkHttp logging-interceptor 4.12.0 (BASIC in debug, NONE in release)</td><td><code>RetrofitClient.kt</code></td></tr>
+<tr><td>Local storage</td><td>Room 2.8.5 (runtime, ktx, compiler via KSP); AndroidX Security Crypto 1.1.0</td><td><code>Database.kt</code>, <code>TokenManager.kt</code></td></tr>
+<tr><td>Quality tooling</td><td>ktlint plugin 12.1.2, detekt 1.23.8, Kover 0.9.1; JUnit 4.13.2, MockK 1.13.12, coroutines-test 1.8.1, Compose UI test</td><td><code>build.gradle.kts</code></td></tr>
+<tr><td>API runtime</td><td>Node.js (CI uses 20; Docker image uses <code>node:22-alpine</code>), ES modules</td><td><code>.github/workflows/*.yml</code>, <code>backend/Dockerfile</code></td></tr>
+<tr><td>API libraries</td><td>express ^4.21.2, bcryptjs ^2.4.3, jsonwebtoken ^9.0.2, zod ^3.23.8 (3.25.76 installed), express-rate-limit ^7.5.0, helmet ^8.3.0, cors ^2.8.6, pino ^10.3.1, pino-http ^11.0.0</td><td><code>backend/package.json</code></td></tr>
+<tr><td>API tests</td><td>Jest ^29.7.0 and Supertest ^7.0.0, run in band with <code>--experimental-vm-modules</code></td><td><code>backend/package.json</code></td></tr>
+</tbody>
+</table>
+
+<h2>Architecture requirements</h2>
+<table>
+<caption>Technical requirements</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">How it is met</th></tr></thead>
+<tbody>
+<tr id="TR-01"><td class="id">TR-01</td><td>Single-activity MVVM with feature packages.</td><td><code>MainActivity</code> hosts <code>NexusNavHost</code>. UI is grouped under <code>ui/&lt;feature&gt;</code>; ViewModels expose <code>StateFlow</code> UI state {{F}}.</td></tr>
+<tr id="TR-02"><td class="id">TR-02</td><td>Repositories own all data access; ViewModels never call Retrofit directly.</td><td>Six repositories are created once in <code>NexusApp</code> (manual DI container). ViewModels take constructor parameters with defaults so tests can inject fakes {{F}}.</td></tr>
+<tr id="TR-03"><td class="id">TR-03</td><td>Business rules live outside the UI.</td><td><code>domain/HabitScoring</code> is pure Kotlin and is unit-tested {{F}}.</td></tr>
+<tr id="TR-04"><td class="id">TR-04</td><td>Local writes are transactional with their outbox record.</td><td><code>SyncManager.save()</code> runs the entity write and the <code>PendingChange</code> insert inside <code>withTransaction</code>, under a coroutine <code>Mutex</code> {{F}}.</td></tr>
+<tr id="TR-05"><td class="id">TR-05</td><td>Reads never overwrite unsent local edits.</td><td><code>SyncManager.read()</code> flushes the queue first and falls back to Room if the flush fails or the network is unavailable {{F}}.</td></tr>
+<tr id="TR-06"><td class="id">TR-06</td><td>Room schema changes ship with migrations; no destructive fallback.</td><td>Migrations 3→4 and 4→5 are registered; <code>fallbackToDestructiveMigration</code> is deliberately absent {{F}}. Schema export is off ([[AUD-12]]).</td></tr>
+<tr id="TR-07"><td class="id">TR-07</td><td>API base URL is configured at build time.</td><td><code>NEXUS_API_URL</code> Gradle property or environment variable must match <code>https?://host[:port]/path/</code>. It defaults to <code>http://10.0.2.2:5263/api/</code>, and release builds fail unless it starts with <code>https://</code> {{F}}.</td></tr>
+<tr id="TR-08"><td class="id">TR-08</td><td>API validates every write before it touches the store.</td><td>Zod schemas for register, login, profile (strict), password, project, task, habit and sync. Failures return 400 <code>VALIDATION_ERROR</code> {{F}}.</td></tr>
+<tr id="TR-09"><td class="id">TR-09</td><td>API errors use one response shape.</td><td>Central handler returns <code>{ error: { message, requestId, code? } }</code>; in production a 500 message is replaced with "Internal Server Error" {{F}}.</td></tr>
+<tr id="TR-10"><td class="id">TR-10</td><td>Idempotent offline replay.</td><td><code>POST /api/sync</code> takes <code>operationId</code> (UUID) and stores receipts per user. A repeated operation returns 204 without effect {{F}}.</td></tr>
+</tbody>
+</table>
+
+<h2>Interfaces</h2>
+<h3 id="API-REF">Nexus API endpoints</h3>
+<p>All paths are under <code>/api</code> except the root <code>/health</code>. "Auth" means a <code>Authorization: Bearer &lt;JWT&gt;</code> header is required; a missing or invalid token gives 401 <code>UNAUTHORIZED</code>, and a token for a deleted user gives 401 <code>SESSION_EXPIRED</code>.</p>
+<table>
+<caption>Routes defined in backend/server.js</caption>
+<thead><tr><th scope="col">Method and path</th><th scope="col">Auth</th><th scope="col">Purpose and notable responses</th></tr></thead>
+<tbody>
+<tr><td><code>GET /health</code>, <code>GET /api/health</code></td><td>No</td><td><code>{status:"ok", uptime}</code></td></tr>
+<tr><td><code>GET /app/config</code></td><td>No</td><td>Static config: versions 1.0.0, maintenance off, feature flags, no announcements</td></tr>
+<tr><td><code>GET /localization/:language</code></td><td>No</td><td>Five-string bundle for en/zu/tn (falls back to en)</td></tr>
+<tr><td><code>POST /auth/register</code></td><td>No, rate-limited</td><td>201 <code>{token}</code>; 409 duplicate email; 429 after 10 per 15 min</td></tr>
+<tr><td><code>POST /auth/login</code></td><td>No, rate-limited</td><td>200 <code>{token}</code>; 401 invalid credentials</td></tr>
+<tr><td><code>GET</code>/<code>PATCH /users/me</code></td><td>Yes</td><td>Profile <code>{email, displayName, language, notificationsEnabled}</code>; PATCH rejects unknown fields</td></tr>
+<tr><td><code>POST /users/me/password</code></td><td>Yes</td><td>204; 401 wrong current password</td></tr>
+<tr><td><code>DELETE /users/me</code></td><td>Yes</td><td>204; removes the user and all their data</td></tr>
+<tr><td><code>GET /dashboard</code></td><td>Yes</td><td><code>{projects, tasks, activity}</code> counts</td></tr>
+<tr><td><code>POST /sync</code></td><td>Yes</td><td>204 applied or duplicate; 400 invalid payload; 409 <code>SYNC_CONFLICT</code></td></tr>
+<tr><td><code>GET</code>/<code>POST /projects</code></td><td>Yes</td><td>List / create (201)</td></tr>
+<tr><td><code>GET</code>/<code>PUT</code>/<code>DELETE /projects/:projectId</code></td><td>Yes</td><td>Read / update / delete (delete cascades to tasks); 404 <code>PROJECT_NOT_FOUND</code></td></tr>
+<tr><td><code>GET</code>/<code>POST /projects/:projectId/tasks</code></td><td>Yes</td><td>List / create task; 404 if the project is not owned</td></tr>
+<tr><td><code>PUT</code>/<code>DELETE /tasks/:taskId</code></td><td>Yes</td><td>Update / delete; 404 <code>TASK_NOT_FOUND</code></td></tr>
+<tr><td><code>GET</code>/<code>POST /habits</code>, <code>PATCH</code>/<code>DELETE /habits/:habitId</code></td><td>Yes</td><td>List / create / update / delete; 404 <code>HABIT_NOT_FOUND</code></td></tr>
+</tbody>
+</table>
+<p>When <code>NODE_ENV=test</code> only, <code>GET /api/test/error-500</code> also exists for error-handler tests {{F}}. The app uses the direct project, task and habit endpoints only when no <code>SyncManager</code> is wired in. In the production wiring (<code>NexusApp</code>), writes go through <code>POST /sync</code> {{F}}.</p>
+
+<h3>Device integrations</h3>
+<ul>
+<li>Permissions: <code>INTERNET</code> and <code>ACCESS_NETWORK_STATE</code> only {{F}}.</li>
+<li><code>ConnectivityManager</code> network callback triggers sync when a network becomes available {{F}}.</li>
+<li>Android share sheet for CSV export (<code>Intent.ACTION_SEND</code>, <code>text/csv</code>) {{F}}.</li>
+<li>Backup: <code>allowBackup="true"</code>; shared preferences are excluded from cloud backup and device transfer, but the Room database is not excluded ([[AUD-05]]).</li>
+</ul>
+
+<h2>Quality attributes</h2>
+<table>
+<caption>Quality attributes and current position</caption>
+<thead><tr><th scope="col">Attribute</th><th scope="col">Current position</th><th scope="col">Related</th></tr></thead>
+<tbody>
+<tr><td>Security</td><td>Controls listed in [[NFR-01]] and [[NFR-02]] are implemented. CORS is open (<code>*</code>), which is documented as intentional for a mobile client. No formal security review or penetration test has been performed {{U}}.</td><td>[[AUD-06]], [[AUD-16]]</td></tr>
+<tr><td>Reliability</td><td>Atomic file writes and an in-process mutex. However, a JSON file that cannot be parsed at startup is replaced on the next write ([[AUD-01]]).</td><td>[[NFR-04]]</td></tr>
+<tr><td>Scalability</td><td>Single process and single file; every request, including bcrypt hashing, holds one global lock. <code>PROJECT_IMPROVEMENTS.md</code> treats this as adequate for fewer than 50 users and 10,000 tasks {{I}}; this was not load-tested.</td><td>[[CON-01]], [[AUD-07]]</td></tr>
+<tr><td>Maintainability</td><td>Feature packages, shared test fakes, ktlint/detekt/Kover configured. Lint is not enforced in CI ([[AUD-04]]).</td><td>[[NX-07-CICD]]</td></tr>
+<tr><td>Portability</td><td>Android 7.0+. The API runs on any Node host or as a container.</td><td>[[NX-11-DEP]]</td></tr>
+</tbody>
+</table>
+
+<h2>Operational requirements</h2>
+<table>
+<caption>API runtime configuration (names only; values are never stored in the repository)</caption>
+<thead><tr><th scope="col">Variable</th><th scope="col">Required</th><th scope="col">Behaviour</th></tr></thead>
+<tbody>
+<tr><td><code>JWT_SECRET</code></td><td>Yes</td><td>At least 32 characters and not a known placeholder, or the process exits with code 1. Keep it stable across restarts, or existing sessions become invalid.</td></tr>
+<tr><td><code>PORT</code></td><td>No (5263)</td><td>HTTP listen port.</td></tr>
+<tr><td><code>DATABASE_PATH</code></td><td>No</td><td>Data file path; defaults to <code>backend/nexus-data.json</code>, and to <code>/data/nexus-data.json</code> in the Docker image.</td></tr>
+<tr><td><code>NODE_ENV</code></td><td>No</td><td><code>production</code> hides 500 messages; <code>test</code> disables listening and enables the test route.</td></tr>
+<tr><td><code>LOG_LEVEL</code></td><td>No (info)</td><td>Pino log level.</td></tr>
+</tbody>
+</table>
+<ul>
+<li id="OPS-01"><strong>OPS-01</strong> TLS termination must be provided by the host or a reverse proxy; the API itself serves plain HTTP {{F}}.</li>
+<li id="OPS-02"><strong>OPS-02</strong> The data file (or <code>/data</code> volume) must be persistent and backed up. The repository contains no backup tooling {{F}}.</li>
+<li id="OPS-03"><strong>OPS-03</strong> Run exactly one API instance per data file ([[CON-01]]).</li>
+</ul>

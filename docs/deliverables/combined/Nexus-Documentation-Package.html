@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nexus Documentation Package</title>
+<link rel="stylesheet" href="../tools/style.css">
+
+</head>
+<body>
+<main class="doc">
+<header class="titlepage" id="NX-00-PKG">
+  <p class="project">Nexus &middot; Combined submission</p>
+  <h1>Nexus Documentation Package</h1>
+  <p class="subtitle">Twelve numbered deliverables for the Nexus Android app and Node.js API, compiled from repository evidence.</p>
+  <table class="meta"><caption>Package control</caption><tbody>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+  </tbody></table>
+</header>
+<nav class="toc" aria-label="Package contents"><h2>Package contents</h2>
+<table class="package-index"><thead><tr><th scope="col">ID</th><th scope="col">Deliverable</th><th scope="col">Scope</th></tr></thead><tbody>
+<tr><td><a href="#NX-01-PRD">NX-01-PRD</a></td><td>Product Requirements</td><td>Purpose, users, scope, functional requirements, constraints and acceptance criteria for Nexus as implemented.</td></tr>
+<tr><td><a href="#NX-02-TRD">NX-02-TRD</a></td><td>Technical Requirements</td><td>Architecture, technology stack, interfaces, quality attributes and operational requirements.</td></tr>
+<tr><td><a href="#NX-03-FLOW">NX-03-FLOW</a></td><td>Application Flow</td><td>Navigation map, key user journeys, system interactions and error/alternate flows.</td></tr>
+<tr><td><a href="#NX-04-DES">NX-04-DES</a></td><td>Design Brief</td><td>Design goals, navigation, visual conventions, accessibility and responsive behaviour as evidenced in the app.</td></tr>
+<tr><td><a href="#NX-05-DATA">NX-05-DATA</a></td><td>Backend and Data Schema</td><td>Entities, relationships, key fields, storage locations and data flows on the server and the device.</td></tr>
+<tr><td><a href="#NX-06-PLAN">NX-06-PLAN</a></td><td>Implementation Plan</td><td>Completed work with evidence, and remaining work ordered by dependency with priorities, estimates, acceptance criteria and tests.</td></tr>
+<tr><td><a href="#NX-07-CICD">NX-07-CICD</a></td><td>CI/CD and Release</td><td>Verified pipeline behaviour, build and test gates, run history, environments and the release checklist.</td></tr>
+<tr><td><a href="#NX-08-AUD">NX-08-AUD</a></td><td>Engineering Audit</td><td>Evidence-based findings with severity, confidence, affected area and recommended action, plus an addendum verifying earlier remediation.</td></tr>
+<tr><td><a href="#NX-09-TDH">NX-09-TDH</a></td><td>Testing, Deployment and Handover</td><td>Test strategy and verified results, deployment summary, operational handover, known limitations and runbooks.</td></tr>
+<tr><td><a href="#NX-10-UM">NX-10-UM</a></td><td>User Manual</td><td>Task-based instructions for Nexus users: account, projects, tasks, habits, settings and working offline.</td></tr>
+<tr><td><a href="#NX-11-DEP">NX-11-DEP</a></td><td>Deployment Guide</td><td>How the API and app are actually deployed today (local), the container path the repository supports, and labelled recommendations for public hosting.</td></tr>
+<tr><td><a href="#NX-12-TCR">NX-12-TCR</a></td><td>Team Contribution Report</td><td>Verifiable contribution evidence from the repository and GitHub, with unavailable evidence marked as unknown.</td></tr>
+</tbody></table></nav>
+<section class="combined-break"><header class="titlepage" id="NX-01-PRD">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 01</p>
+  <h1>Product Requirements</h1>
+  <p class="subtitle">Purpose, users, scope, functional requirements, constraints and acceptance criteria for Nexus as implemented.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-01-PRD</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Module assessor reviewing the PoE; developers and testers taking over the codebase</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-01-PRD contents</h2><ol><li><a href="#d01-purpose-and-product-summary">1 Purpose and product summary</a></li><li><a href="#d01-users-and-roles">2 Users and roles</a></li><li><a href="#d01-scope">3 Scope</a></li><li><a href="#d01-functional-requirements">4 Functional requirements</a></li><li><a href="#d01-non-functional-requirements">5 Non-functional requirements</a></li><li><a href="#d01-constraints-and-assumptions">6 Constraints and assumptions</a></li><li><a href="#d01-success-measures">7 Success measures</a></li><li><a href="#d01-open-questions">8 Open questions</a></li></ol></nav>
+
+
+<h2 id="d01-purpose-and-product-summary"><span class="num">1</span>Purpose and product summary</h2>
+<p>Nexus is an Android app for personal project planning and habit tracking, backed by a small Node.js/Express REST API in <code>backend/</code>. The README describes it as "a calm, focused Android workspace for project planning and habit tracking". This document records what the product does at the evidence baseline, what it deliberately does not do, and how each requirement can be accepted. Requirement IDs (<code>FR-nn</code>, <code>NFR-nn</code>, <code>CON-nn</code>) are referenced by every other deliverable.</p>
+
+<div class="callout">
+<p><strong>How to read status.</strong> <span class="tag fact">Implemented</span> means the behaviour exists in source at the baseline commit; it does not by itself mean the behaviour was exercised end-to-end on a device for this package. Verified test results are listed in <a href="#NX-09-TDH">NX-09-TDH</a>. Gaps are tracked as findings in <a href="#NX-08-AUD">NX-08-AUD</a> and as tasks in <a href="#NX-06-PLAN">NX-06-PLAN</a>.</p>
+</div>
+
+<h2 id="d01-users-and-roles"><span class="num">2</span>Users and roles</h2>
+<table>
+<caption>User roles evidenced in code</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Role</th><th scope="col">Description</th><th scope="col">Evidence</th></tr></thead>
+<tbody>
+<tr id="ROLE-01"><td class="id">ROLE-01</td><td>Visitor (not signed in)</td><td>Can view the splash screen, register and sign in. Every other route redirects to Login.</td><td><code>NexusNavHost.kt</code> auth guard <span class="tag fact">Implemented</span></td></tr>
+<tr id="ROLE-02"><td class="id">ROLE-02</td><td>Signed-in user</td><td>Owns their projects, tasks, habits and profile. All API data is partitioned by the JWT <code>sub</code> (user id); the Room cache is partitioned by the same owner id.</td><td><code>server.js</code> <code>withAuthAndDb</code>; <code>Database.kt</code> <code>userId</code> columns <span class="tag fact">Implemented</span></td></tr>
+</tbody>
+</table>
+<p>There is no administrator, collaborator or shared-project role. The README's test-credential table labels one seeded account "Global system administrator", but the API has no role field or role checks, so that account is an ordinary user <span class="tag fact">Implemented</span>. See <a href="#AUD-09">AUD-09</a>.</p>
+
+<h2 id="d01-scope"><span class="num">3</span>Scope</h2>
+<h3 id="d01-in-scope-implemented"><span class="num">3.1</span>In scope (implemented)</h3>
+<ul>
+<li>Account lifecycle: register, sign in, persisted session, sign out, profile, preferences, password change, account deletion.</li>
+<li>Projects with tasks (due date, priority, status, labels, checklist), search and filters.</li>
+<li>Habits with daily completion, streaks, points, levels, badges and CSV export.</li>
+<li>Offline-first local saves with an ordered upload queue, sync status banner and conflict review.</li>
+<li>English, isiZulu and Setswana for resource-backed strings; light/dark/system theme; animated splash that respects reduced motion.</li>
+</ul>
+<h3 id="d01-out-of-scope-or-planned-not-implemented"><span class="num">3.2</span>Out of scope or planned (not implemented)</h3>
+<p>From <code>PROJECT_IMPROVEMENTS.md</code> ("Still planned") and <code>docs/POE_PART_2_ADDENDUM.md</code>: board/calendar/timeline views, recurring tasks and reminders, push notifications, attachments/templates/archive, collaboration/roles/comments, account recovery, Google SSO, general import/export, widgets, complete feature-screen localisation, tablet layouts, and SQLite on the server. None of these exist in code <span class="tag fact">Implemented</span>. A "Task due-date reminders" switch exists in Settings but only stores a preference; see <a href="#FR-05">FR-05</a> and <a href="#AUD-10">AUD-10</a>.</p>
+
+<h2 id="d01-functional-requirements"><span class="num">4</span>Functional requirements</h2>
+<p>Acceptance criteria are written so a tester can run them against the debug build and a local API (setup in <a href="#NX-11-DEP">NX-11-DEP</a>).</p>
+<table>
+<caption>Functional requirements and acceptance criteria</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">Acceptance criteria</th><th scope="col">Evidence / status</th></tr></thead>
+<tbody>
+<tr id="FR-01"><td class="id">FR-01</td><td>Register an account with display name, email and password.</td><td>Blank fields, a malformed email or a password under 6 characters are rejected on the device before sending. API returns 201 and a JWT; a duplicate email returns 409 <code>EMAIL_ALREADY_REGISTERED</code>, which the app should explain to the user.</td><td><code>AuthViewModel.kt</code>, <code>registerSchema</code> <span class="tag fact">Implemented</span>; the app shows a generic message for 409, see <a href="#AUD-18">AUD-18</a></td></tr>
+<tr id="FR-02"><td class="id">FR-02</td><td>Sign in and keep the session across app restarts.</td><td>Valid credentials return a JWT (24 h expiry) stored in EncryptedSharedPreferences; relaunching the app opens the Dashboard. Wrong credentials (401 <code>INVALID_CREDENTIALS</code>) show an error that says the credentials are wrong. Sign-in requires the API; there is no offline sign-in.</td><td><code>TokenManager.kt</code>, <code>tokenFor()</code> <span class="tag fact">Implemented</span>; the current message is "Your session has expired", see <a href="#AUD-18">AUD-18</a></td></tr>
+<tr id="FR-03"><td class="id">FR-03</td><td>Sign out.</td><td>A confirmation dialog appears; confirming clears the token and returns to Login. Unsent changes stay on the device and upload only when the same account signs in again.</td><td><code>LogoutConfirmationDialog.kt</code>, <code>docs/ONLINE_OFFLINE.md</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-04"><td class="id">FR-04</td><td>View and edit the profile display name.</td><td>Profile shows display name and email; Settings saves a new display name via <code>PATCH /users/me</code>. A cached profile is shown offline.</td><td><code>ProfileScreen.kt</code>, <code>UserRepository.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-05"><td class="id">FR-05</td><td>Account preferences: language and notification preference.</td><td>Changing language (en/zu/tn) or the reminders switch sends a partial <code>PATCH /users/me</code>. If the language update fails it is marked pending and retried. The notifications preference has no delivery mechanism.</td><td><code>SettingsViewModel.kt</code> <span class="tag fact">Implemented</span>; reminders not delivered, see <a href="#AUD-10">AUD-10</a></td></tr>
+<tr id="FR-06"><td class="id">FR-06</td><td>Choose System, Light or Dark theme.</td><td>Selection applies immediately at the activity root and persists on the device only (not synced).</td><td><code>SettingsPreferences.kt</code>, <code>MainActivity.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-07"><td class="id">FR-07</td><td>Change password.</td><td>Requires the current password and a new password of 6 or more characters. Wrong current password returns 401 <code>INCORRECT_CURRENT_PASSWORD</code>; success returns 204. Requires the API.</td><td><code>PasswordDialog.kt</code>, <code>/users/me/password</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-08"><td class="id">FR-08</td><td>Delete account and all data.</td><td>A confirmation dialog ("This permanently deletes your account and synced data.") precedes deletion. The API removes the user, projects, tasks and habits; the app purges that account's local rows and queue, then signs out.</td><td><code>SettingsScreen.kt</code>, <code>DELETE /users/me</code>, <code>NexusApp.kt</code> purge callback <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-09"><td class="id">FR-09</td><td>Dashboard ("Today") overview.</td><td>Shows counts for projects, tasks and activity (completed tasks), plus "Your schedule" cards: Overdue, Due today and the next 3 Upcoming incomplete tasks. Shows "Showing saved data" when served from cache. Refresh also downloads every project's tasks for offline use.</td><td><code>DashboardScreen.kt</code>, <code>DashboardRepository.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-10"><td class="id">FR-10</td><td>Create, view, edit, delete and search projects.</td><td>A project needs a non-empty name; description is optional. Search filters the list by name. Deleting a project also deletes its tasks locally and on the server.</td><td><code>ProjectListScreen.kt</code>, <code>ProjectDetailScreen.kt</code>, <code>ProjectRepository.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-11"><td class="id">FR-11</td><td>Create, edit, complete and delete tasks within a project.</td><td>A task has title (required), description, due date (yyyy-MM-dd), priority (None/Low/Medium/High), status (To do/In progress/Done), labels and checklist steps. Marking Done sets <code>isCompleted</code>; the API keeps <code>status</code> and <code>isCompleted</code> consistent.</td><td><code>TaskEditorDialog.kt</code>, <code>taskSchema</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-12"><td class="id">FR-12</td><td>Find tasks quickly.</td><td>Task list offers text search over title and labels, status chips (All, Open, In progress, Done) and a High priority chip; shows progress "x of y tasks complete". A task detail screen shows priority, status, labels and checklist with an Edit action.</td><td><code>TaskListScreen.kt</code>, <code>TaskDetailScreen.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-13"><td class="id">FR-13</td><td>Create, edit, delete and complete habits.</td><td>A habit has a name and frequency (Daily, Weekly, Custom). "Complete today" toggles today's date in <code>completedDates</code>; the button reads "Completed today" when done.</td><td><code>HabitsScreen.kt</code>, <code>HabitCard.kt</code>, <code>HabitsViewModel.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-14"><td class="id">FR-14</td><td>Habit progress and rewards.</td><td>Habits screen shows level, points, current and best streak, completion rate, badges (3-day streak, 7-day streak, Reliable habit builder) and reward suggestions, all computed on the device.</td><td><code>HabitScoring.kt</code>, <code>HabitScoringTest.kt</code> <span class="tag fact">Implemented</span>; accuracy issue <a href="#AUD-17">AUD-17</a></td></tr>
+<tr id="FR-15"><td class="id">FR-15</td><td>Export habit history as CSV.</td><td>Settings, then "Export habits CSV" builds <code>habit,frequency,completed_date</code> rows; "Share CSV" opens the Android share sheet with <code>text/csv</code>.</td><td><code>SettingsViewModel.exportCsv()</code> <span class="tag fact">Implemented</span>; escaping issue <a href="#AUD-11">AUD-11</a></td></tr>
+<tr id="FR-16"><td class="id">FR-16</td><td>Work offline and sync later.</td><td>Project, task and habit creates, edits and deletes are saved to Room together with an upload record in one transaction, and they survive an app restart. Uploads run on refresh, when the network returns, when you tap Sync, and every 30 s while the process is alive. The banner shows the pending count and state.</td><td><code>SyncManager.kt</code>, <code>NexusApp.kt</code>, <code>OfflinePersistenceTest.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-17"><td class="id">FR-17</td><td>Handle sync conflicts without losing data silently.</td><td>Retried operations are never duplicated (server keeps operation receipts). An edit to an item deleted elsewhere returns 409 and stops the queue; Review offers "Keep changes" or "Discard item edits". Existing-item edits are last-upload-wins.</td><td><code>/api/sync</code>, <code>sync.test.js</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-18"><td class="id">FR-18</td><td>Use the app in English, isiZulu or Setswana.</td><td>Selecting a language switches the resource-backed strings: auth screens, language picker, profile/settings actions and the stale-data banner (16–17 strings per locale). Most feature-screen text is still hard-coded English.</td><td><code>values-zu</code>, <code>values-tn</code> <span class="tag fact">Implemented</span>; partial, see <a href="#AUD-09">AUD-09</a></td></tr>
+<tr id="FR-19"><td class="id">FR-19</td><td>Animated splash and motion that respect accessibility settings.</td><td>With system animations disabled, the splash and screen transitions render without animation.</td><td><code>SplashIntroScreen.kt</code>, <code>Motion.kt</code>, <code>SplashIntroScreenTest.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="FR-20"><td class="id">FR-20</td><td>Show server notices.</td><td>The Dashboard shows a banner for maintenance mode or the first announcement from <code>GET /app/config</code>. The API always returns maintenance off and no announcements.</td><td><code>RemoteConfigViewModel.kt</code>, <code>/api/app/config</code> <span class="tag fact">Implemented</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d01-non-functional-requirements"><span class="num">5</span>Non-functional requirements</h2>
+<table>
+<caption>Quality requirements evidenced in the implementation</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">Evidence / status</th></tr></thead>
+<tbody>
+<tr id="NFR-01"><td class="id">NFR-01</td><td>Credentials and tokens are protected: bcrypt (cost 12) password hashes; JWT secret of at least 32 characters enforced at startup; token stored encrypted on the device; auth endpoints rate-limited to 10 requests per 15 min per IP.</td><td><code>server.js</code>, <code>TokenManager.kt</code>, <code>server.test.js</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="NFR-02"><td class="id">NFR-02</td><td>Release builds use HTTPS only; cleartext HTTP is allowed only in debug builds.</td><td><code>network_security_config.xml</code> (main/debug), <code>preReleaseBuild</code> check <span class="tag fact">Implemented</span></td></tr>
+<tr id="NFR-03"><td class="id">NFR-03</td><td>Data isolation: each account sees only its own server data and cached rows.</td><td>Per-user maps on the server; <code>userId</code>-scoped DAO queries; sync ownership test <span class="tag fact">Implemented</span></td></tr>
+<tr id="NFR-04"><td class="id">NFR-04</td><td>Durability: a local save is never lost because an upload failed; server writes are atomic (temp file + rename) and serialised by a mutex.</td><td><code>SyncManager.save()</code>, <code>saveDatabase()</code> <span class="tag fact">Implemented</span>; corrupt-file risk <a href="#AUD-01">AUD-01</a></td></tr>
+<tr id="NFR-05"><td class="id">NFR-05</td><td>Accessibility: icon buttons carry content descriptions; reduced motion is respected; fallback brand colours were chosen for contrast.</td><td>Code review only <span class="tag fact">Implemented</span>; no formal accessibility audit has been run <span class="tag unk">Unknown</span></td></tr>
+<tr id="NFR-06"><td class="id">NFR-06</td><td>Compatibility: Android 7.0 (API 24) and later; target/compile SDK 37.</td><td><code>app/build.gradle.kts</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="NFR-07"><td class="id">NFR-07</td><td>Responsiveness on poor networks: 5 s connect timeout and 15 s call timeout, after which cached data is shown.</td><td><code>RetrofitClient.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="NFR-08"><td class="id">NFR-08</td><td>Observability: structured JSON logs (Pino) with request ids and redaction of passwords and authorization headers; <code>/health</code> liveness endpoint.</td><td><code>server.js</code> <span class="tag fact">Implemented</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d01-constraints-and-assumptions"><span class="num">6</span>Constraints and assumptions</h2>
+<table>
+<caption>Constraints</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Constraint</th><th scope="col">Source</th></tr></thead>
+<tbody>
+<tr id="CON-01"><td class="id">CON-01</td><td>The API stores all data in one JSON file and must run as a single instance; replicas must not share the file.</td><td><code>docs/ONLINE_OFFLINE.md</code>, <code>server.js</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="CON-02"><td class="id">CON-02</td><td>No public API host has been provisioned. Release builds cannot be produced without an HTTPS <code>NEXUS_API_URL</code>.</td><td>README, <code>app/build.gradle.kts</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="CON-03"><td class="id">CON-03</td><td>Background upload is not guaranteed while the app process is stopped; there is no WorkManager job.</td><td><code>docs/ONLINE_OFFLINE.md</code>, <code>NexusApp.kt</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="CON-04"><td class="id">CON-04</td><td>The project has no PostgreSQL or other database server, and the PoE material must not present one.</td><td><code>docs/POE_PART_2_ADDENDUM.md</code> <span class="tag fact">Implemented</span></td></tr>
+<tr id="CON-05"><td class="id">CON-05</td><td>Data that was never downloaded to a device cannot appear offline.</td><td><code>docs/ONLINE_OFFLINE.md</code> <span class="tag fact">Implemented</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d01-success-measures"><span class="num">7</span>Success measures</h2>
+<p>The repository defines no product metrics or analytics. <code>PROJECT_IMPROVEMENTS.md</code> asks that each feature define "one measurable success outcome", but none is recorded <span class="tag unk">Unknown</span>. <span class="tag rec">Recommendation</span> Before the final PoE, agree on two or three measures that can be checked during testing, for example "a task created offline appears on the server within one sync cycle of reconnecting" (<a href="#FR-16">FR-16</a>).</p>
+
+<h2 id="d01-open-questions"><span class="num">8</span>Open questions</h2>
+<table>
+<caption>Decisions needed from the team</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Question</th><th scope="col">Related</th></tr></thead>
+<tbody>
+<tr id="OQ-01"><td class="id">OQ-01</td><td>Should the "Task due-date reminders" switch be hidden until reminders exist, or should reminders be built for the final PoE? <span class="tag oq">Open question</span></td><td><a href="#FR-05">FR-05</a>, <a href="#AUD-10">AUD-10</a>, <a href="#IMP-08">IMP-08</a></td></tr>
+<tr id="OQ-02"><td class="id">OQ-02</td><td>Which public host will run the API, and who owns its secret and backups? <span class="tag oq">Open question</span></td><td><a href="#CON-02">CON-02</a>, <a href="#NX-11-DEP">NX-11-DEP</a></td></tr>
+<tr id="OQ-03"><td class="id">OQ-03</td><td>Is a "Global system administrator" role actually required? If so it needs server-side authorisation; if not, the README label should be corrected. <span class="tag oq">Open question</span></td><td><a href="#ROLE-02">ROLE-02</a>, <a href="#AUD-09">AUD-09</a></td></tr>
+<tr id="OQ-04"><td class="id">OQ-04</td><td>Which of the planned final-PoE features (Google SSO, push notifications, full localisation) are committed, and in what order? <span class="tag oq">Open question</span></td><td><a href="#NX-06-PLAN">NX-06-PLAN</a></td></tr>
+</tbody>
+</table>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-02-TRD">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 02</p>
+  <h1>Technical Requirements</h1>
+  <p class="subtitle">Architecture, technology stack, interfaces, quality attributes and operational requirements.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-02-TRD</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Developers and operators maintaining Nexus; assessor checking technical depth</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-02-TRD contents</h2><ol><li><a href="#d02-system-context">1 System context</a></li><li><a href="#d02-technology-stack">2 Technology stack</a></li><li><a href="#d02-architecture-requirements">3 Architecture requirements</a></li><li><a href="#d02-interfaces">4 Interfaces</a></li><li><a href="#d02-quality-attributes">5 Quality attributes</a></li><li><a href="#d02-operational-requirements">6 Operational requirements</a></li></ol></nav>
+
+
+<h2 id="d02-system-context"><span class="num">1</span>System context</h2>
+<p>Nexus has two deployable parts: the Android app (<code>app/</code>, package <code>com.example.nexus</code>) and the Nexus API (<code>backend/server.js</code>). The app talks only to the Nexus API over REST/JSON. A Retrofit client for the public MyMemory translation API is defined, but nothing in the app calls it (<span class="tag fact">Implemented</span>, <a href="#AUD-09">AUD-09</a>).</p>
+
+<figure class="diagram" id="DIAG-01">
+<svg viewBox="0 0 760 330" role="img" aria-labelledby="diag01t diag01d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+<title id="diag01t">Nexus architecture</title>
+<desc id="diag01d">The Android app has Compose screens, ViewModels, repositories, a SyncManager and a Room database. Repositories call the Nexus API through Retrofit. The API is a single Express process that keeps data in memory and persists it to one JSON file.</desc>
+<rect x="10" y="10" width="420" height="310" rx="8" fill="#f4f3f9" stroke="#4b2f9e"/>
+<text x="24" y="34" font-weight="700" fill="#4b2f9e">Android app (Kotlin, Jetpack Compose)</text>
+<rect x="30" y="50" width="380" height="40" rx="5" fill="#fff" stroke="#8a87a0"/><text x="44" y="75">UI: Compose screens + NexusNavHost (type-safe routes)</text>
+<rect x="30" y="100" width="380" height="40" rx="5" fill="#fff" stroke="#8a87a0"/><text x="44" y="125">ViewModels (StateFlow) + domain/HabitScoring</text>
+<rect x="30" y="150" width="380" height="40" rx="5" fill="#fff" stroke="#8a87a0"/><text x="44" y="175">Repositories: Project, Task, Habit, Dashboard, User, Config</text>
+<rect x="30" y="200" width="180" height="50" rx="5" fill="#fff" stroke="#8a87a0"/><text x="42" y="222">SyncManager</text><text x="42" y="240" font-size="11">ordered outbox, mutex</text>
+<rect x="230" y="200" width="180" height="50" rx="5" fill="#fff" stroke="#8a87a0"/><text x="242" y="222">Room (nexus_database)</text><text x="242" y="240" font-size="11">schema v5, per-account rows</text>
+<rect x="30" y="262" width="180" height="46" rx="5" fill="#fff" stroke="#8a87a0"/><text x="42" y="282">Retrofit + OkHttp</text><text x="42" y="299" font-size="11">Bearer interceptor</text>
+<rect x="230" y="262" width="180" height="46" rx="5" fill="#fff" stroke="#8a87a0"/><text x="242" y="282">EncryptedSharedPrefs</text><text x="242" y="299" font-size="11">JWT; plain prefs: theme</text>
+<rect x="500" y="60" width="250" height="210" rx="8" fill="#f4f3f9" stroke="#4b2f9e"/>
+<text x="514" y="84" font-weight="700" fill="#4b2f9e">Nexus API (Node.js, Express 4)</text>
+<text x="514" y="110">helmet, cors, express.json (1 MB)</text>
+<text x="514" y="132">Zod validation, JWT auth</text>
+<text x="514" y="154">express-rate-limit on /auth/*</text>
+<text x="514" y="176">AsyncMutex around every handler</text>
+<text x="514" y="198">Pino logs with redaction</text>
+<rect x="514" y="212" width="222" height="44" rx="5" fill="#fff" stroke="#8a87a0"/><text x="526" y="232">nexus-data.json</text><text x="526" y="249" font-size="11">atomic write: .tmp then rename()</text>
+<line x1="430" y1="165" x2="500" y2="165" stroke="#16151d" stroke-width="1.5" marker-end="url(#a)"/>
+<g font-size="10.5" text-anchor="middle" fill="#4a4858"><text x="465" y="140">REST/JSON</text><text x="465" y="153">HTTPS</text><text x="465" y="186">HTTP in</text><text x="465" y="198">debug only</text></g>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16151d"/></marker></defs>
+</svg>
+<figcaption>Figure 1. Component view at the evidence baseline. Arrows show request direction only.</figcaption>
+</figure>
+
+<h2 id="d02-technology-stack"><span class="num">2</span>Technology stack</h2>
+<table>
+<caption>Versions as declared in build files</caption>
+<thead><tr><th scope="col">Layer</th><th scope="col">Technology and version</th><th scope="col">Source</th></tr></thead>
+<tbody>
+<tr><td>Android language / build</td><td>Kotlin 2.0.21, AGP 9.3.1, Gradle 9.7.1 wrapper, JDK 17 target, KSP 2.0.21-1.0.28</td><td><code>build.gradle.kts</code>, <code>gradle-wrapper.properties</code></td></tr>
+<tr><td>SDK levels</td><td>minSdk 24, targetSdk 37, compileSdk 37; versionCode 1, versionName 1.0</td><td><code>app/build.gradle.kts</code></td></tr>
+<tr><td>UI</td><td>Jetpack Compose (BOM 2026.02.01), Material 3, Navigation Compose 2.8.0 with kotlinx-serialization routes, material-icons-extended</td><td><code>libs.versions.toml</code>, <code>app/build.gradle.kts</code></td></tr>
+<tr><td>Networking</td><td>Retrofit 3.0.0 + Gson converter, OkHttp logging-interceptor 4.12.0 (BASIC in debug, NONE in release)</td><td><code>RetrofitClient.kt</code></td></tr>
+<tr><td>Local storage</td><td>Room 2.8.5 (runtime, ktx, compiler via KSP); AndroidX Security Crypto 1.1.0</td><td><code>Database.kt</code>, <code>TokenManager.kt</code></td></tr>
+<tr><td>Quality tooling</td><td>ktlint plugin 12.1.2, detekt 1.23.8, Kover 0.9.1; JUnit 4.13.2, MockK 1.13.12, coroutines-test 1.8.1, Compose UI test</td><td><code>build.gradle.kts</code></td></tr>
+<tr><td>API runtime</td><td>Node.js (CI uses 20; Docker image uses <code>node:22-alpine</code>), ES modules</td><td><code>.github/workflows/*.yml</code>, <code>backend/Dockerfile</code></td></tr>
+<tr><td>API libraries</td><td>express ^4.21.2, bcryptjs ^2.4.3, jsonwebtoken ^9.0.2, zod ^3.23.8 (3.25.76 installed), express-rate-limit ^7.5.0, helmet ^8.3.0, cors ^2.8.6, pino ^10.3.1, pino-http ^11.0.0</td><td><code>backend/package.json</code></td></tr>
+<tr><td>API tests</td><td>Jest ^29.7.0 and Supertest ^7.0.0, run in band with <code>--experimental-vm-modules</code></td><td><code>backend/package.json</code></td></tr>
+</tbody>
+</table>
+
+<h2 id="d02-architecture-requirements"><span class="num">3</span>Architecture requirements</h2>
+<table>
+<caption>Technical requirements</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">How it is met</th></tr></thead>
+<tbody>
+<tr id="TR-01"><td class="id">TR-01</td><td>Single-activity MVVM with feature packages.</td><td><code>MainActivity</code> hosts <code>NexusNavHost</code>. UI is grouped under <code>ui/&lt;feature&gt;</code>; ViewModels expose <code>StateFlow</code> UI state <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-02"><td class="id">TR-02</td><td>Repositories own all data access; ViewModels never call Retrofit directly.</td><td>Six repositories are created once in <code>NexusApp</code> (manual DI container). ViewModels take constructor parameters with defaults so tests can inject fakes <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-03"><td class="id">TR-03</td><td>Business rules live outside the UI.</td><td><code>domain/HabitScoring</code> is pure Kotlin and is unit-tested <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-04"><td class="id">TR-04</td><td>Local writes are transactional with their outbox record.</td><td><code>SyncManager.save()</code> runs the entity write and the <code>PendingChange</code> insert inside <code>withTransaction</code>, under a coroutine <code>Mutex</code> <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-05"><td class="id">TR-05</td><td>Reads never overwrite unsent local edits.</td><td><code>SyncManager.read()</code> flushes the queue first and falls back to Room if the flush fails or the network is unavailable <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-06"><td class="id">TR-06</td><td>Room schema changes ship with migrations; no destructive fallback.</td><td>Migrations 3→4 and 4→5 are registered; <code>fallbackToDestructiveMigration</code> is deliberately absent <span class="tag fact">Implemented</span>. Schema export is off (<a href="#AUD-12">AUD-12</a>).</td></tr>
+<tr id="TR-07"><td class="id">TR-07</td><td>API base URL is configured at build time.</td><td><code>NEXUS_API_URL</code> Gradle property or environment variable must match <code>https?://host[:port]/path/</code>. It defaults to <code>http://10.0.2.2:5263/api/</code>, and release builds fail unless it starts with <code>https://</code> <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-08"><td class="id">TR-08</td><td>API validates every write before it touches the store.</td><td>Zod schemas for register, login, profile (strict), password, project, task, habit and sync. Failures return 400 <code>VALIDATION_ERROR</code> <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-09"><td class="id">TR-09</td><td>API errors use one response shape.</td><td>Central handler returns <code>{ error: { message, requestId, code? } }</code>; in production a 500 message is replaced with "Internal Server Error" <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="TR-10"><td class="id">TR-10</td><td>Idempotent offline replay.</td><td><code>POST /api/sync</code> takes <code>operationId</code> (UUID) and stores receipts per user. A repeated operation returns 204 without effect <span class="tag fact">Implemented</span>.</td></tr>
+</tbody>
+</table>
+
+<h2 id="d02-interfaces"><span class="num">4</span>Interfaces</h2>
+<h3 id="API-REF"><span class="num">4.1</span>Nexus API endpoints</h3>
+<p>All paths are under <code>/api</code> except the root <code>/health</code>. "Auth" means a <code>Authorization: Bearer &lt;JWT&gt;</code> header is required; a missing or invalid token gives 401 <code>UNAUTHORIZED</code>, and a token for a deleted user gives 401 <code>SESSION_EXPIRED</code>.</p>
+<table>
+<caption>Routes defined in backend/server.js</caption>
+<thead><tr><th scope="col">Method and path</th><th scope="col">Auth</th><th scope="col">Purpose and notable responses</th></tr></thead>
+<tbody>
+<tr><td><code>GET /health</code>, <code>GET /api/health</code></td><td>No</td><td><code>{status:"ok", uptime}</code></td></tr>
+<tr><td><code>GET /app/config</code></td><td>No</td><td>Static config: versions 1.0.0, maintenance off, feature flags, no announcements</td></tr>
+<tr><td><code>GET /localization/:language</code></td><td>No</td><td>Five-string bundle for en/zu/tn (falls back to en)</td></tr>
+<tr><td><code>POST /auth/register</code></td><td>No, rate-limited</td><td>201 <code>{token}</code>; 409 duplicate email; 429 after 10 per 15 min</td></tr>
+<tr><td><code>POST /auth/login</code></td><td>No, rate-limited</td><td>200 <code>{token}</code>; 401 invalid credentials</td></tr>
+<tr><td><code>GET</code>/<code>PATCH /users/me</code></td><td>Yes</td><td>Profile <code>{email, displayName, language, notificationsEnabled}</code>; PATCH rejects unknown fields</td></tr>
+<tr><td><code>POST /users/me/password</code></td><td>Yes</td><td>204; 401 wrong current password</td></tr>
+<tr><td><code>DELETE /users/me</code></td><td>Yes</td><td>204; removes the user and all their data</td></tr>
+<tr><td><code>GET /dashboard</code></td><td>Yes</td><td><code>{projects, tasks, activity}</code> counts</td></tr>
+<tr><td><code>POST /sync</code></td><td>Yes</td><td>204 applied or duplicate; 400 invalid payload; 409 <code>SYNC_CONFLICT</code></td></tr>
+<tr><td><code>GET</code>/<code>POST /projects</code></td><td>Yes</td><td>List / create (201)</td></tr>
+<tr><td><code>GET</code>/<code>PUT</code>/<code>DELETE /projects/:projectId</code></td><td>Yes</td><td>Read / update / delete (delete cascades to tasks); 404 <code>PROJECT_NOT_FOUND</code></td></tr>
+<tr><td><code>GET</code>/<code>POST /projects/:projectId/tasks</code></td><td>Yes</td><td>List / create task; 404 if the project is not owned</td></tr>
+<tr><td><code>PUT</code>/<code>DELETE /tasks/:taskId</code></td><td>Yes</td><td>Update / delete; 404 <code>TASK_NOT_FOUND</code></td></tr>
+<tr><td><code>GET</code>/<code>POST /habits</code>, <code>PATCH</code>/<code>DELETE /habits/:habitId</code></td><td>Yes</td><td>List / create / update / delete; 404 <code>HABIT_NOT_FOUND</code></td></tr>
+</tbody>
+</table>
+<p>When <code>NODE_ENV=test</code> only, <code>GET /api/test/error-500</code> also exists for error-handler tests <span class="tag fact">Implemented</span>. The app uses the direct project, task and habit endpoints only when no <code>SyncManager</code> is wired in. In the production wiring (<code>NexusApp</code>), writes go through <code>POST /sync</code> <span class="tag fact">Implemented</span>.</p>
+
+<h3 id="d02-device-integrations"><span class="num">4.2</span>Device integrations</h3>
+<ul>
+<li>Permissions: <code>INTERNET</code> and <code>ACCESS_NETWORK_STATE</code> only <span class="tag fact">Implemented</span>.</li>
+<li><code>ConnectivityManager</code> network callback triggers sync when a network becomes available <span class="tag fact">Implemented</span>.</li>
+<li>Android share sheet for CSV export (<code>Intent.ACTION_SEND</code>, <code>text/csv</code>) <span class="tag fact">Implemented</span>.</li>
+<li>Backup: <code>allowBackup="true"</code>; shared preferences are excluded from cloud backup and device transfer, but the Room database is not excluded (<a href="#AUD-05">AUD-05</a>).</li>
+</ul>
+
+<h2 id="d02-quality-attributes"><span class="num">5</span>Quality attributes</h2>
+<table>
+<caption>Quality attributes and current position</caption>
+<thead><tr><th scope="col">Attribute</th><th scope="col">Current position</th><th scope="col">Related</th></tr></thead>
+<tbody>
+<tr><td>Security</td><td>Controls listed in <a href="#NFR-01">NFR-01</a> and <a href="#NFR-02">NFR-02</a> are implemented. CORS is open (<code>*</code>), which is documented as intentional for a mobile client. No formal security review or penetration test has been performed <span class="tag unk">Unknown</span>.</td><td><a href="#AUD-06">AUD-06</a>, <a href="#AUD-16">AUD-16</a></td></tr>
+<tr><td>Reliability</td><td>Atomic file writes and an in-process mutex. However, a JSON file that cannot be parsed at startup is replaced on the next write (<a href="#AUD-01">AUD-01</a>).</td><td><a href="#NFR-04">NFR-04</a></td></tr>
+<tr><td>Scalability</td><td>Single process and single file; every request, including bcrypt hashing, holds one global lock. <code>PROJECT_IMPROVEMENTS.md</code> treats this as adequate for fewer than 50 users and 10,000 tasks <span class="tag inf">Inferred</span>; this was not load-tested.</td><td><a href="#CON-01">CON-01</a>, <a href="#AUD-07">AUD-07</a></td></tr>
+<tr><td>Maintainability</td><td>Feature packages, shared test fakes, ktlint/detekt/Kover configured. Lint is not enforced in CI (<a href="#AUD-04">AUD-04</a>).</td><td><a href="#NX-07-CICD">NX-07-CICD</a></td></tr>
+<tr><td>Portability</td><td>Android 7.0+. The API runs on any Node host or as a container.</td><td><a href="#NX-11-DEP">NX-11-DEP</a></td></tr>
+</tbody>
+</table>
+
+<h2 id="d02-operational-requirements"><span class="num">6</span>Operational requirements</h2>
+<table>
+<caption>API runtime configuration (names only; values are never stored in the repository)</caption>
+<thead><tr><th scope="col">Variable</th><th scope="col">Required</th><th scope="col">Behaviour</th></tr></thead>
+<tbody>
+<tr><td><code>JWT_SECRET</code></td><td>Yes</td><td>At least 32 characters and not a known placeholder, or the process exits with code 1. Keep it stable across restarts, or existing sessions become invalid.</td></tr>
+<tr><td><code>PORT</code></td><td>No (5263)</td><td>HTTP listen port.</td></tr>
+<tr><td><code>DATABASE_PATH</code></td><td>No</td><td>Data file path; defaults to <code>backend/nexus-data.json</code>, and to <code>/data/nexus-data.json</code> in the Docker image.</td></tr>
+<tr><td><code>NODE_ENV</code></td><td>No</td><td><code>production</code> hides 500 messages; <code>test</code> disables listening and enables the test route.</td></tr>
+<tr><td><code>LOG_LEVEL</code></td><td>No (info)</td><td>Pino log level.</td></tr>
+</tbody>
+</table>
+<ul>
+<li id="OPS-01"><strong>OPS-01</strong> TLS termination must be provided by the host or a reverse proxy; the API itself serves plain HTTP <span class="tag fact">Implemented</span>.</li>
+<li id="OPS-02"><strong>OPS-02</strong> The data file (or <code>/data</code> volume) must be persistent and backed up. The repository contains no backup tooling <span class="tag fact">Implemented</span>.</li>
+<li id="OPS-03"><strong>OPS-03</strong> Run exactly one API instance per data file (<a href="#CON-01">CON-01</a>).</li>
+</ul>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-03-FLOW">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 03</p>
+  <h1>Application Flow</h1>
+  <p class="subtitle">Navigation map, key user journeys, system interactions and error/alternate flows.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-03-FLOW</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Testers, developers and the assessor following the demo</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-03-FLOW contents</h2><ol><li><a href="#d03-navigation-map">1 Navigation map</a></li><li><a href="#d03-key-user-journeys">2 Key user journeys</a></li><li><a href="#d03-system-interactions">3 System interactions</a></li><li><a href="#d03-error-and-alternate-flows">4 Error and alternate flows</a></li></ol></nav>
+
+
+<h2 id="d03-navigation-map"><span class="num">1</span>Navigation map</h2>
+<p>Routes are type-safe <code>@Serializable</code> objects in <code>NexusNavHost.kt</code>. The app starts at <code>Splash</code>. An auth guard sends any signed-out user on a protected route to <code>Login</code>, and sends a signed-in user on Login/Register to <code>Dashboard</code> <span class="tag fact">Implemented</span>. A bottom navigation bar (Today, Projects, Habits, Settings) appears on those four top-level routes only. A sync status banner appears on every authenticated screen except Splash.</p>
+
+<figure class="diagram" id="DIAG-02">
+<svg viewBox="0 0 760 300" role="img" aria-labelledby="d2t d2d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+<title id="d2t">Screen navigation map</title>
+<desc id="d2d">Splash leads to Login if signed out or Dashboard if signed in. Login links to Register. Dashboard (Today) links to Projects, Habits, Settings and Profile. Projects lead to Project detail, then Tasks, then Task detail. Profile links to Settings.</desc>
+<defs><marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16151d"/></marker></defs>
+<g fill="#fff" stroke="#4b2f9e">
+<rect x="10" y="125" width="90" height="40" rx="6"/><rect x="150" y="40" width="90" height="40" rx="6"/>
+<rect x="290" y="210" width="110" height="40" rx="6" fill="#ece7fb"/><rect x="290" y="40" width="90" height="40" rx="6"/>
+<rect x="450" y="130" width="100" height="40" rx="6" fill="#ece7fb"/><rect x="450" y="200" width="100" height="40" rx="6" fill="#ece7fb"/>
+<rect x="450" y="260" width="100" height="34" rx="6" fill="#ece7fb"/><rect x="450" y="60" width="100" height="40" rx="6"/>
+<rect x="600" y="130" width="120" height="40" rx="6"/><rect x="600" y="60" width="120" height="40" rx="6"/><rect x="600" y="200" width="120" height="40" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text x="55" y="150">Splash</text><text x="195" y="65">Login</text><text x="335" y="65">Register</text>
+<text x="345" y="235">Dashboard·Today</text>
+<text x="500" y="155">Projects</text><text x="500" y="225">Habits</text><text x="500" y="282">Settings</text><text x="500" y="85">Profile</text>
+<text x="660" y="155">Project detail</text><text x="660" y="85">Tasks (list)</text><text x="660" y="225">Task detail</text>
+</g>
+<g stroke="#16151d" stroke-width="1.4" fill="none" marker-end="url(#m2)">
+<path d="M100,140 L150,65"/><path d="M100,155 L290,228"/><path d="M240,60 L290,60"/>
+<path d="M400,222 L450,150"/><path d="M400,230 L450,220"/><path d="M400,240 L450,275"/><path d="M400,215 L450,85"/>
+<path d="M550,150 L600,150"/><path d="M660,130 L660,100"/><path d="M720,80 Q750,150 720,220"/><path d="M550,75 Q575,210 550,270"/>
+<path d="M210,80 L330,210"/>
+</g>
+<g font-size="11" fill="#4a4858"><text x="272" y="138">sign-in success</text><text x="62" y="95">signed out</text><text x="110" y="222">already signed in</text></g>
+</svg>
+<figcaption>Figure 2. Navigation map. Shaded boxes are bottom-bar destinations. Back navigation pops the stack.</figcaption>
+</figure>
+
+<h2 id="d03-key-user-journeys"><span class="num">2</span>Key user journeys</h2>
+<p>Each journey lists the requirements it exercises. Steps reflect the implemented UI labels.</p>
+<table>
+<caption>User journeys</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Journey</th><th scope="col">Main path</th><th scope="col">Requirements</th></tr></thead>
+<tbody>
+<tr id="UF-01"><td class="id">UF-01</td><td>First launch and registration</td><td>Splash animation, then Login, then "Need an account? Register". Enter Display Name, Email and Password, tap Create Account. A JWT is saved and the Dashboard opens with an empty state, "Start your first project".</td><td><a href="#FR-01">FR-01</a>, <a href="#FR-19">FR-19</a></td></tr>
+<tr id="UF-02"><td class="id">UF-02</td><td>Returning user</td><td>Splash, then Dashboard directly (token present). The Dashboard refresh uploads queued changes, then downloads projects and all their tasks into Room.</td><td><a href="#FR-02">FR-02</a>, <a href="#FR-09">FR-09</a>, <a href="#FR-16">FR-16</a></td></tr>
+<tr id="UF-03"><td class="id">UF-03</td><td>Plan a project</td><td>Projects tab, then the + (New Project) button. Enter a name, create, and open the project. Use "Add Task" or "Open Tasks Screen", then + (New Task): set title, due date, priority, status, labels and checklist, and save.</td><td><a href="#FR-10">FR-10</a>, <a href="#FR-11">FR-11</a></td></tr>
+<tr id="UF-04"><td class="id">UF-04</td><td>Decide what to do today</td><td>The Today tab shows the Overdue / Due today / Upcoming cards. In a project's task list, use search, the status chips or "High priority"; open a task for its detail view; mark it complete.</td><td><a href="#FR-09">FR-09</a>, <a href="#FR-12">FR-12</a></td></tr>
+<tr id="UF-05"><td class="id">UF-05</td><td>Daily habit check-in</td><td>Habits tab, then + (Add habit), name it and choose a frequency. Tap "Complete today" each day; stats (level, points, streaks, badges) recalculate on the device.</td><td><a href="#FR-13">FR-13</a>, <a href="#FR-14">FR-14</a></td></tr>
+<tr id="UF-06"><td class="id">UF-06</td><td>Work offline</td><td>With the API unreachable, create or edit items as usual. The banner reads "Saved on device · waiting to sync" with "<em>n</em> pending changes". When the network returns (network callback, the 30 s loop, or tapping Sync), the queue uploads in order and the banner shows "All changes synced".</td><td><a href="#FR-16">FR-16</a>, <a href="#TR-04">TR-04</a></td></tr>
+<tr id="UF-07"><td class="id">UF-07</td><td>Resolve a conflict</td><td>An upload is rejected with 409 (or 400). The banner shows "An item changed on another device · review required" with a Review button. The dialog offers "Keep changes" (the queue stays blocked and the edits are kept) or "Discard item edits" (that entity's queued operations and its local row are removed, then the rest of the queue retries).</td><td><a href="#FR-17">FR-17</a>, <a href="#AUD-19">AUD-19</a></td></tr>
+<tr id="UF-08"><td class="id">UF-08</td><td>Session expiry during sync</td><td>Upload returns 401, the banner says "Sign in again to sync saved changes", and a "Sign in" button clears the token and opens Login. Queued changes stay on the device for the same account.</td><td><a href="#FR-02">FR-02</a>, <a href="#FR-16">FR-16</a></td></tr>
+<tr id="UF-09"><td class="id">UF-09</td><td>Manage account</td><td>Settings tab: edit Display Name; choose Appearance (System/Light/Dark) and Language; toggle reminders; "Sync account"; "Export habits CSV", then "Share CSV"; "Change password"; "Delete account and data" (confirm); "Log Out".</td><td><a href="#FR-04">FR-04</a> to <a href="#FR-08">FR-08</a>, <a href="#FR-15">FR-15</a></td></tr>
+<tr id="UF-10"><td class="id">UF-10</td><td>Shared device, account switch</td><td>User A signs out with pending changes and user B signs in. B sees only B's rows. A's queue is neither shown nor uploaded until A signs in again.</td><td><a href="#FR-03">FR-03</a>, <a href="#NFR-03">NFR-03</a></td></tr>
+</tbody>
+</table>
+
+<h2 id="d03-system-interactions"><span class="num">3</span>System interactions</h2>
+<h3 id="SEQ-01"><span class="num">3.1</span>Offline save and upload (SEQ-01)</h3>
+<ol>
+<li>The ViewModel calls a repository write, for example <code>TaskRepository.createTask()</code>. The repository generates a UUID for new entities on the device.</li>
+<li><code>SyncManager.save()</code> takes the mutex, then in one Room transaction writes the entity row and a <code>pending_changes</code> row (<code>operationId</code>, <code>resource</code>, <code>entityId</code>, <code>action</code>, JSON <code>payload</code>).</li>
+<li>Later, <code>flushLocked()</code> reads the account's pending rows by <code>sequence</code> and posts each one to <code>POST /api/sync</code>. A row is deleted only after a 2xx response.</li>
+<li>Server: if the <code>operationId</code> is already in the user's receipts it returns 204. Otherwise it validates the payload against the resource schema, checks for conflicts (update of a missing item, duplicate create, or a task whose project does not exist for this user), applies the change, records the receipt, saves atomically and returns 204. If the save fails, the in-memory change is rolled back.</li>
+<li>The first failure stops the loop. Its HTTP status decides the banner message and whether Review is offered (400/409).</li>
+</ol>
+<h3 id="SEQ-02"><span class="num">3.2</span>Read with cache fallback (SEQ-02)</h3>
+<ol>
+<li><code>SyncManager.read()</code> takes the mutex and flushes pending changes first.</li>
+<li>If the flush fails, Room data is returned, so unsent edits are never overwritten by server data.</li>
+<li>If the flush succeeds, the remote call runs and replaces the account's cached rows in one transaction. On <code>IOException</code> the cache is returned and the banner reads "Offline · showing saved data". Other HTTP errors (for example 401) are passed up to the ViewModel.</li>
+</ol>
+<h3 id="SEQ-03"><span class="num">3.3</span>Authentication (SEQ-03)</h3>
+<ol>
+<li>Login/Register posts credentials; the API checks them with bcrypt and returns a JWT with <code>sub</code> = user id, valid for 24 h.</li>
+<li><code>AuthSession.saveToken()</code> stores it encrypted. The cache owner id is decoded from the <code>sub</code> claim (not verified on the device; used only to scope the cache).</li>
+<li>The OkHttp interceptor adds <code>Authorization: Bearer</code> to every Nexus API request.</li>
+</ol>
+
+<h2 id="d03-error-and-alternate-flows"><span class="num">4</span>Error and alternate flows</h2>
+<table>
+<caption>How failures surface to the user</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Condition</th><th scope="col">System behaviour</th><th scope="col">User sees</th></tr></thead>
+<tbody>
+<tr id="EF-01"><td class="id">EF-01</td><td>API unreachable or timed out (5 s connect, 15 s call)</td><td>Writes are queued; reads fall back to Room.</td><td>Banner "Offline · changes saved on device" or "Offline · showing saved data"; Dashboard "Showing saved data". Sign-in shows "No internet connection. Check your network and try again."</td></tr>
+<tr id="EF-02"><td class="id">EF-02</td><td>401/403 on a screen request</td><td><code>ApiError.SessionExpired</code>; Settings clears the session.</td><td>"Your session has expired. Please log in again." This is also shown for a wrong password at sign-in (<a href="#AUD-18">AUD-18</a>).</td></tr>
+<tr id="EF-03"><td class="id">EF-03</td><td>409 at registration (email exists) or 429 (rate limit)</td><td>Mapped to <code>ApiError.Unknown</code>.</td><td>"Something went wrong. Please try again." (<a href="#AUD-18">AUD-18</a>)</td></tr>
+<tr id="EF-04"><td class="id">EF-04</td><td>409/400 during sync</td><td>The queue stops at the failing operation; <code>conflict=true</code>.</td><td>Review button (<a href="#UF-07">UF-07</a>)</td></tr>
+<tr id="EF-05"><td class="id">EF-05</td><td>5xx from the API</td><td><code>ApiError.ServerError</code>. In production the API hides internal messages.</td><td>"Something went wrong on our end. Please try again shortly." Sync banner: "Sync needs attention · saved changes kept on device".</td></tr>
+<tr id="EF-06"><td class="id">EF-06</td><td>Item not available offline</td><td>Room has no row (never downloaded).</td><td>Error state with Retry, e.g. "Project is not available offline" (<a href="#CON-05">CON-05</a>)</td></tr>
+<tr id="EF-07"><td class="id">EF-07</td><td>Maintenance mode or announcement in <code>/app/config</code></td><td>Dashboard banner. The API currently hard-codes maintenance off.</td><td>Maintenance message or the first announcement</td></tr>
+<tr id="EF-08"><td class="id">EF-08</td><td>Delete account fails (offline or error)</td><td>The session is kept and nothing is purged.</td><td>Error message in Settings</td></tr>
+</tbody>
+</table>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-04-DES">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 04</p>
+  <h1>Design Brief</h1>
+  <p class="subtitle">Design goals, navigation, visual conventions, accessibility and responsive behaviour as evidenced in the app.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-04-DES</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Designers and developers changing the UI; assessor reviewing UX decisions</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-04-DES contents</h2><ol><li><a href="#d04-design-goals">1 Design goals</a></li><li><a href="#d04-navigation-model">2 Navigation model</a></li><li><a href="#d04-visual-conventions">3 Visual conventions</a></li><li><a href="#d04-accessibility">4 Accessibility</a></li><li><a href="#d04-responsive-behaviour">5 Responsive behaviour</a></li><li><a href="#d04-screen-evidence">6 Screen evidence</a></li></ol></nav>
+
+
+<h2 id="d04-design-goals"><span class="num">1</span>Design goals</h2>
+<p>The README's product principles are the stated design intent. The table shows how far the code follows each one.</p>
+<table>
+<caption>Principles versus implementation</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Principle (README)</th><th scope="col">Where it shows up in the app</th></tr></thead>
+<tbody>
+<tr id="DS-01"><td class="id">DS-01</td><td>Focus over clutter</td><td>The Today dashboard limits Upcoming to 3 tasks and shows "Nothing here." for empty cards <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="DS-02"><td class="id">DS-02</td><td>Fast capture</td><td>Floating + buttons on Projects, Tasks and Habits; dialogs need only a name or title; priority defaults to None and status to To do <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="DS-03"><td class="id">DS-03</td><td>Progress with context</td><td>Task list progress bar with "x of y tasks complete"; habit level, points and streaks <span class="tag fact">Implemented</span>.</td></tr>
+<tr id="DS-04"><td class="id">DS-04</td><td>Calm by default</td><td>Short motion (150–300 ms), skeleton loaders instead of spinners, friendly empty states such as "A little progress, every day." <span class="tag fact">Implemented</span></td></tr>
+<tr id="DS-05"><td class="id">DS-05</td><td>Trustworthy data</td><td>A persistent sync banner always states whether changes are saved, pending, synced or in conflict <span class="tag fact">Implemented</span>.</td></tr>
+</tbody>
+</table>
+
+<h2 id="d04-navigation-model"><span class="num">2</span>Navigation model</h2>
+<ul>
+<li>Bottom <code>NavigationBar</code> with four destinations: Today, Projects, Habits, Settings. Navigating between them saves and restores state and uses <code>launchSingleTop</code> <span class="tag fact">Implemented</span>.</li>
+<li>Second-level screens (Project detail, Tasks, Task detail, Profile) use a top app bar with a Back arrow ("Back" content description) <span class="tag fact">Implemented</span>.</li>
+<li>Create and edit actions use modal dialogs (project, task editor, habit, password), not separate screens <span class="tag fact">Implemented</span>.</li>
+<li>Destructive actions confirm first: log out and delete account. Deleting a project, task or habit from a list has no confirmation dialog <span class="tag fact">Implemented</span> (<span class="tag rec">Recommendation</span> add an undo snackbar; see <a href="#IMP-12">IMP-12</a>).</li>
+</ul>
+<p>The full map is in <a href="#DIAG-02">DIAG-02</a>.</p>
+
+<h2 id="d04-visual-conventions"><span class="num">3</span>Visual conventions</h2>
+<h3 id="d04-colour"><span class="num">3.1</span>Colour</h3>
+<table>
+<caption>Colour tokens from ui/theme/Color.kt and Theme.kt</caption>
+<thead><tr><th scope="col">Token</th><th scope="col">Value</th><th scope="col">Use</th></tr></thead>
+<tbody>
+<tr><td>Brand purple / green</td><td><code>#A855F7</code> / <code>#22C55E</code></td><td>Logo gradient and wordmark</td></tr>
+<tr><td>Light primary / secondary</td><td><code>#6141B5</code> / <code>#236B54</code></td><td>Fallback scheme on Android 11 and earlier (commit log: "accessible fallback brand colors")</td></tr>
+<tr><td>Dark primary / secondary</td><td><code>#D0BCFF</code> / <code>#22C55E</code></td><td>Fallback dark scheme</td></tr>
+<tr><td>Background (light / dark)</td><td><code>#F7F7FC</code> / <code>#12131B</code></td><td>Overrides even when dynamic colour is on</td></tr>
+<tr><td>Surface (light / dark)</td><td><code>#FFFFFF</code> / <code>#191A24</code></td><td>Cards and sheets</td></tr>
+</tbody>
+</table>
+<p>On Android 12 and later, Material You dynamic colour supplies primary, secondary and tertiary from the wallpaper, while background and surface stay fixed to the values above <span class="tag fact">Implemented</span>. Contrast was not measured for this package <span class="tag unk">Unknown</span>.</p>
+<h3 id="d04-shape-spacing-and-type"><span class="num">3.2</span>Shape, spacing and type</h3>
+<ul>
+<li>Shapes: small 12 dp, medium 20 dp, large 28 dp rounded corners <span class="tag fact">Implemented</span>.</li>
+<li>Spacing scale in <code>Spacing.kt</code>: 2, 4, 6, 8, 10, 12, 16, 20, 22, 24, 32 dp. Top-bar logo 32 dp; auth logo 80 dp <span class="tag fact">Implemented</span>.</li>
+<li>Typography: the system sans-serif for every Material 3 style; body large 16 sp, body medium 14 sp <span class="tag fact">Implemented</span>. No custom font is bundled.</li>
+<li>Components: <code>NexusPrimaryButton</code>, <code>NexusSecondaryButton</code>, <code>NexusDestructiveIconButton</code>, <code>StatCard</code>, <code>Skeleton</code>, <code>FeedbackState</code> (empty/error with Retry), <code>NexusLogo</code> <span class="tag fact">Implemented</span>.</li>
+</ul>
+<h3 id="d04-motion"><span class="num">3.3</span>Motion</h3>
+<p><code>Motion.kt</code> fixes durations: screen enter 220 ms, exit 180 ms, list item 220 ms, fade 150 ms, completion bounce 90 + 140 ms, success check 260 ms. Screen transitions slide a quarter width and fade <span class="tag fact">Implemented</span>.</p>
+
+<h2 id="d04-accessibility"><span class="num">4</span>Accessibility</h2>
+<table>
+<caption>Accessibility evidence</caption>
+<thead><tr><th scope="col">Aspect</th><th scope="col">Evidence</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>Reduced motion</td><td><code>rememberReduceMotion()</code> checks <code>ValueAnimator.areAnimatorsEnabled()</code>; navigation transitions, list reflow, shimmer and splash are skipped. <code>SplashIntroScreenTest</code> covers the splash.</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Screen reader labels</td><td>Icon buttons have descriptions such as "Back", "New Project", "Add habit", "Edit habit", "Remove label …", "Clear due date". Bottom-bar icons use <code>null</code> descriptions, with the visible text label as the accessible name.</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Not relying on colour alone</td><td>Priority and status are shown as text chips ("Priority · High"), not colour only.</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Keyboard / IME</td><td><code>windowSoftInputMode="adjustResize"</code>; auth forms scroll above the keyboard (improvements log).</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Contrast, touch targets, TalkBack walkthrough</td><td>No measurements or audit records in the repository.</td><td><span class="tag unk">Unknown</span> → <a href="#IMP-11">IMP-11</a></td></tr>
+<tr><td>Localised content</td><td>en/zu/tn resource strings for auth and a few labels; feature screens are English-only.</td><td>Partial (<a href="#FR-18">FR-18</a>)</td></tr>
+</tbody>
+</table>
+
+<h2 id="d04-responsive-behaviour"><span class="num">5</span>Responsive behaviour</h2>
+<p>Layouts are single-column phone layouts built with <code>fillMaxWidth</code>, <code>LazyColumn</code> and horizontally scrolling chip rows. Window insets are handled with <code>statusBarsPadding</code>. No window size classes or tablet layouts exist; tablet layouts are listed as planned <span class="tag fact">Implemented</span>. Landscape behaviour has not been tested <span class="tag unk">Unknown</span>.</p>
+
+<h2 id="d04-screen-evidence"><span class="num">6</span>Screen evidence</h2>
+<p>Only two distinct, correctly identified screenshots exist in the repository. The UI-audit folder <code>docs/screenshots/ui-audit/</code> contains nine files, but they are only four distinct images, and their file names do not match their content (<a href="#AUD-21">AUD-21</a>). Both images below were captured on 2026-09-25, before the 2026-10-04 navigation and sync-banner changes, so they may not match the current UI.</p>
+<figure class="shots" id="FIG-SHOTS">
+<div><img src="../../screenshots/ui-audit/splash.png" alt="Login screen: Nexus logo, Language picker set to English, Welcome Back heading, Email and Password fields, disabled Sign In button, and a Need an account? Register link."><figcaption>Login screen (stored as <code>splash.png</code>).</figcaption></div>
+<div><img src="../../screenshots/ui-audit/dashboard-offline.png" alt="Skeleton loading state: top bar with back arrow, Nexus logo and English label, then grey placeholder blocks."><figcaption>Skeleton loading state (stored under four names, including <code>dashboard-offline.png</code>).</figcaption></div>
+</figure>
+<p><span class="tag rec">Recommendation</span> Recapture the screen set from a running build and replace the folder contents (<a href="#IMP-16">IMP-16</a>); <a href="#NX-10-UM">NX-10-UM</a> intentionally uses text-only instructions until then.</p>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-05-DATA">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 05</p>
+  <h1>Backend and Data Schema</h1>
+  <p class="subtitle">Entities, relationships, key fields, storage locations and data flows on the server and the device.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-05-DATA</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Developers changing the API or Room schema; assessor checking the data design</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-05-DATA contents</h2><ol><li><a href="#d05-storage-overview">1 Storage overview</a></li><li><a href="#d05-server-data-model">2 Server data model</a></li><li><a href="#d05-device-room-schema-version-5">3 Device (Room) schema, version 5</a></li><li><a href="#d05-data-flows">4 Data flows</a></li><li><a href="#d05-data-retention-and-privacy-notes">5 Data retention and privacy notes</a></li></ol></nav>
+
+
+<h2 id="d05-storage-overview"><span class="num">1</span>Storage overview</h2>
+<table>
+<caption>Where Nexus data lives</caption>
+<thead><tr><th scope="col">Store</th><th scope="col">Location</th><th scope="col">Contents</th><th scope="col">Protection</th></tr></thead>
+<tbody>
+<tr><td>API document store</td><td><code>DATABASE_PATH</code> (default <code>backend/nexus-data.json</code>; <code>/data/nexus-data.json</code> in the container)</td><td>users, projects, tasks, habits, sync receipts</td><td>File-system permissions only; not encrypted at rest. Git-ignored.</td></tr>
+<tr><td>Room database</td><td>App-private <code>nexus_database</code>, schema version 5</td><td>Cached projects, tasks, habits, dashboard counts, pending upload queue</td><td>App sandbox; included in Android backup (<a href="#AUD-05">AUD-05</a>)</td></tr>
+<tr><td>Encrypted preferences</td><td><code>nexus_secure_prefs</code></td><td>JWT (<code>jwt_token</code>)</td><td>AES-256 GCM/SIV via AndroidX Security; excluded from backup</td></tr>
+<tr><td>Plain preferences</td><td>Settings store; <code>cached_profiles</code></td><td><code>theme_mode</code>, <code>notifications_enabled</code>, <code>language</code>, language-sync flag; profile JSON per owner (<code>profile:&lt;owner&gt;</code>)</td><td>App sandbox; excluded from backup</td></tr>
+</tbody>
+</table>
+
+<h2 id="d05-server-data-model"><span class="num">2</span>Server data model</h2>
+<p><code>server.js</code> keeps four in-memory <code>Map</code>s, persisted as one JSON document <code>{ users: [...], projects: {userId: [...]}, tasks: {userId: [...]}, habits: {userId: [...]} }</code>. Ownership is structural: every collection is keyed by the owner's user id, so there are no cross-user references <span class="tag fact">Implemented</span>.</p>
+
+<figure class="diagram" id="DIAG-03">
+<svg viewBox="0 0 760 250" role="img" aria-labelledby="d3t d3d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="12.5">
+<title id="d3t">Entity relationships</title>
+<desc id="d3d">A User owns many Projects and many Habits. A Project has many Tasks. A Task embeds many checklist items and labels. A User has many sync operation receipts.</desc>
+<defs><marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16151d"/></marker></defs>
+<g fill="#fff" stroke="#4b2f9e"><rect x="20" y="95" width="130" height="60" rx="6"/><rect x="250" y="20" width="130" height="60" rx="6"/><rect x="250" y="170" width="130" height="60" rx="6"/><rect x="480" y="20" width="130" height="60" rx="6"/><rect x="640" y="20" width="110" height="60" rx="6" fill="#f4f3f9"/><rect x="20" y="185" width="160" height="55" rx="6" fill="#f4f3f9"/></g>
+<g text-anchor="middle" font-weight="700"><text x="85" y="122">User</text><text x="315" y="47">Project</text><text x="315" y="197">Habit</text><text x="545" y="47">Task</text><text x="695" y="47">ChecklistItem</text><text x="100" y="208">Sync receipt</text></g>
+<g text-anchor="middle" font-size="11"><text x="85" y="140">id (UUID), email</text><text x="315" y="65">id, name</text><text x="315" y="215">id, name, frequency</text><text x="545" y="65">id, projectId, status</text><text x="695" y="65">embedded</text><text x="100" y="226">operationId (in User)</text></g>
+<g stroke="#16151d" stroke-width="1.4" fill="none" marker-end="url(#m3)"><path d="M150,112 L250,55"/><path d="M150,140 L250,195"/><path d="M380,50 L480,50"/><path d="M610,50 L640,50"/><path d="M85,155 L85,185"/></g>
+<g font-size="11"><text x="200" y="66" text-anchor="end">owns 0..*</text><text x="212" y="157">owns 0..*</text><text x="430" y="42" text-anchor="middle">has 0..*</text><text x="92" y="174">records 0..*</text></g>
+</svg>
+<figcaption>Figure 3. Logical entities. Tasks are stored per user and linked to a project by <code>projectId</code>; checklist items and labels are embedded arrays.</figcaption>
+</figure>
+
+<h3 id="ENT-USER"><span class="num">2.1</span>User (ENT-USER)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code></td><td>UUID string</td><td><code>randomUUID()</code> at registration; JWT <code>sub</code></td></tr>
+<tr><td><code>email</code></td><td>string</td><td>Valid email; unique (exact, case-sensitive match) <span class="tag fact">Implemented</span></td></tr>
+<tr><td><code>displayName</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>passwordHash</code></td><td>string</td><td>bcrypt cost 12. A non-bcrypt value is compared as plain text once and then rehashed (<a href="#AUD-16">AUD-16</a>). Never returned by the API.</td></tr>
+<tr><td><code>language</code></td><td>string</td><td>Default <code>"en"</code>; any string accepted by the API, the app sends en/zu/tn</td></tr>
+<tr><td><code>notificationsEnabled</code></td><td>boolean</td><td>Default <code>true</code></td></tr>
+<tr><td><code>syncOperations</code></td><td>string[]</td><td>Applied <code>operationId</code>s; grows without limit (<a href="#AUD-07">AUD-07</a>)</td></tr>
+</tbody></table>
+
+<h3 id="ENT-PROJECT"><span class="num">2.2</span>Project (ENT-PROJECT)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code></td><td>UUID string</td><td>Server-generated (REST) or device-generated (sync)</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>description</code></td><td>string | null</td><td>Optional</td></tr>
+<tr><td><code>createdAt</code>, <code>updatedAt</code></td><td>ISO-8601 timestamp</td><td>Set by the server</td></tr>
+</tbody></table>
+<p>Deleting a project deletes its tasks (REST and sync paths) <span class="tag fact">Implemented</span>.</p>
+
+<h3 id="ENT-TASK"><span class="num">2.3</span>Task (ENT-TASK)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code>, <code>projectId</code></td><td>UUID strings</td><td>The project must belong to the same user (404 on REST, 409 on sync)</td></tr>
+<tr><td><code>title</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>description</code></td><td>string | null</td><td>Optional</td></tr>
+<tr><td><code>dueDate</code></td><td>string | null</td><td>Pattern <code>yyyy-MM-dd</code> (format only; the calendar date is not checked)</td></tr>
+<tr><td><code>priority</code></td><td>enum</td><td><code>NONE</code> (default), <code>LOW</code>, <code>MEDIUM</code>, <code>HIGH</code></td></tr>
+<tr><td><code>status</code></td><td>enum</td><td><code>TODO</code> (default), <code>IN_PROGRESS</code>, <code>DONE</code></td></tr>
+<tr><td><code>isCompleted</code></td><td>boolean</td><td>Derived: always <code>status === "DONE"</code> after a write</td></tr>
+<tr><td><code>labels</code></td><td>string[]</td><td>Free text</td></tr>
+<tr><td><code>checklist</code></td><td>{id?, title, isCompleted?}[]</td><td>Title non-empty</td></tr>
+<tr><td><code>createdAt</code>, <code>updatedAt</code></td><td>ISO-8601</td><td>Server-set</td></tr>
+</tbody></table>
+
+<h3 id="ENT-HABIT"><span class="num">2.4</span>Habit (ENT-HABIT)</h3>
+<table><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Rules</th></tr></thead><tbody>
+<tr><td><code>id</code></td><td>UUID string</td><td></td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Non-empty</td></tr>
+<tr><td><code>description</code></td><td>string | null</td><td>Optional</td></tr>
+<tr><td><code>frequency</code></td><td>enum</td><td><code>DAILY</code> (default), <code>WEEKLY</code>, <code>CUSTOM</code></td></tr>
+<tr><td><code>targetDays</code></td><td>number[]</td><td>Accepted but not used by the app's scoring</td></tr>
+<tr><td><code>completedDates</code></td><td>string[]</td><td><code>yyyy-MM-dd</code> by convention; no format validation on the server</td></tr>
+<tr><td><code>createdAt</code> (+ <code>updatedAt</code> via sync)</td><td>ISO-8601</td><td></td></tr>
+</tbody></table>
+
+<h2 id="d05-device-room-schema-version-5"><span class="num">3</span>Device (Room) schema, version 5</h2>
+<table>
+<caption>Room entities in data/Database.kt and data/SyncManager.kt</caption>
+<thead><tr><th scope="col">Table</th><th scope="col">Primary key</th><th scope="col">Columns</th></tr></thead>
+<tbody>
+<tr id="ENT-ROOM-PROJECTS"><td><code>projects</code></td><td><code>id</code></td><td><code>userId</code>, name, description, createdAt, updatedAt</td></tr>
+<tr id="ENT-ROOM-TASKS"><td><code>tasks</code></td><td><code>id</code></td><td><code>userId</code>, projectId, title, description, isCompleted, dueDate, priority, status, labels (JSON), checklist (JSON), createdAt, updatedAt</td></tr>
+<tr id="ENT-ROOM-HABITS"><td><code>habits</code></td><td><code>id</code></td><td><code>userId</code>, name, description, frequency, targetDays (JSON), completedDates (JSON), createdAt</td></tr>
+<tr id="ENT-ROOM-DASH"><td><code>dashboard</code></td><td><code>userId</code></td><td>projects, tasks, activity (counts)</td></tr>
+<tr id="ENT-ROOM-QUEUE"><td><code>pending_changes</code></td><td><code>sequence</code> (autoincrement)</td><td><code>userId</code>, operationId (UUID), resource (projects|tasks|habits), entityId, action (create|update|delete), payload (JSON)</td></tr>
+</tbody>
+</table>
+<p>List columns are stored as Gson JSON strings by <code>TaskConverters</code>. <code>userId</code> is the cache owner id: the JWT <code>sub</code>, or a hash of the token if no <code>sub</code> exists. No foreign keys or indices are declared <span class="tag fact">Implemented</span>.</p>
+<h3 id="d05-migration-history"><span class="num">3.1</span>Migration history</h3>
+<table><thead><tr><th scope="col">Migration</th><th scope="col">Change</th><th scope="col">Data effect</th></tr></thead><tbody>
+<tr><td>1→2, 2→3</td><td>Not present in code (version 2 added task fields, per commit 8b31aa3)</td><td>Upgrading from v1 or v2 would fail to open the database (<a href="#AUD-12">AUD-12</a>)</td></tr>
+<tr><td>3→4</td><td>Adds <code>userId</code> to projects, tasks and habits; rebuilds <code>dashboard</code> keyed by user</td><td>Deletes all cached rows (they could not be attributed to an owner)</td></tr>
+<tr><td>4→5</td><td>Creates <code>pending_changes</code></td><td>Keeps existing rows</td></tr>
+</tbody></table>
+
+<h2 id="d05-data-flows"><span class="num">4</span>Data flows</h2>
+<table>
+<caption>Principal data flows</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Flow</th><th scope="col">Path</th></tr></thead>
+<tbody>
+<tr id="DF-01"><td class="id">DF-01</td><td>Local write</td><td>ViewModel → Repository → <code>SyncManager.save()</code> → Room entity + <code>pending_changes</code> (one transaction). See <a href="#SEQ-01">SEQ-01</a>.</td></tr>
+<tr id="DF-02"><td class="id">DF-02</td><td>Upload</td><td><code>pending_changes</code> (ordered) → <code>POST /api/sync</code> → in-memory map → <code>saveDatabase()</code> (<code>.tmp</code> then <code>rename</code>) → receipt stored → queue row deleted</td></tr>
+<tr id="DF-03"><td class="id">DF-03</td><td>Refresh</td><td><code>GET /projects</code> + <code>GET /projects/:id/tasks</code> for each project (N+1 requests) → replaces the account's cached projects and tasks → dashboard counts computed on the device</td></tr>
+<tr id="DF-04"><td class="id">DF-04</td><td>Account deletion</td><td><code>DELETE /users/me</code> → server removes the user and all collections → app purges that owner's Room rows and queue under the sync mutex</td></tr>
+<tr id="DF-05"><td class="id">DF-05</td><td>Export</td><td>Habits (cache or API) → CSV string in memory → Android share sheet. Nothing is written to shared storage.</td></tr>
+</tbody>
+</table>
+
+<h2 id="d05-data-retention-and-privacy-notes"><span class="num">5</span>Data retention and privacy notes</h2>
+<ul>
+<li>Personal data held: email, display name, password hash, and the user's own content. No analytics or third-party data processors are wired in <span class="tag fact">Implemented</span>.</li>
+<li>Retention: data is kept until the user deletes it or the account. There are no server-side backups or expiry <span class="tag fact">Implemented</span>.</li>
+<li>Logs: Pino redacts password fields, <code>passwordHash</code>, <code>token</code> and the authorization header. pino-http's default serializers do not log request bodies, so emails in bodies do not reach the logs, but remote IP addresses are logged <span class="tag fact">Implemented</span>.</li>
+</ul>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-06-PLAN">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 06</p>
+  <h1>Implementation Plan</h1>
+  <p class="subtitle">Completed work with evidence, and remaining work ordered by dependency with priorities, estimates, acceptance criteria and tests.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-06-PLAN</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Development team planning the final PoE; assessor reviewing project management</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-06-PLAN contents</h2><ol><li><a href="#d06-completed-work">1 Completed work</a></li><li><a href="#d06-remaining-work">2 Remaining work</a></li><li><a href="#d06-definition-of-done">3 Definition of done</a></li></ol></nav>
+
+
+<h2 id="d06-completed-work"><span class="num">1</span>Completed work</h2>
+<p>This history is reconstructed from <code>PROJECT_IMPROVEMENTS.md</code>, merged pull requests and commit messages. Dates are commit or merge dates <span class="tag fact">Implemented</span>.</p>
+<table>
+<caption>Delivered increments</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">Increment</th><th scope="col">Evidence</th><th scope="col">Requirements</th></tr></thead>
+<tbody>
+<tr><td>2026-08-23</td><td>Initial Android app with auth integration, secure token storage, nav flow, splash animation</td><td>Commits 65385b2, 0496717, 964cbf5</td><td><a href="#FR-01">FR-01</a>, <a href="#FR-02">FR-02</a>, <a href="#FR-19">FR-19</a></td></tr>
+<tr><td>2026-09-22</td><td>CI workflow, Room read cache, task due date / priority / status / labels / checklist, dashboard insights, auth validation</td><td>PRs #10–#16; commit 8b31aa3</td><td><a href="#FR-09">FR-09</a>, <a href="#FR-11">FR-11</a></td></tr>
+<tr><td>2026-09-23</td><td>Backend remediation: mutex + atomic writes, Zod validation, JWT secret check, bcrypt, rate limiting, health check, Pino; task detail screen</td><td>PR #23; <code>server.test.js</code></td><td><a href="#NFR-01">NFR-01</a>, <a href="#NFR-04">NFR-04</a>, <a href="#FR-12">FR-12</a></td></tr>
+<tr><td>2026-09-24</td><td>Android structural remediation: six repositories, manual DI, <code>HabitScoring</code> domain, feature packages, type-safe routes, shared fakes</td><td>PR #24</td><td><a href="#TR-01">TR-01</a> to <a href="#TR-03">TR-03</a>, <a href="#FR-14">FR-14</a></td></tr>
+<tr><td>2026-09-26</td><td>UI refinement: theme colours, logo component</td><td>PR #25</td><td><a href="#NX-04-DES">NX-04-DES</a></td></tr>
+<tr><td>2026-10-04</td><td>Offline upload queue and <code>/api/sync</code>, sync banner, conflict review, project search, task filters, zu/tn resources, configurable <code>NEXUS_API_URL</code>, HTTPS-only release, Dockerfile/compose</td><td>PR #26 (commit 3a3f275)</td><td><a href="#FR-16">FR-16</a>, <a href="#FR-17">FR-17</a>, <a href="#FR-18">FR-18</a>, <a href="#TR-07">TR-07</a></td></tr>
+</tbody>
+</table>
+
+<h2 id="d06-remaining-work"><span class="num">2</span>Remaining work</h2>
+<p>Tasks are ordered so that each depends only on tasks above it. Priority: <strong>P0</strong> blocks a credible release or submission, <strong>P1</strong> is needed before real users, <strong>P2</strong> is improvement. All effort figures are <span class="tag est">Estimate</span> person-day estimates by the document author, not team commitments, and should be re-estimated by the team.</p>
+<table>
+<caption>Dependency-ordered backlog</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Task</th><th scope="col">Pri.</th><th scope="col">Depends on</th><th scope="col">Est. (days)</th><th scope="col">Acceptance criteria</th><th scope="col">Tests</th></tr></thead>
+<tbody>
+<tr id="IMP-01"><td class="id">IMP-01</td><td>Restore GitHub Actions execution (resolve the account billing lock shown in run annotations) and re-run CI on <code>main</code></td><td>P0</td><td>None</td><td>0.25 <span class="tag est">Estimate</span></td><td>Android CI and Backend CI both green on <code>main</code> at or after 3a3f275</td><td>Existing CI jobs (<a href="#CI-01">CI-01</a>, <a href="#CI-02">CI-02</a>)</td></tr>
+<tr id="IMP-02"><td class="id">IMP-02</td><td>Fix Zod 4 compatibility before merging PR #27: use <code>error.issues</code>; give <code>z.record</code> a key schema</td><td>P0</td><td>IMP-01</td><td>0.5 <span class="tag est">Estimate</span></td><td>Backend tests pass on Zod 4; validation still returns 400 <code>VALIDATION_ERROR</code></td><td><code>npm test</code>; existing Zod tests</td></tr>
+<tr id="IMP-03"><td class="id">IMP-03</td><td>Fail safe on an unreadable data file: refuse to start (or start read-only) instead of starting empty</td><td>P0</td><td>None</td><td>0.5 <span class="tag est">Estimate</span></td><td>A corrupt <code>nexus-data.json</code> stops the process with a clear log line and leaves the file untouched</td><td>New Jest test with a corrupt fixture (<a href="#AUD-01">AUD-01</a>)</td></tr>
+<tr id="IMP-04"><td class="id">IMP-04</td><td>Correct the auth error messages: 401 at login gives "Email or password is incorrect"; 409 gives "Email already registered"; 429 gives "Too many attempts"</td><td>P0</td><td>None</td><td>0.5 <span class="tag est">Estimate</span></td><td>Each status shows its own message; session expiry still shows the expiry text elsewhere</td><td><code>AuthViewModelTest</code> cases per status (<a href="#AUD-18">AUD-18</a>)</td></tr>
+<tr id="IMP-05"><td class="id">IMP-05</td><td>Remove or fix the root <code>docker-compose.yml</code>; document <code>backend/compose.yaml</code> as the single container path</td><td>P1</td><td>None</td><td>0.25 <span class="tag est">Estimate</span></td><td><code>docker compose up</code> from the documented path persists data across restarts</td><td>Backend CI smoke test plus a manual restart check (<a href="#AUD-02">AUD-02</a>)</td></tr>
+<tr id="IMP-06"><td class="id">IMP-06</td><td>Add <code>app.set("trust proxy", 1)</code> (configurable) for TLS-proxy hosting</td><td>P1</td><td>IMP-05</td><td>0.25 <span class="tag est">Estimate</span></td><td>The rate limit keys on the client IP behind the chosen proxy</td><td>Supertest with <code>X-Forwarded-For</code> (<a href="#AUD-06">AUD-06</a>)</td></tr>
+<tr id="IMP-07"><td class="id">IMP-07</td><td>Provision the hosted API and release signing; set the <code>NEXUS_API_URL</code> repository variable</td><td>P1</td><td>IMP-01, IMP-03, IMP-05, IMP-06</td><td>1–2 <span class="tag est">Estimate</span></td><td><code>/health</code> reachable over HTTPS; signed release APK/AAB produced by CI</td><td>Release checklist in <a href="#NX-07-CICD">NX-07-CICD</a> (<a href="#AUD-08">AUD-08</a>)</td></tr>
+<tr id="IMP-08"><td class="id">IMP-08</td><td>Due-date reminders, or hide the switch (decision <a href="#OQ-01">OQ-01</a>)</td><td>P1</td><td>OQ-01</td><td>0.25 (hide) / 3–5 (build) <span class="tag est">Estimate</span></td><td>The switch either has a visible effect or is not shown</td><td>Unit test on the scheduler, or UI test that the switch is absent (<a href="#AUD-10">AUD-10</a>)</td></tr>
+<tr id="IMP-09"><td class="id">IMP-09</td><td>Exclude the Room database from backup, or document the choice</td><td>P1</td><td>None</td><td>0.25 <span class="tag est">Estimate</span></td><td><code>backup_rules.xml</code> and <code>data_extraction_rules.xml</code> exclude <code>nexus_database</code></td><td>Manual <code>adb shell bmgr</code> check (<a href="#AUD-05">AUD-05</a>)</td></tr>
+<tr id="IMP-10"><td class="id">IMP-10</td><td>Enforce lint in CI (<code>ktlintCheck</code>, <code>detekt</code>) and fix the ktlint parse failure; delete the placeholder <code>blank.yml</code> and <code>build-verification.log</code></td><td>P1</td><td>IMP-01</td><td>1 <span class="tag est">Estimate</span></td><td>CI fails on lint violations; the log file is no longer tracked</td><td>CI run (<a href="#AUD-13">AUD-13</a>)</td></tr>
+<tr id="IMP-11"><td class="id">IMP-11</td><td>Accessibility pass: TalkBack walkthrough, contrast measurement, 48 dp targets</td><td>P1</td><td>None</td><td>1–2 <span class="tag est">Estimate</span></td><td>Results recorded; issues fixed or logged</td><td>Accessibility Scanner report; Compose semantics tests</td></tr>
+<tr id="IMP-12"><td class="id">IMP-12</td><td>Undo for list deletes of projects, tasks and habits</td><td>P2</td><td>None</td><td>1 <span class="tag est">Estimate</span></td><td>Snackbar "Undo" restores the item before upload</td><td>ViewModel tests</td></tr>
+<tr id="IMP-13"><td class="id">IMP-13</td><td>CSV export escaping (RFC 4180 quoting)</td><td>P2</td><td>None</td><td>0.25 <span class="tag est">Estimate</span></td><td>A habit named <code>Read, write</code> exports as one quoted field</td><td><code>SettingsViewModelTest</code> (<a href="#AUD-11">AUD-11</a>)</td></tr>
+<tr id="IMP-14"><td class="id">IMP-14</td><td>Fix the habit completion-rate formula: count habit-date pairs</td><td>P2</td><td>None</td><td>0.25 <span class="tag est">Estimate</span></td><td>Two daily habits both done for 30 days gives 100%</td><td><code>HabitScoringTest</code> (<a href="#AUD-17">AUD-17</a>)</td></tr>
+<tr id="IMP-15"><td class="id">IMP-15</td><td>Enable Room <code>exportSchema</code> and add <code>MigrationTestHelper</code> tests for 3→4→5</td><td>P2</td><td>None</td><td>1 <span class="tag est">Estimate</span></td><td>Schema JSON committed; migration tests pass</td><td>Instrumented tests (<a href="#AUD-12">AUD-12</a>)</td></tr>
+<tr id="IMP-16"><td class="id">IMP-16</td><td>Documentation corrections: README contents links, admin role label, translation claim, recaptured screenshots</td><td>P2</td><td>IMP-07</td><td>0.5 <span class="tag est">Estimate</span></td><td>Every README link resolves; screenshots match their file names</td><td>Link check (<a href="#AUD-09">AUD-09</a>, <a href="#AUD-21">AUD-21</a>)</td></tr>
+<tr id="IMP-17"><td class="id">IMP-17</td><td>Complete feature-screen localisation (zu/tn)</td><td>P2</td><td>None</td><td>3–5 <span class="tag est">Estimate</span></td><td>No hard-coded user-facing English strings remain in <code>ui/</code></td><td>Lint <code>HardcodedText</code>; pseudo-locale run (<a href="#FR-18">FR-18</a>)</td></tr>
+<tr id="IMP-18"><td class="id">IMP-18</td><td>Final-PoE features (Google SSO, push notifications), as decided in <a href="#OQ-04">OQ-04</a></td><td>P2</td><td>IMP-07, OQ-04</td><td><span class="tag unk">Unknown</span></td><td>Defined per feature in <code>docs/POE_PART_2_ADDENDUM.md</code></td><td>Server and end-to-end tests required by the addendum</td></tr>
+</tbody>
+</table>
+<p>Total for P0 and P1 excluding IMP-08 "build" and IMP-18: about 5–7 person-days <span class="tag est">Estimate</span>.</p>
+
+<h2 id="d06-definition-of-done"><span class="num">3</span>Definition of done</h2>
+<p>Adopted from the quality checklist in <code>PROJECT_IMPROVEMENTS.md</code>: API models and validation first; a Room migration for any schema change; loading, offline, retry, unauthorised and validation states covered; ViewModel unit tests plus instrumented coverage of the main path; accessibility checked; README and the improvements log updated <span class="tag fact">Implemented</span>. <span class="tag rec">Recommendation</span> Add "CI green on the PR" once <a href="#IMP-01">IMP-01</a> is done.</p>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-07-CICD">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 07</p>
+  <h1>CI/CD and Release</h1>
+  <p class="subtitle">Verified pipeline behaviour, build and test gates, run history, environments and the release checklist.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-07-CICD</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Developers and whoever performs releases; assessor checking delivery automation</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-07-CICD contents</h2><ol><li><a href="#d07-pipeline-inventory">1 Pipeline inventory</a></li><li><a href="#d07-verified-run-history">2 Verified run history</a></li><li><a href="#d07-local-verification-for-this-package">3 Local verification for this package</a></li><li><a href="#d07-environments">4 Environments</a></li><li><a href="#d07-release-process">5 Release process</a></li></ol></nav>
+
+
+<h2 id="d07-pipeline-inventory"><span class="num">1</span>Pipeline inventory</h2>
+<p>Three GitHub Actions workflows live in <code>.github/workflows/</code>. Every workflow sets <code>permissions: contents: read</code> <span class="tag fact">Implemented</span>. No deployment (CD) job exists; artifacts are built and uploaded, but nothing is deployed <span class="tag fact">Implemented</span>.</p>
+<table>
+<caption>Workflows</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Workflow</th><th scope="col">Triggers</th><th scope="col">Jobs and gates</th></tr></thead>
+<tbody>
+<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 20, <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
+<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 20 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
+<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>Push/PR on main; manual</td><td>GitHub starter template that only echoes text. It provides no gate (<a href="#AUD-13">AUD-13</a>).</td></tr>
+</tbody>
+</table>
+<p>Not gated in CI: ktlint, detekt, Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning <span class="tag fact">Implemented</span>. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings <span class="tag unk">Unknown</span>.</p>
+
+<h2 id="d07-verified-run-history"><span class="num">2</span>Verified run history</h2>
+<p>Retrieved with <code>gh run list</code> / <code>gh run view</code> on 2026-11-05 (78 most recent runs: 49 success, 29 failure).</p>
+<table>
+<caption>Notable runs</caption>
+<thead><tr><th scope="col">Date (UTC)</th><th scope="col">Trigger</th><th scope="col">Result</th><th scope="col">Cause (from run logs / annotations)</th></tr></thead>
+<tbody>
+<tr><td>2026-09-22</td><td>Several pushes/PRs</td><td>Android CI mixed pass/fail</td><td>Early iterations; not analysed further</td></tr>
+<tr id="CI-RUN-GREEN"><td>2026-09-24 07:17</td><td>Push to main (PR #24 merge)</td><td><strong>Android CI success</strong></td><td>Last successful Android CI on <code>main</code></td></tr>
+<tr><td>2026-09-26 18:23</td><td>PR #25 and its merge</td><td>All workflows failed in 3–5 s</td><td>Annotation: "The job was not started because your account is locked due to a billing issue."</td></tr>
+<tr id="CI-RUN-BASELINE"><td>2026-10-04 18:13</td><td>PR #26 and merge (baseline 3a3f275)</td><td>All workflows failed in 3–4 s</td><td>Same annotation; jobs never started. <strong>The baseline code has never been verified by CI.</strong></td></tr>
+<tr id="CI-RUN-ZOD"><td>2026-10-31 08:37</td><td>Dependabot PR #27 (zod 3.25.76 → 4.6.6)</td><td>Android build job passed; both backend test jobs <strong>failed</strong></td><td><code>TypeError: Cannot read properties of undefined (reading 'map')</code> at <code>server.js:133</code>. The Docker smoke test did not run. See <a href="#AUD-03">AUD-03</a>.</td></tr>
+</tbody>
+</table>
+<p>The Backend CI Docker smoke test (<a href="#CI-02">CI-02</a>) has no successful run in the retrieved history <span class="tag fact">Implemented</span>. Its correctness is <span class="tag inf">Inferred</span> from reading the workflow only.</p>
+
+<h2 id="d07-local-verification-for-this-package"><span class="num">3</span>Local verification for this package</h2>
+<table>
+<caption>Commands run on 2026-11-05 on the author's Windows workstation</caption>
+<thead><tr><th scope="col">Command</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr><td><code>cd backend; npm test</code> (installed zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong>, 0 failures</td></tr>
+<tr><td><code>assembleDebug</code>, <code>assembleRelease</code>, Docker build</td><td>Not run for this package <span class="tag unk">Unknown</span>. The Docker daemon was not running.</td></tr>
+</tbody>
+</table>
+<p>Details per suite are in <a href="#NX-09-TDH">NX-09-TDH</a>.</p>
+
+<h2 id="d07-environments"><span class="num">4</span>Environments</h2>
+<table>
+<caption>Known environments</caption>
+<thead><tr><th scope="col">Environment</th><th scope="col">API URL</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>Local emulator</td><td><code>http://10.0.2.2:5263/api/</code> (debug default)</td><td><span class="tag fact">Implemented</span> Documented in <code>docs/ONLINE_OFFLINE.md</code></td></tr>
+<tr><td>Local phone on LAN</td><td><code>-PNEXUS_API_URL=http://&lt;LAN-IP&gt;:5263/api/</code></td><td><span class="tag fact">Implemented</span> Debug builds only</td></tr>
+<tr><td>CI</td><td>None (tests use Supertest in process; smoke test uses localhost)</td><td><span class="tag fact">Implemented</span></td></tr>
+<tr><td>Staging / production</td><td>None</td><td><span class="tag fact">Implemented</span> Not provisioned; the README states the earlier production hostname "was not a configured service" (<a href="#CON-02">CON-02</a>)</td></tr>
+</tbody>
+</table>
+
+<h2 id="d07-release-process"><span class="num">5</span>Release process</h2>
+<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 <span class="tag fact">Implemented</span>. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources <span class="tag fact">Implemented</span>. No <code>signingConfig</code> is defined, so CI release artifacts would be unsigned (<a href="#AUD-08">AUD-08</a>).</p>
+<h3 id="REL-CHECK"><span class="num">5.1</span>Release checklist</h3>
+<p>Items marked <span class="tag rec">Recommendation</span> are recommendations for the first release. The others restate rules the repository already enforces or documents.</p>
+<ol>
+<li id="REL-01">CI (<a href="#CI-01">CI-01</a>, <a href="#CI-02">CI-02</a>) is green on the release commit; this requires <a href="#IMP-01">IMP-01</a>. <span class="tag rec">Recommendation</span></li>
+<li id="REL-02">Backend tests pass locally: <code>npm ci &amp;&amp; npm test</code>.</li>
+<li id="REL-03">Android unit tests pass: <code>./gradlew test</code>. Instrumented tests pass on at least one API 24 and one current device. <span class="tag rec">Recommendation</span></li>
+<li id="REL-04">Run the offline acceptance check in <code>docs/ONLINE_OFFLINE.md</code> (six steps) against the target API.</li>
+<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> and update the hard-coded "Version 1.0.0 (Prototype)" label in Settings. <span class="tag rec">Recommendation</span></li>
+<li id="REL-06">Hosted API is healthy over HTTPS with persistent storage and a stable <code>JWT_SECRET</code> (<a href="#NX-11-DEP">NX-11-DEP</a>).</li>
+<li id="REL-07">Set repository variable <code>NEXUS_API_URL</code> to the HTTPS URL ending in <code>/</code>.</li>
+<li id="REL-08">Sign the APK/AAB with the release keystore held outside the repository (<a href="#IMP-07">IMP-07</a>). <span class="tag rec">Recommendation</span></li>
+<li id="REL-09">Do not seed test accounts on a public host (<a href="#AUD-14">AUD-14</a>). <span class="tag rec">Recommendation</span></li>
+<li id="REL-10">Add a dated entry to <code>PROJECT_IMPROVEMENTS.md</code>; tag the commit and create a GitHub release with the signed artifacts. <span class="tag rec">Recommendation</span></li>
+</ol>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-08-AUD">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 08</p>
+  <h1>Engineering Audit</h1>
+  <p class="subtitle">Evidence-based findings with severity, confidence, affected area and recommended action, plus an addendum verifying earlier remediation.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-08-AUD</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Development team prioritising fixes; assessor reviewing quality assurance</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-08-AUD contents</h2><ol><li><a href="#d08-scope-and-method">1 Scope and method</a></li><li><a href="#d08-summary">2 Summary</a></li><li><a href="#d08-findings">3 Findings</a></li><li><a href="#AUD-ADDENDUM">4 Addendum: verification of earlier remediation</a></li></ol></nav>
+
+
+<h2 id="d08-scope-and-method"><span class="num">1</span>Scope and method</h2>
+<p>This audit covers the repository at the evidence baseline: Android source, backend source, build and CI configuration, tests, and existing documentation. The methods were code reading, running both test suites, retrieving GitHub Actions run history, and one targeted reproduction (AUD-01) in a scratch directory.</p>
+<div class="callout warn">
+<p><strong>Not a security audit.</strong> No penetration test, threat model, dependency vulnerability scan (<code>npm audit</code>/OWASP) or formal security review was performed. Security-relevant observations below come from reading code and must not be read as a security assessment.</p>
+</div>
+<h3 id="d08-ratings"><span class="num">1.1</span>Ratings</h3>
+<ul>
+<li><span class="sev high">High</span>: likely data loss, broken core function, or blocked release. <span class="sev medium">Medium</span>: real user or operational impact under plausible conditions. <span class="sev low">Low</span>: limited impact or quality debt. <span class="sev info">Info</span>: observation.</li>
+<li>Confidence: <strong>Verified</strong> (reproduced or shown in logs/tests), <strong>High</strong> (unambiguous in code/config), <strong>Medium</strong> (depends on environment or library behaviour not exercised here).</li>
+</ul>
+
+<h2 id="d08-summary"><span class="num">2</span>Summary</h2>
+<table>
+<caption>Findings by severity</caption>
+<thead><tr><th scope="col">Severity</th><th scope="col">Count</th><th scope="col">IDs</th></tr></thead>
+<tbody>
+<tr><td><span class="sev high">High</span></td><td>3</td><td><a href="#AUD-01">AUD-01</a>, <a href="#AUD-03">AUD-03</a>, <a href="#AUD-04">AUD-04</a></td></tr>
+<tr><td><span class="sev medium">Medium</span></td><td>6</td><td><a href="#AUD-02">AUD-02</a>, <a href="#AUD-05">AUD-05</a>, <a href="#AUD-06">AUD-06</a>, <a href="#AUD-08">AUD-08</a>, <a href="#AUD-18">AUD-18</a>, <a href="#AUD-19">AUD-19</a></td></tr>
+<tr><td><span class="sev low">Low</span></td><td>10</td><td><a href="#AUD-07">AUD-07</a>, <a href="#AUD-09">AUD-09</a>, <a href="#AUD-10">AUD-10</a>, <a href="#AUD-11">AUD-11</a>, <a href="#AUD-12">AUD-12</a>, <a href="#AUD-13">AUD-13</a>, <a href="#AUD-14">AUD-14</a>, <a href="#AUD-16">AUD-16</a>, <a href="#AUD-17">AUD-17</a>, <a href="#AUD-21">AUD-21</a></td></tr>
+<tr><td><span class="sev info">Info</span></td><td>2</td><td><a href="#AUD-15">AUD-15</a>, <a href="#AUD-20">AUD-20</a></td></tr>
+</tbody>
+</table>
+<p>Strengths observed: transactional offline outbox with idempotent server receipts; consistent per-account data scoping on both tiers; strict startup secret check; atomic file writes; standard error shape; injected fakes that make ViewModels testable; honest scoping in the existing docs (the addendum explicitly forbids claiming unbuilt features).</p>
+
+<h2 id="d08-findings"><span class="num">3</span>Findings</h2>
+<table>
+<caption>Engineering findings</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Finding and evidence</th><th scope="col">Severity / confidence</th><th scope="col">Area</th><th scope="col">Recommended action</th></tr></thead>
+<tbody>
+<tr id="AUD-01"><td class="id">AUD-01</td><td><strong>Unreadable data file is silently replaced with an empty store.</strong> <code>loadDatabase()</code> catches a JSON parse error, logs it, and continues with empty maps; the next write overwrites the file. Reproduced 2026-11-05: a truncated file loaded as 0 users and was rewritten as <code>{"users":[],...}</code> by the first <code>saveDatabase()</code>.</td><td><span class="sev high">High</span> / Verified</td><td>Backend persistence</td><td>Exit non-zero on a parse failure; keep a <code>.bak</code> before each rename. <a href="#IMP-03">IMP-03</a></td></tr>
+<tr id="AUD-03"><td class="id">AUD-03</td><td><strong>Open Dependabot PR #27 (Zod 4) breaks all request validation.</strong> <code>validate()</code> reads <code>result.error.errors</code>, which is undefined on Zod 4. CI run 2026-10-31 shows <code>TypeError … reading 'map'</code> at <code>server.js:133</code>, so invalid input would return 500 instead of 400. <code>z.record(z.unknown())</code> in <code>syncSchema</code> also uses the single-argument form that Zod 4 changed (not verified).</td><td><span class="sev high">High</span> (if merged) / Verified</td><td>Backend dependencies</td><td>Do not merge as-is; migrate to <code>error.issues</code> and <code>z.record(z.string(), z.unknown())</code>. <a href="#IMP-02">IMP-02</a></td></tr>
+<tr id="AUD-04"><td class="id">AUD-04</td><td><strong>The current code has never passed CI.</strong> Every workflow run for PRs #25 and #26 and their merges failed in 3–5 s with the annotation "job was not started because your account is locked due to a billing issue". The last green Android CI on main was 2026-09-24 (<a href="#CI-RUN-GREEN">CI-RUN-GREEN</a>).</td><td><span class="sev high">High</span> / Verified</td><td>Delivery</td><td>Resolve the account lock and re-run CI on main. <a href="#IMP-01">IMP-01</a></td></tr>
+<tr id="AUD-02"><td class="id">AUD-02</td><td><strong>Root <code>docker-compose.yml</code> conflicts with the Docker image.</strong> It sets <code>DATABASE_PATH=/usr/src/app/nexus-data.json</code> and bind-mounts a single host file there. The image runs as <code>node</code> with <code>WORKDIR /app</code>, so the server cannot create <code>nexus-data.json.tmp</code> in the root-owned <code>/usr/src/app</code>, and renaming over a bind-mounted file is not possible. If the host file does not exist, Docker creates a directory in its place. <code>backend/compose.yaml</code> (named volume at <code>/data</code>) is consistent.</td><td><span class="sev medium">Medium</span> / Medium (not executed; Docker daemon unavailable)</td><td>Deployment config</td><td>Delete the root file or align it with <code>backend/compose.yaml</code>. <a href="#IMP-05">IMP-05</a></td></tr>
+<tr id="AUD-05"><td class="id">AUD-05</td><td><strong>Cached user content is included in Android backups.</strong> <code>allowBackup="true"</code>; the backup and extraction rules exclude only <code>sharedpref</code>, so <code>nexus_database</code> (projects, tasks, habits, pending queue) goes to cloud backup and device transfer.</td><td><span class="sev medium">Medium</span> / High</td><td>Android privacy</td><td>Exclude the <code>database</code> domain, or document the decision. <a href="#IMP-09">IMP-09</a></td></tr>
+<tr id="AUD-06"><td class="id">AUD-06</td><td><strong>Auth rate limiting will misbehave behind a TLS proxy.</strong> <code>trust proxy</code> is not set, so <code>req.ip</code> is the proxy address and all users would share one 10-per-15-min bucket. Hosting requires a TLS proxy (<a href="#OPS-01">OPS-01</a>).</td><td><span class="sev medium">Medium</span> / Medium</td><td>Backend security / ops</td><td>Configure <code>trust proxy</code> for the chosen host. <a href="#IMP-06">IMP-06</a></td></tr>
+<tr id="AUD-08"><td class="id">AUD-08</td><td><strong>No release signing configuration.</strong> <code>app/build.gradle.kts</code> defines no <code>signingConfig</code>, so CI release artifacts would be unsigned and could not be installed or published.</td><td><span class="sev medium">Medium</span> / High</td><td>Release</td><td>Add signing from CI secrets. <a href="#IMP-07">IMP-07</a></td></tr>
+<tr id="AUD-18"><td class="id">AUD-18</td><td><strong>Misleading sign-in and registration errors.</strong> <code>toApiError()</code> maps every 401/403 to <code>SessionExpired</code>, so a wrong password shows "Your session has expired. Please log in again." A 409 (email taken) and a 429 (rate-limited) both show "Something went wrong. Please try again."</td><td><span class="sev medium">Medium</span> / High</td><td>Android auth UX</td><td>Map auth-endpoint statuses separately. <a href="#IMP-04">IMP-04</a></td></tr>
+<tr id="AUD-19"><td class="id">AUD-19</td><td><strong>One rejected operation blocks the whole upload queue.</strong> Uploads stop at the first failure; a 400 or 409 needs the user to choose "Discard item edits". Until then no later change for any item uploads, though they stay saved locally.</td><td><span class="sev medium">Medium</span> / High</td><td>Sync design</td><td>Keep the ordering guarantee per entity only, or surface the blocked item by name in Review. Document it in the user manual (done in <a href="#NX-10-UM">NX-10-UM</a>).</td></tr>
+<tr id="AUD-07"><td class="id">AUD-07</td><td><strong>Throughput is bounded by one global lock.</strong> Every authenticated handler, including bcrypt cost-12 hashing and full-file rewrites, runs under <code>dbMutex</code>. Sync receipts (<code>syncOperations</code>) grow without limit, and dashboard refresh makes one request per project.</td><td><span class="sev low">Low</span> / High</td><td>Backend performance</td><td>Hash outside the lock; cap or expire receipts; add a bulk tasks endpoint. Revisit with the SQLite plan.</td></tr>
+<tr id="AUD-09"><td class="id">AUD-09</td><td><strong>Documentation drift.</strong> README contents links to five sections that do not exist (Roadmap, Continuous Integration, Part 2 PoE Evidence, Security and Release Notes, Contributing). It claims "MyMemory translation fallback", but <code>OnlineLanguageRepository</code> has no callers. It labels a test user "Global system administrator" though no roles exist. It lists full multi-language support, which is partial. The project list header shows a stray "?" (encoding).</td><td><span class="sev low">Low</span> / High</td><td>Documentation</td><td><a href="#IMP-16">IMP-16</a></td></tr>
+<tr id="AUD-10"><td class="id">AUD-10</td><td><strong>"Task due-date reminders" switch has no effect.</strong> No notification permission, channel, WorkManager or AlarmManager code exists; the switch only stores a preference.</td><td><span class="sev low">Low</span> / High</td><td>Android feature</td><td>Hide it, or implement reminders (<a href="#OQ-01">OQ-01</a>, <a href="#IMP-08">IMP-08</a>).</td></tr>
+<tr id="AUD-11"><td class="id">AUD-11</td><td><strong>CSV export is not escaped.</strong> Rows are <code>"${name},${frequency},$date"</code>; commas, quotes or newlines in a habit name corrupt the file.</td><td><span class="sev low">Low</span> / High</td><td>Android export</td><td><a href="#IMP-13">IMP-13</a></td></tr>
+<tr id="AUD-12"><td class="id">AUD-12</td><td><strong>Room migrations are untested and incomplete.</strong> <code>exportSchema = false</code>; there are no migrations for 1→2 or 2→3, and no destructive fallback, so a device with a v1/v2 database would fail to open it. There are no migration tests.</td><td><span class="sev low">Low</span> (no public release yet) / High</td><td>Android data</td><td><a href="#IMP-15">IMP-15</a></td></tr>
+<tr id="AUD-13"><td class="id">AUD-13</td><td><strong>Lint is configured but not enforced.</strong> ktlint, detekt and Kover are in the build, but CI runs only <code>test</code>/<code>assemble</code>. The committed <code>build-verification.log</code> (UTF-16) records a failed local <code>ktlintFormat</code> ("KtLint failed to parse file … app/build.gradle.kts"). <code>blank.yml</code> is a starter template.</td><td><span class="sev low">Low</span> / High</td><td>Code quality / CI</td><td><a href="#IMP-10">IMP-10</a></td></tr>
+<tr id="AUD-14"><td class="id">AUD-14</td><td><strong>Test account passwords are committed.</strong> <code>docs/seed_test_users.ps1</code> and the README contain plain-text passwords for three seed accounts. This is acceptable for local development, but the accounts must never be seeded on a hosted API.</td><td><span class="sev low">Low</span> / High</td><td>Security hygiene</td><td>Release checklist item <a href="#REL-09">REL-09</a>; consider generating the passwords at seed time.</td></tr>
+<tr id="AUD-16"><td class="id">AUD-16</td><td><strong>Minor auth weaknesses.</strong> Login returns before any bcrypt work for unknown emails, so timing could reveal registered emails. A legacy path accepts a stored non-bcrypt value as a plain-text password. Email uniqueness is case-sensitive.</td><td><span class="sev low">Low</span> / High</td><td>Backend auth</td><td>Compare against a dummy hash; remove the legacy path once no such records exist; normalise emails to lower case.</td></tr>
+<tr id="AUD-17"><td class="id">AUD-17</td><td><strong>Habit completion rate is understated with several habits.</strong> <code>HabitScoring</code> counts distinct dates across all habits but sums the schedule per habit. Two daily habits both done for 30 days score 50%. Streaks also count a day if <em>any</em> habit was done.</td><td><span class="sev low">Low</span> / High</td><td>Domain logic</td><td><a href="#IMP-14">IMP-14</a></td></tr>
+<tr id="AUD-21"><td class="id">AUD-21</td><td><strong>UI screenshot set does not show the screens it names.</strong> <code>docs/screenshots/ui-audit/</code> holds 9 files but only 4 distinct images (MD5): <code>dashboard-offline</code>, <code>profile</code>, <code>project-list</code> and <code>settings</code> are identical. <code>habits</code>, <code>project-list-skeleton</code>, <code>login</code> and <code>register</code> are also skeleton states, and <code>splash.png</code> shows the Login screen.</td><td><span class="sev low">Low</span> / Verified</td><td>Evidence / documentation</td><td>Recapture before submission; do not present these files as evidence of named screens. <a href="#IMP-16">IMP-16</a></td></tr>
+<tr id="AUD-15"><td class="id">AUD-15</td><td><strong>Dead code.</strong> <code>AuthSession.OFFLINE_TOKEN_PREFIX</code> handling remains after synthetic offline auth was removed; <code>setOnSessionCleared</code> is never registered; <code>OnlineLanguageRepository</code> and <code>languageInstance</code> are unused.</td><td><span class="sev info">Info</span> / High</td><td>Android</td><td>Remove during the next refactor.</td></tr>
+<tr id="AUD-20"><td class="id">AUD-20</td><td><strong>Inert or ordering quirks in the API.</strong> <code>registrationEnabled</code> in <code>/app/config</code> is not enforced. Validation runs before authentication on several routes, so an unauthenticated request with a bad body gets 400 instead of 401. CORS is <code>*</code> (documented as intentional).</td><td><span class="sev info">Info</span> / High</td><td>Backend</td><td>Address when roles or a web client are introduced.</td></tr>
+</tbody>
+</table>
+
+<h2 id="AUD-ADDENDUM"><span class="num">4</span>Addendum: verification of earlier remediation</h2>
+<p><code>PROJECT_IMPROVEMENTS.md</code> records two remediation passes (2026-09-23 backend, 2026-09-24 Android). Each claim was checked against the baseline code and test evidence.</p>
+<table>
+<caption>Remediation claims versus evidence</caption>
+<thead><tr><th scope="col">Claimed remediation</th><th scope="col">Code evidence</th><th scope="col">Test evidence (2026-11-05)</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr><td>AsyncMutex + atomic <code>.tmp</code>/<code>rename</code> writes</td><td><code>AsyncMutex</code>, <code>withDb</code>, <code>saveDatabase()</code></td><td>"Concurrent PATCH requests …" passed</td><td>Confirmed; see <a href="#AUD-01">AUD-01</a> for the remaining load-path gap</td></tr>
+<tr><td>Zod validation on all write endpoints</td><td>Schemas for register, login, profile, password, project, task, habit, sync</td><td>Validation tests passed (Zod 3)</td><td>Confirmed on Zod 3; at risk with Zod 4 (<a href="#AUD-03">AUD-03</a>)</td></tr>
+<tr><td>JWT secret ≥ 32 chars, 24 h expiry, bcrypt 12, 10/15 min rate limit</td><td><code>server.js</code> lines for each</td><td>Startup-refusal, expired-token and 429 tests passed</td><td>Confirmed; proxy caveat <a href="#AUD-06">AUD-06</a></td></tr>
+<tr><td><code>/health</code> + Pino with redaction</td><td>Routes and <code>redact.paths</code></td><td>Health test passed</td><td>Confirmed</td></tr>
+<tr><td>Repository split, manual DI, <code>HabitScoring</code>, type-safe routes, shared fakes</td><td><code>data/*Repository.kt</code>, <code>NexusApp</code>, <code>domain/</code>, <code>Route</code>, <code>test/fakes/</code></td><td>32/32 unit tests passed</td><td>Confirmed</td></tr>
+<tr><td>Synthetic offline authentication removed</td><td>No code mints offline tokens</td><td>Not separately tested</td><td>Confirmed, with leftover parsing code (<a href="#AUD-15">AUD-15</a>)</td></tr>
+</tbody>
+</table>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-09-TDH">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 09</p>
+  <h1>Testing, Deployment and Handover</h1>
+  <p class="subtitle">Test strategy and verified results, deployment summary, operational handover, known limitations and runbooks.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-09-TDH</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Incoming maintainers and operators; assessor checking test evidence</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-09-TDH contents</h2><ol><li><a href="#d09-test-strategy">1 Test strategy</a></li><li><a href="#d09-verified-results">2 Verified results</a></li><li><a href="#d09-deployment-summary">3 Deployment summary</a></li><li><a href="#d09-operational-handover">4 Operational handover</a></li><li><a href="#d09-known-limitations">5 Known limitations</a></li><li><a href="#d09-runbooks">6 Runbooks</a></li></ol></nav>
+
+
+<h2 id="d09-test-strategy"><span class="num">1</span>Test strategy</h2>
+<table>
+<caption>Test levels in the repository</caption>
+<thead><tr><th scope="col">Level</th><th scope="col">Tooling</th><th scope="col">What it covers</th><th scope="col">Runs in CI</th></tr></thead>
+<tbody>
+<tr><td>Backend unit/integration</td><td>Jest + Supertest against the in-process Express app</td><td>Validation, auth, rate limiting, error shape, health, body limit, concurrency, sync replay, ownership and conflicts</td><td>Yes (<a href="#CI-01">CI-01</a>, <a href="#CI-02">CI-02</a>)</td></tr>
+<tr><td>Android unit (JVM)</td><td>JUnit 4, MockK, coroutines-test, shared fakes</td><td>ViewModels (auth, dashboard, projects, settings), <code>SyncManager</code>, <code>HabitScoring</code></td><td>Yes (<code>./gradlew test</code>)</td></tr>
+<tr><td>Android instrumented</td><td>AndroidX JUnit, Compose UI test</td><td>Room offline persistence and ownership, splash with reduced motion, screenshot-capture wait conditions</td><td>No; needs an emulator or device</td></tr>
+<tr><td>Container smoke</td><td>Docker + curl <code>/health</code></td><td>Image builds and starts in production mode</td><td>Backend CI only; never succeeded (<a href="#CI-02">CI-02</a>)</td></tr>
+<tr><td>Manual acceptance</td><td><code>docs/ONLINE_OFFLINE.md</code> six-step check; <code>docs/DEMO_SCRIPT.md</code></td><td>Online/offline round trip, account switch, conflicts</td><td>No. No recorded results in the repository <span class="tag unk">Unknown</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d09-verified-results"><span class="num">2</span>Verified results</h2>
+<p>Run on 2026-11-05 against the baseline working tree (no local modifications to application code).</p>
+<table>
+<caption>Backend: <code>cd backend; npm test</code>, 2 suites, 16 tests, 16 passed, 31.7 s</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Suite</th><th scope="col">Tests</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr id="TST-01"><td class="id">TST-01</td><td><code>tests/server.test.js</code>: JWT secret refusal; concurrent updates; Zod validation (register, task enum/date, strict profile); error shape and production masking; expired token 401; 429 after 10 logins; <code>/health</code>; 413 over 1 MB</td><td>11</td><td>Passed</td></tr>
+<tr id="TST-02"><td class="id">TST-02</td><td><code>tests/sync.test.js</code>: ordered replay with cascade delete; lost response plus restart does not duplicate or resurrect; cross-account project rejected; invalid payload 400 and no-auth 401; edit of deleted item gives 409</td><td>5</td><td>Passed</td></tr>
+</tbody>
+</table>
+<table>
+<caption>Android: <code>./gradlew :app:testDebugUnitTest --rerun</code>, 7 classes, 32 tests, 0 failures, BUILD SUCCESSFUL</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Class</th><th scope="col">Tests</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<tr id="TST-03"><td class="id">TST-03</td><td><code>AuthViewModelTest</code></td><td>9</td><td>Passed</td></tr>
+<tr id="TST-04"><td class="id">TST-04</td><td><code>DashboardViewModelTest</code></td><td>7</td><td>Passed</td></tr>
+<tr id="TST-05"><td class="id">TST-05</td><td><code>SyncManagerTest</code>: acknowledged operations removed in sequence; network failure keeps pending changes; pending writes block refresh overwrite; offline reads use cache while auth errors surface</td><td>4</td><td>Passed</td></tr>
+<tr id="TST-06"><td class="id">TST-06</td><td><code>HabitScoringTest</code></td><td>4</td><td>Passed</td></tr>
+<tr id="TST-07"><td class="id">TST-07</td><td><code>SettingsViewModelTest</code></td><td>4</td><td>Passed</td></tr>
+<tr id="TST-08"><td class="id">TST-08</td><td><code>ProjectListViewModelTest</code></td><td>3</td><td>Passed</td></tr>
+<tr id="TST-09"><td class="id">TST-09</td><td><code>ExampleUnitTest</code> (template)</td><td>1</td><td>Passed</td></tr>
+</tbody>
+</table>
+<table>
+<caption>Not executed for this package</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Test</th><th scope="col">Count</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr id="TST-10"><td class="id">TST-10</td><td>Instrumented: <code>OfflinePersistenceTest</code> (1), <code>SplashIntroScreenTest</code> (4), <code>ScreenshotCaptureTest</code> (10), <code>ExampleInstrumentedTest</code> (1)</td><td>16</td><td>Not run; no device attached <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-11"><td class="id">TST-11</td><td>Docker build and smoke test</td><td>1</td><td>Not run; Docker daemon not running <span class="tag unk">Unknown</span></td></tr>
+<tr id="TST-12"><td class="id">TST-12</td><td>Manual acceptance check (<code>ONLINE_OFFLINE.md</code>)</td><td>6 steps</td><td>No recorded execution <span class="tag unk">Unknown</span></td></tr>
+</tbody>
+</table>
+<h3 id="d09-coverage-gaps"><span class="num">2.1</span>Coverage gaps</h3>
+<ul>
+<li>No unit tests for <code>ProjectDetailViewModel</code>, <code>TaskListViewModel</code>, <code>HabitsViewModel</code>, <code>RemoteConfigViewModel</code>, or the repositories' Room paths <span class="tag fact">Implemented</span>.</li>
+<li>No backend tests for habits CRUD, password change, account deletion or the localisation/config endpoints <span class="tag fact">Implemented</span>.</li>
+<li>No Room migration tests (<a href="#AUD-12">AUD-12</a>); no tests for the defects in <a href="#AUD-01">AUD-01</a>, <a href="#AUD-11">AUD-11</a>, <a href="#AUD-17">AUD-17</a> and <a href="#AUD-18">AUD-18</a>.</li>
+<li>A Kover report is configured but no coverage figure was produced or recorded <span class="tag unk">Unknown</span>.</li>
+</ul>
+
+<h2 id="d09-deployment-summary"><span class="num">3</span>Deployment summary</h2>
+<p>Full procedures are in <a href="#NX-11-DEP">NX-11-DEP</a>; release gating is in <a href="#REL-CHECK">REL-CHECK</a>. In short: run the API with a persistent <code>JWT_SECRET</code> and persistent storage (Node host or <code>backend/compose.yaml</code>), put it behind HTTPS, and build the app with <code>-PNEXUS_API_URL=https://…/api/</code>. No environment beyond local development exists today (<a href="#CON-02">CON-02</a>).</p>
+
+<h2 id="d09-operational-handover"><span class="num">4</span>Operational handover</h2>
+<table>
+<caption>Handover register</caption>
+<thead><tr><th scope="col">Item</th><th scope="col">Current state</th></tr></thead>
+<tbody>
+<tr><td>Source repository</td><td><code>github.com/jBlack-MC/Nexus-app</code>; default branch <code>main</code>; working branch <code>New-Changes</code> <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Repository owner / admins</td><td>Owner account <code>jBlack-MC</code>; other collaborators <span class="tag unk">Unknown</span></td></tr>
+<tr><td>Secrets in use</td><td><code>JWT_SECRET</code> (API runtime; set per environment, never committed). CI uses a hard-coded test-only value. No signing keystore exists <span class="tag fact">Implemented</span></td></tr>
+<tr><td>CI variables</td><td><code>NEXUS_API_URL</code> (enables release artifacts). Whether it is set: <span class="tag unk">Unknown</span>. Release jobs were skipped in the retrieved runs <span class="tag inf">Inferred</span></td></tr>
+<tr><td>Hosted services</td><td>None <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Monitoring and alerting</td><td><code>/health</code> endpoint and Docker <code>HEALTHCHECK</code>. No external monitoring <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Backups</td><td>None configured <span class="tag fact">Implemented</span>. See <a href="#RB-04">RB-04</a></td></tr>
+<tr><td>Open pull requests</td><td>#27 Dependabot Zod 4. Do not merge until <a href="#IMP-02">IMP-02</a> is done</td></tr>
+</tbody>
+</table>
+
+<h2 id="d09-known-limitations"><span class="num">5</span>Known limitations</h2>
+<ul>
+<li>Single-instance JSON store (<a href="#CON-01">CON-01</a>); not suited to concurrent hosting or large data.</li>
+<li>No background sync while the app process is stopped (<a href="#CON-03">CON-03</a>).</li>
+<li>Last-upload-wins for edits; no field-level merge (<a href="#FR-17">FR-17</a>).</li>
+<li>Reminders, push notifications, account recovery and collaboration are not implemented (<a href="#NX-01-PRD">NX-01-PRD</a> scope).</li>
+<li>Localisation is partial (<a href="#FR-18">FR-18</a>).</li>
+<li>Open defects: see <a href="#NX-08-AUD">NX-08-AUD</a>.</li>
+</ul>
+
+<h2 id="d09-runbooks"><span class="num">6</span>Runbooks</h2>
+<table>
+<caption>Operational runbooks</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Situation</th><th scope="col">Steps</th></tr></thead>
+<tbody>
+<tr id="RB-01"><td class="id">RB-01</td><td>API exits at start with "FATAL: JWT_SECRET is missing, too short…"</td><td>Generate a secret: <code>node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"</code>. Set <code>JWT_SECRET</code> in the host's secret store (not in git) and restart. Reuse the same value on later restarts.</td></tr>
+<tr id="RB-02"><td class="id">RB-02</td><td>Health check</td><td><code>curl -s https://&lt;host&gt;/health</code> should return <code>{"status":"ok","uptime":…}</code>. Locally: <code>http://localhost:5263/health</code>.</td></tr>
+<tr id="RB-03"><td class="id">RB-03</td><td>All users suddenly see empty data after a restart</td><td>Likely <a href="#AUD-01">AUD-01</a>. <strong>Stop the API immediately</strong> so no further writes occur. Inspect logs for "Failed to load database". Restore the data file from the latest backup (<a href="#RB-04">RB-04</a>) and restart. Without a backup, the data overwritten by the empty store cannot be recovered.</td></tr>
+<tr id="RB-04"><td class="id">RB-04</td><td>Back up and restore data <span class="tag rec">Recommendation</span></td><td>Back up: stop the API, or accept a crash-consistent copy (writes are atomic renames), then copy <code>nexus-data.json</code> (container: <code>docker compose cp api:/data/nexus-data.json ./backup-YYYYMMDD.json</code>). Restore: stop the API, replace the file, start the API, check <a href="#RB-02">RB-02</a>. Treat backups as personal data.</td></tr>
+<tr id="RB-05"><td class="id">RB-05</td><td>Users cannot sign in (HTTP 429)</td><td>The limit is 10 auth requests per 15 minutes per IP, held in memory. Wait 15 minutes or restart the API. Behind a proxy, check <a href="#AUD-06">AUD-06</a>.</td></tr>
+<tr id="RB-06"><td class="id">RB-06</td><td>Rotate <code>JWT_SECRET</code></td><td>Set the new value and restart. Every existing session becomes invalid; users see "Sign in again to sync saved changes", and their queued changes upload after they sign in.</td></tr>
+<tr id="RB-07"><td class="id">RB-07</td><td>A user reports the sync banner stuck on "review required"</td><td>Ask them to tap Review. "Discard item edits" removes only that item's queued edits, then the rest uploads. If they choose "Keep changes", nothing uploads until the conflict is resolved (<a href="#AUD-19">AUD-19</a>).</td></tr>
+<tr id="RB-08"><td class="id">RB-08</td><td>CI runs fail within seconds</td><td>Open the run with <code>gh run view &lt;id&gt;</code> and read the annotations. If they show "job was not started", the cause is an account or billing restriction, not the code (<a href="#AUD-04">AUD-04</a>).</td></tr>
+</tbody>
+</table>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-10-UM">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 10</p>
+  <h1>User Manual</h1>
+  <p class="subtitle">Task-based instructions for Nexus users: account, projects, tasks, habits, settings and working offline.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-10-UM</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>People using the Nexus Android app (signed-in users) and testers following the demo</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-10-UM contents</h2><ol><li><a href="#d10-before-you-start">1 Before you start</a></li><li><a href="#d10-account">2 Account</a></li><li><a href="#d10-today-screen">3 Today screen</a></li><li><a href="#d10-projects-and-tasks">4 Projects and tasks</a></li><li><a href="#d10-habits">5 Habits</a></li><li><a href="#d10-settings">6 Settings</a></li><li><a href="#d10-working-offline">7 Working offline</a></li></ol></nav>
+
+
+<h2 id="d10-before-you-start"><span class="num">1</span>Before you start</h2>
+<ul>
+<li>You need an Android phone or emulator running Android 7.0 or later, with the Nexus app installed from a build provided by the team. No app-store listing exists.</li>
+<li>Your first registration or sign-in must happen while the device can reach the Nexus server. After that you can keep working offline.</li>
+<li>Nexus has one kind of user. Everything you create is private to your account, and there are no shared projects.</li>
+</ul>
+<div class="callout"><p>Screen labels in this manual are the English ones. If you choose isiZulu or Setswana, the sign-in screens and some labels change language; most other screens stay in English.</p></div>
+
+<h2 id="d10-account"><span class="num">2</span>Account</h2>
+<h3 id="UM-01"><span class="num">2.1</span>Create an account (UM-01)</h3>
+<ol>
+<li>Open Nexus and wait for the intro animation to finish. The Login screen opens.</li>
+<li>Optional: choose your language in the <strong>Language</strong> box.</li>
+<li>Tap <strong>Need an account? Register</strong>.</li>
+<li>Enter <strong>Display Name</strong>, <strong>Email</strong> and a <strong>Password</strong> of at least 6 characters, then tap <strong>Create Account</strong>.</li>
+<li>The Today screen opens. You stay signed in when you close and reopen the app (for up to 24 hours per sign-in).</li>
+</ol>
+<p>If you see "Something went wrong. Please try again." when registering, the email may already be registered, or you made too many attempts in a short time. Try signing in instead, or wait 15 minutes.</p>
+<h3 id="UM-02"><span class="num">2.2</span>Sign in and sign out (UM-02)</h3>
+<ol>
+<li>On Login, enter your Email and Password and tap <strong>Sign In</strong>.</li>
+<li>To sign out, tap <strong>Log Out</strong> on the Today screen or in Settings, then confirm.</li>
+</ol>
+<p>If a wrong password is entered, the app currently says "Your session has expired. Please log in again." Check your password and try again. This message is a known issue (<a href="#AUD-18">AUD-18</a>).</p>
+<p>Changes you saved while offline stay on the device after you sign out. They upload the next time <em>you</em> sign in on that device. Another person signing in on the same phone will not see them.</p>
+
+<h2 id="d10-today-screen"><span class="num">3</span>Today screen</h2>
+<p>The <strong>Today</strong> tab shows how many projects and tasks you have and how many tasks you've completed ("Activity"). Under <strong>Your schedule</strong> are three cards:</p>
+<ul><li><strong>Overdue</strong>: unfinished tasks with a due date before today.</li><li><strong>Due today</strong>: unfinished tasks due today.</li><li><strong>Upcoming</strong>: the next three unfinished tasks with a future due date.</li></ul>
+<p>Tasks without a due date do not appear in these cards. "Showing saved data" means the numbers come from your device because the server could not be reached.</p>
+
+<h2 id="d10-projects-and-tasks"><span class="num">4</span>Projects and tasks</h2>
+<h3 id="UM-03"><span class="num">4.1</span>Create and manage a project (UM-03)</h3>
+<ol>
+<li>Tap the <strong>Projects</strong> tab, then the <strong>+</strong> button.</li>
+<li>Enter a <strong>Name</strong> and an optional description, then confirm.</li>
+<li>Use <strong>Search projects</strong> to filter the list by name.</li>
+<li>Tap a project to open it. There you can rename it (<strong>Save Project</strong>), add tasks, open the task list (<strong>Open Tasks Screen</strong>) or <strong>Delete Project</strong>.</li>
+</ol>
+<p><strong>Deleting a project also deletes all its tasks.</strong> List deletes do not ask for confirmation, and there is no undo.</p>
+<h3 id="UM-04"><span class="num">4.2</span>Add and edit tasks (UM-04)</h3>
+<ol>
+<li>In a project's task list, tap <strong>+</strong> (New Task).</li>
+<li>Enter a <strong>Title</strong>. Optionally add a description, a <strong>Due date</strong> (calendar picker; the × clears it), <strong>Priority</strong> (None, Low, Medium, High) and <strong>Status</strong> (To do, In progress, Done).</li>
+<li>To add labels, type in <strong>Add label</strong> and tap <strong>Add</strong>; tap × on a label to remove it. Add checklist steps the same way with <strong>Add step</strong>.</li>
+<li>Save. Tap a task to see its details, then <strong>Edit task</strong> to change it. Setting the status to Done marks the task complete.</li>
+</ol>
+<h3 id="UM-05"><span class="num">4.3</span>Find tasks (UM-05)</h3>
+<ul>
+<li><strong>Search tasks or labels</strong> matches titles and labels.</li>
+<li>Status chips: <strong>All</strong>, <strong>Open</strong>, <strong>In progress</strong>, <strong>Done</strong>. Tap <strong>High priority</strong> to show only high-priority tasks.</li>
+<li>The bar at the top shows "x of y tasks complete".</li>
+</ul>
+
+<h2 id="d10-habits"><span class="num">5</span>Habits</h2>
+<h3 id="UM-06"><span class="num">5.1</span>Track a habit (UM-06)</h3>
+<ol>
+<li>Tap the <strong>Habits</strong> tab, then <strong>+</strong> (Add habit).</li>
+<li>Enter a <strong>Habit name</strong>, choose <strong>Daily</strong>, <strong>Weekly</strong> or <strong>Custom</strong>, and tap <strong>Create</strong>.</li>
+<li>Each day you do the habit, tap <strong>Complete today</strong>. Tap it again (it reads <strong>Completed today</strong>) to undo.</li>
+<li>Use the pencil icon to edit, or the delete icon to remove a habit.</li>
+</ol>
+<p>The stats card shows your level, points, current and best streak (in days), completion rate and badges ("3-day streak", "7-day streak", "Reliable habit builder"). With more than one habit, the completion rate shown is lower than your real rate (<a href="#AUD-17">AUD-17</a>).</p>
+
+<h2 id="d10-settings"><span class="num">6</span>Settings</h2>
+<h3 id="UM-07"><span class="num">6.1</span>Change your profile and preferences (UM-07)</h3>
+<ul>
+<li><strong>Display Name</strong>: edit it in the User Profile section and tap <strong>Save Changes</strong>. Your email cannot be changed.</li>
+<li><strong>Appearance</strong>: System, Light or Dark. This applies to this device only.</li>
+<li><strong>Language</strong>: English, isiZulu or Setswana. It is saved to your account.</li>
+<li><strong>Task due-date reminders</strong>: this switch is saved, but Nexus does not send reminders yet (<a href="#AUD-10">AUD-10</a>).</li>
+<li><strong>Sync account</strong> reloads your profile from the server.</li>
+</ul>
+<h3 id="UM-08"><span class="num">6.2</span>Export your habit history (UM-08)</h3>
+<ol><li>In Settings, tap <strong>Export habits CSV</strong>, then <strong>Share CSV</strong>.</li><li>Choose an app (email, Drive, etc.). The file lists habit, frequency and each completed date. Avoid commas in habit names; they break the CSV columns (<a href="#AUD-11">AUD-11</a>).</li></ol>
+<h3 id="UM-09"><span class="num">6.3</span>Change password or delete your account (UM-09)</h3>
+<ul>
+<li><strong>Change password</strong>: enter your current password and a new one (6+ characters), then tap Save. You must be online.</li>
+<li><strong>Delete account and data</strong>: confirm <strong>Delete</strong>. Your account and everything in it are permanently removed from the server and this device. This cannot be undone. You must be online.</li>
+</ul>
+
+<h2 id="d10-working-offline"><span class="num">7</span>Working offline</h2>
+<h3 id="UM-10"><span class="num">7.1</span>Understand the sync banner (UM-10)</h3>
+<p>The banner at the top of every screen tells you where your changes are:</p>
+<table>
+<caption>Sync banner messages</caption>
+<thead><tr><th scope="col">Message</th><th scope="col">Meaning</th><th scope="col">What to do</th></tr></thead>
+<tbody>
+<tr><td>Saved on device · waiting to sync (<em>n</em> pending changes)</td><td>Your change is safe on the phone and not yet on the server.</td><td>Nothing. It uploads automatically when you're online, or tap <strong>Sync</strong>.</td></tr>
+<tr><td>All changes synced</td><td>The server has everything.</td><td>Nothing.</td></tr>
+<tr><td>Offline · changes saved on device / Offline · showing saved data</td><td>The server can't be reached.</td><td>Keep working; reconnect later.</td></tr>
+<tr><td>Sign in again to sync saved changes</td><td>Your session expired.</td><td>Tap <strong>Sign in</strong>. Your saved changes are kept.</td></tr>
+<tr><td>An item changed on another device · review required</td><td>The server rejected one change, for example because you edited an item that was deleted elsewhere.</td><td>See UM-11.</td></tr>
+</tbody>
+</table>
+<p>Uploads happen while Nexus is open. If Android closes the app, uploading resumes when you open it again. Items you never opened or refreshed while online won't be available offline.</p>
+<h3 id="UM-11"><span class="num">7.2</span>Resolve a conflict (UM-11)</h3>
+<ol>
+<li>Tap <strong>Review</strong> on the banner.</li>
+<li>Choose <strong>Discard item edits</strong> to drop your unsent changes to that one item. Your other changes then upload. Or choose <strong>Keep changes</strong> to decide later.</li>
+<li>Refresh the screen to load the server's current copy.</li>
+</ol>
+<p>Until you discard the conflicting item, none of your other pending changes upload (<a href="#AUD-19">AUD-19</a>). They stay safely on your device.</p>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-11-DEP">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 11</p>
+  <h1>Deployment Guide</h1>
+  <p class="subtitle">How the API and app are actually deployed today (local), the container path the repository supports, and labelled recommendations for public hosting.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-11-DEP</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Developers and operators setting up the API and building the app</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-11-DEP contents</h2><ol><li><a href="#d11-current-deployment-position">1 Current deployment position</a></li><li><a href="#d11-prerequisites">2 Prerequisites</a></li><li><a href="#d11-run-the-api-locally-dep-01">3 Run the API locally (DEP-01)</a></li><li><a href="#d11-run-the-api-in-a-container-dep-02">4 Run the API in a container (DEP-02)</a></li><li><a href="#d11-public-hosting-recommendations">5 Public hosting (recommendations)</a></li><li><a href="#d11-rollback">6 Rollback</a></li></ol></nav>
+
+
+<h2 id="d11-current-deployment-position"><span class="num">1</span>Current deployment position</h2>
+<div class="callout warn">
+<p><strong>No hosting platform is configured.</strong> The repository contains no provider-specific configuration: no cloud manifests, infrastructure-as-code or deploy workflow. The README states that public deployment "still needs a hosted API URL" and that the earlier production hostname "was not a configured service" <span class="tag fact">Implemented</span>. Sections 3 and 4 document what the repository supports, and section 5 contains recommendations only.</p>
+</div>
+<table>
+<caption>Supported deployment targets</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Target</th><th scope="col">Defined by</th><th scope="col">Verified</th></tr></thead>
+<tbody>
+<tr id="DEP-01"><td class="id">DEP-01</td><td>Local Node process (development)</td><td><code>backend/package.json</code> <code>start</code>/<code>dev</code>, <code>docs/ONLINE_OFFLINE.md</code></td><td>Server module loaded and tested in process (16/16) <span class="tag fact">Implemented</span>; listening server not started for this package</td></tr>
+<tr id="DEP-02"><td class="id">DEP-02</td><td>Single container with a named volume</td><td><code>backend/Dockerfile</code>, <code>backend/compose.yaml</code></td><td>Not executed <span class="tag unk">Unknown</span>; CI smoke test never succeeded (<a href="#CI-02">CI-02</a>)</td></tr>
+<tr id="DEP-03"><td class="id">DEP-03</td><td>Root <code>docker-compose.yml</code></td><td>Repository root</td><td><span class="tag inf">Inferred</span> Will not persist data correctly. Do not use (<a href="#AUD-02">AUD-02</a>)</td></tr>
+<tr id="DEP-04"><td class="id">DEP-04</td><td>Android debug/release builds</td><td><code>app/build.gradle.kts</code>, Android CI</td><td>Debug build last green in CI on 2026-09-24; release never built in the retrieved history</td></tr>
+</tbody>
+</table>
+
+<h2 id="d11-prerequisites"><span class="num">2</span>Prerequisites</h2>
+<ul>
+<li>API: Node.js 20 (CI) or 22 (Docker image); npm. For containers: Docker with Compose v2.</li>
+<li>App: Android Studio with SDK Platform 37; JDK 17+ (the build uses a 17 toolchain); an emulator or device on API 24+.</li>
+<li>A strong <code>JWT_SECRET</code> of 32+ characters, stored outside git (<code>.env*</code> files are git-ignored).</li>
+</ul>
+
+<h2 id="d11-run-the-api-locally-dep-01"><span class="num">3</span>Run the API locally (DEP-01)</h2>
+<pre><code># PowerShell, from backend/
+npm.cmd ci
+$env:JWT_SECRET = node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+npm.cmd start          # listens on http://localhost:5263
+curl.exe http://localhost:5263/health</code></pre>
+<ul>
+<li>Data is written to <code>backend/nexus-data.json</code> unless <code>DATABASE_PATH</code> is set. The file is git-ignored.</li>
+<li>Keep the same secret across restarts, or every session becomes invalid (<a href="#RB-06">RB-06</a>).</li>
+<li>Optional test accounts: run <code>docs/seed_test_users.ps1</code> against a <strong>local</strong> API only (<a href="#AUD-14">AUD-14</a>).</li>
+</ul>
+<h3 id="d11-point-the-app-at-the-local-api"><span class="num">3.1</span>Point the app at the local API</h3>
+<table>
+<caption>Debug build targets</caption>
+<thead><tr><th scope="col">Device</th><th scope="col">Command</th></tr></thead>
+<tbody>
+<tr><td>Emulator</td><td>Run from Android Studio, or <code>.\gradlew.bat :app:assembleDebug</code>. The default URL <code>http://10.0.2.2:5263/api/</code> reaches the host.</td></tr>
+<tr><td>Phone on the same LAN</td><td><code>.\gradlew.bat :app:assembleDebug -PNEXUS_API_URL=http://&lt;your-LAN-IP&gt;:5263/api/</code>, and allow port 5263 through the firewall.</td></tr>
+</tbody>
+</table>
+<p>The URL must end in <code>/</code> and match <code>https?://host[:port]/path/</code>, or the Gradle build fails at configuration time (<a href="#TR-07">TR-07</a>).</p>
+
+<h2 id="d11-run-the-api-in-a-container-dep-02"><span class="num">4</span>Run the API in a container (DEP-02)</h2>
+<pre><code># from backend/, with JWT_SECRET exported in the shell or a git-ignored .env file
+docker compose up --build -d
+docker compose ps          # STATUS should become "healthy"
+curl http://localhost:5263/health</code></pre>
+<ul>
+<li>The image is <code>node:22-alpine</code>. It installs production dependencies only, runs as the non-root <code>node</code> user, exposes 5263, and stores data at <code>/data/nexus-data.json</code> on the <code>nexus-data</code> named volume.</li>
+<li>A Docker <code>HEALTHCHECK</code> calls <code>/health</code> every 30 s. <code>restart: unless-stopped</code> is set.</li>
+<li>Compose refuses to start if <code>JWT_SECRET</code> is unset (<code>${JWT_SECRET:?…}</code>).</li>
+<li>Run <strong>one</strong> replica only (<a href="#CON-01">CON-01</a>). Back up the volume (<a href="#RB-04">RB-04</a>).</li>
+</ul>
+
+<h2 id="d11-public-hosting-recommendations"><span class="num">5</span>Public hosting (recommendations)</h2>
+<p>Everything in this section is <span class="tag rec">Recommendation</span>. It describes the minimum the code requires from any host; it does not select a provider.</p>
+<table>
+<caption>Host requirements derived from the code</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Requirement</th><th scope="col">Why</th></tr></thead>
+<tbody>
+<tr id="DEP-R1"><td class="id">DEP-R1</td><td>Runs a Node 20+ process or an OCI container, with exactly one instance</td><td>In-memory state and single-file store (<a href="#CON-01">CON-01</a>)</td></tr>
+<tr id="DEP-R2"><td class="id">DEP-R2</td><td>Persistent disk or volume mounted at <code>/data</code> (or <code>DATABASE_PATH</code>) that survives redeploys</td><td>Ephemeral file systems would lose all data</td></tr>
+<tr id="DEP-R3"><td class="id">DEP-R3</td><td>HTTPS termination with a valid certificate and a stable domain</td><td>Release builds reject HTTP (<a href="#NFR-02">NFR-02</a>)</td></tr>
+<tr id="DEP-R4"><td class="id">DEP-R4</td><td>Secret store for <code>JWT_SECRET</code>; <code>NODE_ENV=production</code></td><td>Startup check; production error masking</td></tr>
+<tr id="DEP-R5"><td class="id">DEP-R5</td><td>Health check against <code>/health</code></td><td>Liveness</td></tr>
+<tr id="DEP-R6"><td class="id">DEP-R6</td><td>Configure Express <code>trust proxy</code> before go-live</td><td>Rate limiting behind the proxy (<a href="#AUD-06">AUD-06</a>, <a href="#IMP-06">IMP-06</a>)</td></tr>
+<tr id="DEP-R7"><td class="id">DEP-R7</td><td>Fix <a href="#AUD-01">AUD-01</a> and set up scheduled backups before real users</td><td>Data-loss risk</td></tr>
+</tbody>
+</table>
+<h3 id="d11-building-a-release-that-uses-the-hosted-api"><span class="num">5.1</span>Building a release that uses the hosted API</h3>
+<ol>
+<li>Confirm <code>https://&lt;host&gt;/health</code> responds.</li>
+<li>Locally: <code>.\gradlew.bat :app:assembleRelease -PNEXUS_API_URL=https://&lt;host&gt;/api/</code>; or set the GitHub repository variable <code>NEXUS_API_URL</code> so CI builds the release APK and AAB (<a href="#CI-01">CI-01</a>).</li>
+<li>Sign the artifacts. Signing is not configured in the repository (<a href="#AUD-08">AUD-08</a>).</li>
+<li>Complete the release checklist (<a href="#REL-CHECK">REL-CHECK</a>).</li>
+</ol>
+
+<h2 id="d11-rollback"><span class="num">6</span>Rollback</h2>
+<p>No versioned deployments exist, so rollback is manual <span class="tag fact">Implemented</span>. <span class="tag rec">Recommendation</span> Tag each deployed commit. To roll back, redeploy the previous tag against the same data volume. Data written by a newer version stays in the file (the JSON store has no schema version), so take a backup before every deploy.</p>
+</section>
+<section class="combined-break"><header class="titlepage" id="NX-12-TCR">
+  <p class="project">Nexus &middot; Documentation package &middot; Deliverable 12</p>
+  <h1>Team Contribution Report</h1>
+  <p class="subtitle">Verifiable contribution evidence from the repository and GitHub, with unavailable evidence marked as unknown.</p>
+  <table class="meta"><caption>Document control</caption><tbody>
+    <tr><th scope="row">Document ID</th><td>NX-12-TCR</td></tr>
+    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
+    <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
+    <tr><th scope="row">Intended readers</th><td>Module assessor; team members confirming their contributions</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
+    <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
+  </tbody></table>
+  <p class="legend"><strong>Evidence labels used in this document:</strong>
+    <span class="tag fact">Implemented</span> verified in code, configuration or test output;
+    <span class="tag inf">Inferred</span> reasoned from evidence but not executed;
+    <span class="tag rec">Recommendation</span> proposed, not implemented;
+    <span class="tag oq">Open question</span> needs a decision;
+    <span class="tag unk">Unknown</span> no evidence available;
+    <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
+</header>
+<nav class="toc" aria-label="Table of contents"><h2>NX-12-TCR contents</h2><ol><li><a href="#d12-basis-of-this-report">1 Basis of this report</a></li><li><a href="#d12-declared-team">2 Declared team</a></li><li><a href="#d12-recorded-activity-by-account">3 Recorded activity by account</a></li><li><a href="#d12-tool-assisted-work">4 Tool-assisted work</a></li><li><a href="#d12-contribution-areas">5 Contribution areas</a></li><li><a href="#d12-gaps-and-how-to-close-them">6 Gaps and how to close them</a></li></ol></nav>
+
+
+<h2 id="d12-basis-of-this-report"><span class="num">1</span>Basis of this report</h2>
+<p>This report lists only what the repository and the GitHub API record. It does not judge the size or quality of anyone's contribution, and it does not infer contribution from commit counts. Work done outside GitHub (testing sessions, design, reviews in person, recording the demo) leaves no trace here. Its absence from this report is <em>not</em> evidence that it did not happen.</p>
+<p>Sources queried on 2026-11-05: <code>git log --all</code>, <code>git shortlog</code>, <code>gh pr list</code>, PR reviews, <code>gh issue list</code>, the repository collaborators API, and the README team table.</p>
+
+<h2 id="d12-declared-team"><span class="num">2</span>Declared team</h2>
+<table>
+<caption>Team as declared in README.md (self-reported; student numbers are listed there)</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Declared role</th><th scope="col">Linked GitHub account</th></tr></thead>
+<tbody>
+<tr id="TM-01"><td>Clarity Masuku</td><td>Backend/API Integration Android App Developer / UI &amp; Authentication</td><td><span class="tag unk">Unknown</span> Not stated in the repository; the team should confirm</td></tr>
+<tr id="TM-02"><td>Sibusiso Mabena</td><td>Testing &amp; Quality Assurance</td><td><span class="tag unk">Unknown</span> Not stated in the repository; the team should confirm</td></tr>
+</tbody>
+</table>
+<p>Repository collaborators (GitHub API): <code>jBlack-MC</code> (owner) and <code>SibusisoMabena05</code> <span class="tag fact">Implemented</span>. The similarity between the second account name and a declared member is noted, but it is not treated as proof of identity.</p>
+
+<h2 id="d12-recorded-activity-by-account"><span class="num">3</span>Recorded activity by account</h2>
+<table>
+<caption>Activity recorded on GitHub and in git</caption>
+<thead><tr><th scope="col">Account</th><th scope="col">Commits (all refs)</th><th scope="col">Pull requests opened</th><th scope="col">PR reviews</th><th scope="col">Issues opened</th></tr></thead>
+<tbody>
+<tr><td><code>jBlack-MC</code></td><td>97, including 25 automatic "cline checkpoint" entries and stash-style "index on"/"untracked files on" entries created by tooling</td><td>18 (all merged)</td><td>18 "commented" reviews, all on its own PRs</td><td>8 (#1–#8)</td></tr>
+<tr><td><code>SibusisoMabena05</code></td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td><code>copilot-swe-agent[bot]</code></td><td>2 (PR #23: "Clarify Android CI workflow", merge of main)</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td><code>dependabot[bot]</code></td><td>1</td><td>1 (#27, open)</td><td>None</td><td>None</td></tr>
+</tbody>
+</table>
+<p>No pull request has an approving review from a second person <span class="tag fact">Implemented</span>.</p>
+
+<h2 id="d12-tool-assisted-work"><span class="num">4</span>Tool-assisted work</h2>
+<p>Commit history shows AI-assisted tooling: Cline checkpoints, two commits by GitHub's Copilot coding agent, and Dependabot <span class="tag fact">Implemented</span>. This documentation package was itself prepared with Claude Code. Commits made through an account do not show whether a person or a tool wrote the change, so authorship within <code>jBlack-MC</code> commits cannot be split further <span class="tag unk">Unknown</span>.</p>
+
+<h2 id="d12-contribution-areas"><span class="num">5</span>Contribution areas</h2>
+<table>
+<caption>Areas of the project and attributable evidence</caption>
+<thead><tr><th scope="col">Area</th><th scope="col">Evidence of who did the work</th></tr></thead>
+<tbody>
+<tr><td>Android app (UI, auth, data, sync)</td><td>Commits and PRs from <code>jBlack-MC</code> <span class="tag fact">Implemented</span>; individual person <span class="tag unk">Unknown</span></td></tr>
+<tr><td>Backend API</td><td>Commits and PRs from <code>jBlack-MC</code> <span class="tag fact">Implemented</span>; individual person <span class="tag unk">Unknown</span></td></tr>
+<tr><td>Testing and QA</td><td>Test files were committed by <code>jBlack-MC</code> <span class="tag fact">Implemented</span>. Manual test sessions, test planning or QA sign-off by the declared QA member: <span class="tag unk">Unknown</span> (no records in the repository)</td></tr>
+<tr><td>CI configuration</td><td><code>jBlack-MC</code> commits; one clarification commit by the Copilot agent <span class="tag fact">Implemented</span></td></tr>
+<tr><td>Demo recording and Part 2 PDF</td><td><code>docs/Nexus-Part-2-Submission.pdf</code> committed by <code>jBlack-MC</code> <span class="tag fact">Implemented</span>; who produced it <span class="tag unk">Unknown</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="d12-gaps-and-how-to-close-them"><span class="num">6</span>Gaps and how to close them</h2>
+<ul>
+<li><span class="tag oq">Open question</span> Each member confirms which GitHub account is theirs (if any), and the README is updated with that mapping.</li>
+<li><span class="tag rec">Recommendation</span> Record non-code work in the repository: test-session notes with dates and results under <code>docs/</code>, issues assigned to the person doing the work, and PR reviews from the other member, which also adds a second-person review gate.</li>
+<li><span class="tag rec">Recommendation</span> If both members commit from a shared machine, set per-person <code>git config user.name</code>/<code>user.email</code>, or use <code>Co-authored-by:</code> trailers.</li>
+</ul>
+<p>Until these gaps are closed, individual contribution claims in the PoE should rest on the members' own statements, not on this report.</p>
+</section>
+</main>
+</body>
+</html>

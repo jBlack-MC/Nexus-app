@@ -1,0 +1,78 @@
+<!--meta
+id: NX-04-DES
+title: Design Brief
+subtitle: Design goals, navigation, visual conventions, accessibility and responsive behaviour as evidenced in the app.
+audience: Designers and developers changing the UI; assessor reviewing UX decisions
+-->
+
+<h2>Design goals</h2>
+<p>The README's product principles are the stated design intent. The table shows how far the code follows each one.</p>
+<table>
+<caption>Principles versus implementation</caption>
+<thead><tr><th scope="col" class="id">ID</th><th scope="col">Principle (README)</th><th scope="col">Where it shows up in the app</th></tr></thead>
+<tbody>
+<tr id="DS-01"><td class="id">DS-01</td><td>Focus over clutter</td><td>The Today dashboard limits Upcoming to 3 tasks and shows "Nothing here." for empty cards {{F}}.</td></tr>
+<tr id="DS-02"><td class="id">DS-02</td><td>Fast capture</td><td>Floating + buttons on Projects, Tasks and Habits; dialogs need only a name or title; priority defaults to None and status to To do {{F}}.</td></tr>
+<tr id="DS-03"><td class="id">DS-03</td><td>Progress with context</td><td>Task list progress bar with "x of y tasks complete"; habit level, points and streaks {{F}}.</td></tr>
+<tr id="DS-04"><td class="id">DS-04</td><td>Calm by default</td><td>Short motion (150–300 ms), skeleton loaders instead of spinners, friendly empty states such as "A little progress, every day." {{F}}</td></tr>
+<tr id="DS-05"><td class="id">DS-05</td><td>Trustworthy data</td><td>A persistent sync banner always states whether changes are saved, pending, synced or in conflict {{F}}.</td></tr>
+</tbody>
+</table>
+
+<h2>Navigation model</h2>
+<ul>
+<li>Bottom <code>NavigationBar</code> with four destinations: Today, Projects, Habits, Settings. Navigating between them saves and restores state and uses <code>launchSingleTop</code> {{F}}.</li>
+<li>Second-level screens (Project detail, Tasks, Task detail, Profile) use a top app bar with a Back arrow ("Back" content description) {{F}}.</li>
+<li>Create and edit actions use modal dialogs (project, task editor, habit, password), not separate screens {{F}}.</li>
+<li>Destructive actions confirm first: log out and delete account. Deleting a project, task or habit from a list has no confirmation dialog {{F}} ({{R}} add an undo snackbar; see [[IMP-12]]).</li>
+</ul>
+<p>The full map is in [[DIAG-02]].</p>
+
+<h2>Visual conventions</h2>
+<h3>Colour</h3>
+<table>
+<caption>Colour tokens from ui/theme/Color.kt and Theme.kt</caption>
+<thead><tr><th scope="col">Token</th><th scope="col">Value</th><th scope="col">Use</th></tr></thead>
+<tbody>
+<tr><td>Brand purple / green</td><td><code>#A855F7</code> / <code>#22C55E</code></td><td>Logo gradient and wordmark</td></tr>
+<tr><td>Light primary / secondary</td><td><code>#6141B5</code> / <code>#236B54</code></td><td>Fallback scheme on Android 11 and earlier (commit log: "accessible fallback brand colors")</td></tr>
+<tr><td>Dark primary / secondary</td><td><code>#D0BCFF</code> / <code>#22C55E</code></td><td>Fallback dark scheme</td></tr>
+<tr><td>Background (light / dark)</td><td><code>#F7F7FC</code> / <code>#12131B</code></td><td>Overrides even when dynamic colour is on</td></tr>
+<tr><td>Surface (light / dark)</td><td><code>#FFFFFF</code> / <code>#191A24</code></td><td>Cards and sheets</td></tr>
+</tbody>
+</table>
+<p>On Android 12 and later, Material You dynamic colour supplies primary, secondary and tertiary from the wallpaper, while background and surface stay fixed to the values above {{F}}. Contrast was not measured for this package {{U}}.</p>
+<h3>Shape, spacing and type</h3>
+<ul>
+<li>Shapes: small 12 dp, medium 20 dp, large 28 dp rounded corners {{F}}.</li>
+<li>Spacing scale in <code>Spacing.kt</code>: 2, 4, 6, 8, 10, 12, 16, 20, 22, 24, 32 dp. Top-bar logo 32 dp; auth logo 80 dp {{F}}.</li>
+<li>Typography: the system sans-serif for every Material 3 style; body large 16 sp, body medium 14 sp {{F}}. No custom font is bundled.</li>
+<li>Components: <code>NexusPrimaryButton</code>, <code>NexusSecondaryButton</code>, <code>NexusDestructiveIconButton</code>, <code>StatCard</code>, <code>Skeleton</code>, <code>FeedbackState</code> (empty/error with Retry), <code>NexusLogo</code> {{F}}.</li>
+</ul>
+<h3>Motion</h3>
+<p><code>Motion.kt</code> fixes durations: screen enter 220 ms, exit 180 ms, list item 220 ms, fade 150 ms, completion bounce 90 + 140 ms, success check 260 ms. Screen transitions slide a quarter width and fade {{F}}.</p>
+
+<h2>Accessibility</h2>
+<table>
+<caption>Accessibility evidence</caption>
+<thead><tr><th scope="col">Aspect</th><th scope="col">Evidence</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>Reduced motion</td><td><code>rememberReduceMotion()</code> checks <code>ValueAnimator.areAnimatorsEnabled()</code>; navigation transitions, list reflow, shimmer and splash are skipped. <code>SplashIntroScreenTest</code> covers the splash.</td><td>{{F}}</td></tr>
+<tr><td>Screen reader labels</td><td>Icon buttons have descriptions such as "Back", "New Project", "Add habit", "Edit habit", "Remove label …", "Clear due date". Bottom-bar icons use <code>null</code> descriptions, with the visible text label as the accessible name.</td><td>{{F}}</td></tr>
+<tr><td>Not relying on colour alone</td><td>Priority and status are shown as text chips ("Priority · High"), not colour only.</td><td>{{F}}</td></tr>
+<tr><td>Keyboard / IME</td><td><code>windowSoftInputMode="adjustResize"</code>; auth forms scroll above the keyboard (improvements log).</td><td>{{F}}</td></tr>
+<tr><td>Contrast, touch targets, TalkBack walkthrough</td><td>No measurements or audit records in the repository.</td><td>{{U}} → [[IMP-11]]</td></tr>
+<tr><td>Localised content</td><td>en/zu/tn resource strings for auth and a few labels; feature screens are English-only.</td><td>Partial ([[FR-18]])</td></tr>
+</tbody>
+</table>
+
+<h2>Responsive behaviour</h2>
+<p>Layouts are single-column phone layouts built with <code>fillMaxWidth</code>, <code>LazyColumn</code> and horizontally scrolling chip rows. Window insets are handled with <code>statusBarsPadding</code>. No window size classes or tablet layouts exist; tablet layouts are listed as planned {{F}}. Landscape behaviour has not been tested {{U}}.</p>
+
+<h2>Screen evidence</h2>
+<p>Only two distinct, correctly identified screenshots exist in the repository. The UI-audit folder <code>docs/screenshots/ui-audit/</code> contains nine files, but they are only four distinct images, and their file names do not match their content ([[AUD-21]]). Both images below were captured on 2026-09-25, before the 2026-10-04 navigation and sync-banner changes, so they may not match the current UI.</p>
+<figure class="shots" id="FIG-SHOTS">
+<div><img src="../../screenshots/ui-audit/splash.png" alt="Login screen: Nexus logo, Language picker set to English, Welcome Back heading, Email and Password fields, disabled Sign In button, and a Need an account? Register link."><figcaption>Login screen (stored as <code>splash.png</code>).</figcaption></div>
+<div><img src="../../screenshots/ui-audit/dashboard-offline.png" alt="Skeleton loading state: top bar with back arrow, Nexus logo and English label, then grey placeholder blocks."><figcaption>Skeleton loading state (stored under four names, including <code>dashboard-offline.png</code>).</figcaption></div>
+</figure>
+<p>{{R}} Recapture the screen set from a running build and replace the folder contents ([[IMP-16]]); [[NX-10-UM]] intentionally uses text-only instructions until then.</p>

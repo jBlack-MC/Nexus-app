@@ -2,7 +2,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && mkdir /data && chown node:node /data
-COPY server.js ./
+COPY server.js push.js ./
 ENV NODE_ENV=production PORT=5263 DATABASE_PATH=/data/nexus-data.json
 USER node
 EXPOSE 5263
