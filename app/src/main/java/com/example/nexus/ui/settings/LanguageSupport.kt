@@ -37,11 +37,7 @@ val supportedLanguages = listOf("en" to "English", "zu" to "isiZulu", "tn" to "S
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguagePicker(
-    selectedLanguage: String,
-    onLanguageSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun LanguagePicker(selectedLanguage: String, onLanguageSelected: (String) -> Unit, modifier: Modifier = Modifier,) {
     var expanded by remember { mutableStateOf(false) }
     val label = supportedLanguages.firstOrNull { it.first == selectedLanguage }?.second ?: "English"
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
@@ -69,11 +65,7 @@ fun LanguagePicker(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageSelector(
-    selectedLanguage: String,
-    onLanguageSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun LanguageSelector(selectedLanguage: String, onLanguageSelected: (String) -> Unit, modifier: Modifier = Modifier,) {
     var expanded by remember { mutableStateOf(false) }
     val languages = supportedLanguages
     val selectedLabel = languages.firstOrNull { it.first == selectedLanguage }?.second ?: selectedLanguage
@@ -83,7 +75,7 @@ fun LanguageSelector(
             value = selectedLabel,
             onValueChange = {},
             readOnly = true,
-            label = { Text("App language") },
+            label = { Text(stringResource(R.string.language_picker_label)) },
             leadingIcon = { Icon(Icons.Default.Language, contentDescription = null) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth().padding(Spacing.smd),
@@ -131,12 +123,12 @@ fun LanguagePill(modifier: Modifier = Modifier) {
     Box(modifier) {
         Box(
             modifier =
-                Modifier
-                    .clip(RoundedCornerShape(percent = 50))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(percent = 50))
-                    .clickable { expanded = true }
-                    .padding(horizontal = Spacing.mdCompact, vertical = Spacing.xs),
+            Modifier
+                .clip(RoundedCornerShape(percent = 50))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(percent = 50))
+                .clickable { expanded = true }
+                .padding(horizontal = Spacing.mdCompact, vertical = Spacing.xs),
         ) {
             Text(
                 text = code,
@@ -158,59 +150,26 @@ fun LanguagePill(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Auth screen copy. All languages come from string resources (values, values-zu, values-tn); the
+ * selected language is applied to resource lookup in MainActivity, so [code] only keys recomposition.
+ */
+@Suppress("UNUSED_PARAMETER")
 @Composable
-fun authCopy(code: String): AuthCopy =
-    when (code) {
-        "zu" -> isiZuluAuthCopy()
-        "tn" -> setswanaAuthCopy()
-        else ->
-            AuthCopy(
-                welcome = stringResource(R.string.auth_welcome),
-                subtitle = stringResource(R.string.login_subtitle),
-                email = stringResource(R.string.auth_email),
-                password = stringResource(R.string.auth_password),
-                signIn = stringResource(R.string.auth_sign_in),
-                createAccount = stringResource(R.string.auth_create_account),
-                registerSubtitle = stringResource(R.string.register_subtitle),
-                displayName = stringResource(R.string.auth_display_name),
-                signingIn = stringResource(R.string.auth_signing_in),
-                creatingAccount = stringResource(R.string.auth_creating_account),
-                needAccount = stringResource(R.string.login_prompt_register),
-                haveAccount = stringResource(R.string.register_prompt_login),
-            )
-    }
-
-private fun isiZuluAuthCopy(): AuthCopy =
-    AuthCopy(
-        welcome = "Siyakwamukela",
-        subtitle = "Ngena ukuze uqhubeke ku-Nexus",
-        email = "I-imeyili",
-        password = "Iphasiwedi",
-        signIn = "Ngena",
-        createAccount = "Dala i-akhawunti",
-        registerSubtitle = "Qala iphrofayela yakho ye-Nexus",
-        displayName = "Igama lokubonisa",
-        signingIn = "Kungenwa…",
-        creatingAccount = "Kudalwa i-akhawunti…",
-        needAccount = "Udinga i-akhawunti? Yenza",
-        haveAccount = "Une-akhawunti? Ngena",
-    )
-
-private fun setswanaAuthCopy(): AuthCopy =
-    AuthCopy(
-        welcome = "Re a go amogela",
-        subtitle = "Tsena go tswelela mo Nexus",
-        email = "Imeile",
-        password = "Khunololamorago",
-        signIn = "Tsena",
-        createAccount = "Tlhama akhaonto",
-        registerSubtitle = "Tlhamo profaele ya gago ya Nexus",
-        displayName = "Leina la go bontšha",
-        signingIn = "Go tsena…",
-        creatingAccount = "Go tlhama akhaonto…",
-        needAccount = "O tlhoka akhaonto? Tlhama",
-        haveAccount = "O na le akhaonto? Tsena",
-    )
+fun authCopy(code: String): AuthCopy = AuthCopy(
+    welcome = stringResource(R.string.auth_welcome),
+    subtitle = stringResource(R.string.login_subtitle),
+    email = stringResource(R.string.auth_email),
+    password = stringResource(R.string.auth_password),
+    signIn = stringResource(R.string.auth_sign_in),
+    createAccount = stringResource(R.string.auth_create_account),
+    registerSubtitle = stringResource(R.string.register_subtitle),
+    displayName = stringResource(R.string.auth_display_name),
+    signingIn = stringResource(R.string.auth_signing_in),
+    creatingAccount = stringResource(R.string.auth_creating_account),
+    needAccount = stringResource(R.string.login_prompt_register),
+    haveAccount = stringResource(R.string.register_prompt_login),
+)
 
 data class AuthCopy(
     val welcome: String,

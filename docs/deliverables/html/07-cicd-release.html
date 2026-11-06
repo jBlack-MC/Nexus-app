@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NX-07-CICD CI/CD and Release - Nexus</title>
 <link rel="stylesheet" href="../tools/style.css">
-<style>@media print { @page { @top-left { content: "NX-07-CICD \00B7  CI/CD and Release \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+<style>@media print { @page { @top-left { content: "NX-07-CICD \00B7  CI/CD and Release \00B7  v2.0 \00B7  Draft for team review"; } } }</style>
 </head>
 <body>
 <main class="doc">
@@ -15,11 +15,11 @@
   <p class="subtitle">Verified pipeline behaviour, build and test gates, run history, environments and the release checklist.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-07-CICD</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Developers and whoever performs releases; assessor checking delivery automation</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -40,12 +40,12 @@
 <caption>Workflows</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Workflow</th><th scope="col">Triggers</th><th scope="col">Jobs and gates</th></tr></thead>
 <tbody>
-<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 20, <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
-<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 20 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
-<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>Push/PR on main; manual</td><td>GitHub starter template that only echoes text. It provides no gate (<a href="08-engineering-audit.html#AUD-13">AUD-13</a>).</td></tr>
+<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 22 (since v2.0; was 20), <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>ktlintCheck</code> (since v2.0), <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
+<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 22 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
+<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>(removed in v2.0)</td><td>GitHub starter template that only echoed text; deleted (<a href="08-engineering-audit.html#AUD-13">AUD-13</a>).</td></tr>
 </tbody>
 </table>
-<p>Not gated in CI: ktlint, detekt, Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning <span class="tag fact">Implemented</span>. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings <span class="tag unk">Unknown</span>.</p>
+<p>Not gated in CI: detekt (<a href="08-engineering-audit.html#AUD-23">AUD-23</a>), Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning <span class="tag fact">Implemented</span>. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings <span class="tag unk">Unknown</span>.</p>
 
 <h2 id="d07-verified-run-history"><span class="num">2</span>Verified run history</h2>
 <p>Retrieved with <code>gh run list</code> / <code>gh run view</code> on 2026-11-05 (78 most recent runs: 49 success, 29 failure).</p>
@@ -67,9 +67,14 @@
 <caption>Commands run on 2026-11-05 on the author's Windows workstation</caption>
 <thead><tr><th scope="col">Command</th><th scope="col">Result</th></tr></thead>
 <tbody>
-<tr><td><code>cd backend; npm test</code> (installed zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
-<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong>, 0 failures</td></tr>
-<tr><td><code>assembleDebug</code>, <code>assembleRelease</code>, Docker build</td><td>Not run for this package <span class="tag unk">Unknown</span>. The Docker daemon was not running.</td></tr>
+<tr><td><code>cd backend; npm test</code> at v1.0 (zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
+<tr><td><code>cd backend; npm test</code> at v2.0 (zod 4.6.7)</td><td>3 suites, <strong>29/29 passed</strong>; <code>npm audit --omit=dev</code>: 0 vulnerabilities</td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> at v1.0 (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong></td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest</code> at v2.0</td><td>BUILD SUCCESSFUL; 10 classes, <strong>42/42 passed</strong></td></tr>
+<tr><td><code>./gradlew :app:connectedDebugAndroidTest</code> at v2.0 (Android 7.0 emulator)</td><td><strong>16/16 passed</strong> with the API stopped; 14/16 when a live API was reachable (<a href="08-engineering-audit.html#AUD-22">AUD-22</a>)</td></tr>
+<tr><td><code>assembleRelease -PNEXUS_API_URL=https://api.nexus.invalid/api/</code> at v2.0</td><td>APK signed with the upload key, verified by <code>apksigner</code> (APK Signature Scheme v2). A configuration-cache error in the HTTPS guard was fixed, after which the build is SUCCESSFUL; an http:// URL is rejected. The placeholder build was deleted.</td></tr>
+<tr><td><code>assembleDebug</code> at v2.0</td><td>Succeeded; installed and exercised on the emulator</td></tr>
+<tr><td>Docker build</td><td>Not run <span class="tag unk">Unknown</span>. The Docker daemon was not running; <code>docker compose config</code> validates both compose files.</td></tr>
 </tbody>
 </table>
 <p>Details per suite are in <a href="09-testing-deployment-handover.html#NX-09-TDH">NX-09-TDH</a>.</p>
@@ -87,7 +92,7 @@
 </table>
 
 <h2 id="d07-release-process"><span class="num">5</span>Release process</h2>
-<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 <span class="tag fact">Implemented</span>. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources <span class="tag fact">Implemented</span>. No <code>signingConfig</code> is defined, so CI release artifacts would be unsigned (<a href="08-engineering-audit.html#AUD-08">AUD-08</a>).</p>
+<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 <span class="tag fact">Implemented</span>. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources <span class="tag fact">Implemented</span>. Since v2.0 a <code>release</code> signing config reads <code>keystore.properties</code> (git-ignored) or <code>NEXUS_KEYSTORE_*</code> environment variables, and the upload key was created with <code>scripts/create-upload-keystore.ps1</code> (<a href="08-engineering-audit.html#AUD-08">AUD-08</a> fixed). CI does not have the key yet, so CI release artifacts remain unsigned until the secrets are added.</p>
 <h3 id="REL-CHECK"><span class="num">5.1</span>Release checklist</h3>
 <p>Items marked <span class="tag rec">Recommendation</span> are recommendations for the first release. The others restate rules the repository already enforces or documents.</p>
 <ol>
@@ -95,7 +100,7 @@
 <li id="REL-02">Backend tests pass locally: <code>npm ci &amp;&amp; npm test</code>.</li>
 <li id="REL-03">Android unit tests pass: <code>./gradlew test</code>. Instrumented tests pass on at least one API 24 and one current device. <span class="tag rec">Recommendation</span></li>
 <li id="REL-04">Run the offline acceptance check in <code>docs/ONLINE_OFFLINE.md</code> (six steps) against the target API.</li>
-<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> and update the hard-coded "Version 1.0.0 (Prototype)" label in Settings. <span class="tag rec">Recommendation</span></li>
+<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> (2 / 2.0.0 for the final PoE). Settings shows <code>BuildConfig.VERSION_NAME</code>.</li>
 <li id="REL-06">Hosted API is healthy over HTTPS with persistent storage and a stable <code>JWT_SECRET</code> (<a href="11-deployment-guide.html#NX-11-DEP">NX-11-DEP</a>).</li>
 <li id="REL-07">Set repository variable <code>NEXUS_API_URL</code> to the HTTPS URL ending in <code>/</code>.</li>
 <li id="REL-08">Sign the APK/AAB with the release keystore held outside the repository (<a href="06-implementation-plan.html#IMP-07">IMP-07</a>). <span class="tag rec">Recommendation</span></li>
@@ -103,7 +108,7 @@
 <li id="REL-10">Add a dated entry to <code>PROJECT_IMPROVEMENTS.md</code>; tag the commit and create a GitHub release with the signed artifacts. <span class="tag rec">Recommendation</span></li>
 </ol>
 
-<footer class="docfoot">NX-07-CICD &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+<footer class="docfoot">NX-07-CICD &middot; v2.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
 </main>
 </body>
 </html>

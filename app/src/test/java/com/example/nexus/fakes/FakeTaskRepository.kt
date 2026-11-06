@@ -31,10 +31,7 @@ class FakeTaskRepository(
         return cachedTasks
     }
 
-    override suspend fun createTask(
-        projectId: String,
-        request: CreateTaskRequest,
-    ): Task {
+    override suspend fun createTask(projectId: String, request: CreateTaskRequest,): Task {
         createTaskError?.let { throw it }
         createdTasks.add(projectId to request)
         val newTask =
@@ -54,10 +51,7 @@ class FakeTaskRepository(
         return newTask
     }
 
-    override suspend fun updateTask(
-        taskId: String,
-        request: UpdateTaskRequest,
-    ): Task {
+    override suspend fun updateTask(taskId: String, request: UpdateTaskRequest,): Task {
         updateTaskError?.let { throw it }
         updatedTasks.add(taskId to request)
         val index = tasks.indexOfFirst { it.id == taskId }

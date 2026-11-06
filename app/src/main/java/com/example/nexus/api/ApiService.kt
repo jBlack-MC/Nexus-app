@@ -27,6 +27,18 @@ interface ApiService {
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest,): AuthResponse
 
+    /** Google single sign-on: exchanges a verified Google ID token for a Nexus JWT. */
+    @POST("auth/google")
+    suspend fun googleSignIn(@Body request: GoogleSignInRequest,): AuthResponse
+
+    /** Registers this device's FCM token so the API can push real-time updates to it. */
+    @POST("users/me/devices")
+    suspend fun registerDevice(@Body request: DeviceTokenRequest,)
+
+    /** Asks the API to push a test notification to all of this account's devices. */
+    @POST("users/me/notifications/test")
+    suspend fun sendTestNotification(): TestNotificationResult
+
     @GET("users/me")
     suspend fun getProfile(): UserProfile
 

@@ -107,8 +107,9 @@ fun DashboardScreen(
                 val config = remoteConfigState.config
                 val notice =
                     when {
-                        config.maintenanceMode -> config.maintenanceMessage.ifBlank { "Nexus is temporarily under maintenance." }
-                        config.announcements.isNotEmpty() -> "${config.announcements.first().title}: ${config.announcements.first().message}"
+                        config.maintenanceMode -> config.maintenanceMessage.ifBlank { stringResource(R.string.msg_maintenance) }
+                        config.announcements.isNotEmpty() ->
+                            config.announcements.first().let { "${it.title}: ${it.message}" }
                         else -> null
                     }
                 val configError = remoteConfigState.errorMessage
@@ -123,8 +124,16 @@ fun DashboardScreen(
                         if (notice != null) {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                color = if (config.maintenanceMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = if (config.maintenanceMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                                color = if (config.maintenanceMode) {
+                                    MaterialTheme.colorScheme.errorContainer
+                                } else {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                },
+                                contentColor = if (config.maintenanceMode) {
+                                    MaterialTheme.colorScheme.onErrorContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                },
                                 shape = MaterialTheme.shapes.medium,
                             ) {
                                 Text(notice, modifier = Modifier.padding(Spacing.smd))
@@ -151,7 +160,7 @@ fun DashboardScreen(
                         ) {
                             DashboardSkeleton()
                             NexusPrimaryButton(
-                                text = "Open Projects",
+                                text = stringResource(R.string.dashboard_open_projects),
                                 onClick = onOpenProjects,
                                 modifier =
                                 Modifier
@@ -176,12 +185,16 @@ fun DashboardScreen(
                                 .padding(Spacing.md),
                             verticalArrangement = Arrangement.spacedBy(Spacing.smd),
                         ) {
-                            Text("Make room for what matters.", style = MaterialTheme.typography.headlineMedium)
-                            Text("Your projects, daily habits and next steps, together.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.dashboard_headline), style = MaterialTheme.typography.headlineMedium)
+                            Text(
+                                stringResource(R.string.dashboard_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             if (state.data.projects == 0 && state.data.tasks == 0 && state.data.activity == 0) {
                                 EmptyState(
-                                    title = "Start your first project",
-                                    message = "Projects keep your tasks and habits organized.",
+                                    title = stringResource(R.string.dashboard_first_project),
+                                    message = stringResource(R.string.dashboard_first_project_body),
                                     icon = Icons.Filled.RocketLaunch,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
@@ -194,7 +207,7 @@ fun DashboardScreen(
                                         modifier = Modifier.weight(1f),
                                         icon = Icons.Filled.Folder,
                                         value = state.data.projects.toString(),
-                                        label = "Projects",
+                                        label = stringResource(R.string.nav_projects),
                                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                     )
@@ -202,7 +215,7 @@ fun DashboardScreen(
                                         modifier = Modifier.weight(1f),
                                         icon = Icons.Filled.Checklist,
                                         value = state.data.tasks.toString(),
-                                        label = "Tasks",
+                                        label = stringResource(R.string.nav_tasks),
                                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     )
@@ -210,7 +223,7 @@ fun DashboardScreen(
                                         modifier = Modifier.weight(1f),
                                         icon = Icons.Filled.Timeline,
                                         value = state.data.activity.toString(),
-                                        label = "Activity",
+                                        label = stringResource(R.string.dashboard_activity),
                                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                                     )
@@ -220,7 +233,7 @@ fun DashboardScreen(
                             TaskAttentionSections(state.cachedTasks)
 
                             NexusPrimaryButton(
-                                text = "Open Projects",
+                                text = stringResource(R.string.dashboard_open_projects),
                                 onClick = onOpenProjects,
                                 modifier =
                                 Modifier
@@ -229,7 +242,7 @@ fun DashboardScreen(
                             )
                             if (remoteConfigState.config.featureFlags["habits"] != false) {
                                 NexusSecondaryButton(
-                                    text = "Open Habits",
+                                    text = stringResource(R.string.dashboard_open_habits),
                                     onClick = onOpenHabits,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
@@ -237,7 +250,7 @@ fun DashboardScreen(
 
                             HorizontalDivider(modifier = Modifier.padding(top = Spacing.smd))
                             NexusDestructiveButton(
-                                text = "Log Out",
+                                text = stringResource(R.string.action_log_out),
                                 onClick = { showLogoutDialog = true },
                                 modifier =
                                 Modifier
@@ -256,7 +269,7 @@ fun DashboardScreen(
                         .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.fetchDashboard(softRefresh = true) }) {
-                            Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
+                            Text(stringResource(R.string.action_retry), color = MaterialTheme.colorScheme.inversePrimary)
                         }
                     },
                 ) {
@@ -284,10 +297,14 @@ private fun TaskAttentionSections(tasks: List<Task>) {
     val dueToday = tasks.filter { !it.isCompleted && it.dueDate == today }
     val upcoming = tasks.filter { !it.isCompleted && it.dueDate != null && it.dueDate > today }.sortedBy { it.dueDate }.take(3)
     if (tasks.isNotEmpty()) {
-        Text("Your schedule", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = Spacing.smd))
-        AttentionCard("Overdue", overdue)
-        AttentionCard("Due today", dueToday)
-        AttentionCard("Upcoming", upcoming)
+        Text(
+            stringResource(R.string.dashboard_schedule),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = Spacing.smd),
+        )
+        AttentionCard(stringResource(R.string.dashboard_overdue), overdue)
+        AttentionCard(stringResource(R.string.dashboard_due_today), dueToday)
+        AttentionCard(stringResource(R.string.dashboard_upcoming), upcoming)
     }
 }
 
@@ -295,7 +312,7 @@ private fun TaskAttentionSections(tasks: List<Task>) {
 private fun AttentionCard(title: String, tasks: List<Task>,) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Spacing.smd)) {
-            Text("$title (${tasks.size})", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.dashboard_section_count, title, tasks.size), style = MaterialTheme.typography.titleSmall)
             if (tasks.isEmpty()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -307,7 +324,11 @@ private fun AttentionCard(title: String, tasks: List<Task>,) {
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.outline,
                     )
-                    Text("Nothing here.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    Text(
+                        stringResource(R.string.dashboard_nothing_here),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
                 }
             } else {
                 tasks.forEach {

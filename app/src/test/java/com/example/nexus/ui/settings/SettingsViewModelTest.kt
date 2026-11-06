@@ -65,40 +65,36 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun initialState_reflectsSettingsSession() =
-        runTest(scheduler) {
-            advanceUntilIdle()
+    fun initialState_reflectsSettingsSession() = runTest(scheduler) {
+        advanceUntilIdle()
 
-            assertEquals(ThemeMode.SYSTEM, viewModel.uiState.value.themeMode)
-            assertEquals(true, viewModel.uiState.value.notificationsEnabled)
-        }
-
-    @Test
-    fun setThemeMode_updatesUiStateAndPersistsChoice() =
-        runTest(scheduler) {
-            viewModel.setThemeMode(ThemeMode.DARK)
-            advanceUntilIdle()
-
-            assertEquals(ThemeMode.DARK, viewModel.uiState.value.themeMode)
-            verify(exactly = 1) { SettingsSession.setThemeMode(ThemeMode.DARK) }
-        }
+        assertEquals(ThemeMode.SYSTEM, viewModel.uiState.value.themeMode)
+        assertEquals(true, viewModel.uiState.value.notificationsEnabled)
+    }
 
     @Test
-    fun setNotificationsEnabled_updatesUiState() =
-        runTest(scheduler) {
-            viewModel.setNotificationsEnabled(false)
-            advanceUntilIdle()
+    fun setThemeMode_updatesUiStateAndPersistsChoice() = runTest(scheduler) {
+        viewModel.setThemeMode(ThemeMode.DARK)
+        advanceUntilIdle()
 
-            assertFalse(viewModel.uiState.value.notificationsEnabled)
-            verify(exactly = 1) { SettingsSession.setNotificationsEnabled(false) }
-        }
+        assertEquals(ThemeMode.DARK, viewModel.uiState.value.themeMode)
+        verify(exactly = 1) { SettingsSession.setThemeMode(ThemeMode.DARK) }
+    }
 
     @Test
-    fun logout_clearsAuthSessionToken() =
-        runTest(scheduler) {
-            viewModel.logout()
-            advanceUntilIdle()
+    fun setNotificationsEnabled_updatesUiState() = runTest(scheduler) {
+        viewModel.setNotificationsEnabled(false)
+        advanceUntilIdle()
 
-            verify(exactly = 1) { AuthSession.clearToken() }
-        }
+        assertFalse(viewModel.uiState.value.notificationsEnabled)
+        verify(exactly = 1) { SettingsSession.setNotificationsEnabled(false) }
+    }
+
+    @Test
+    fun logout_clearsAuthSessionToken() = runTest(scheduler) {
+        viewModel.logout()
+        advanceUntilIdle()
+
+        verify(exactly = 1) { AuthSession.clearToken() }
+    }
 }

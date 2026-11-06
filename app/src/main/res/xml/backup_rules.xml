@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and lower. Tokens, settings and the offline cache (user content and the pending
+     upload queue) stay on this device only; data is restored from the API after sign-in (AUD-05). -->
 <full-backup-content>
     <exclude domain="sharedpref" path="."/>
+    <exclude domain="database" path="."/>
 </full-backup-content>

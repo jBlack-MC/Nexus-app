@@ -16,6 +16,7 @@ audience: Development team planning the final PoE; assessor reviewing project ma
 <tr><td>2026-09-23</td><td>Backend remediation: mutex + atomic writes, Zod validation, JWT secret check, bcrypt, rate limiting, health check, Pino; task detail screen</td><td>PR #23; <code>server.test.js</code></td><td>[[NFR-01]], [[NFR-04]], [[FR-12]]</td></tr>
 <tr><td>2026-09-24</td><td>Android structural remediation: six repositories, manual DI, <code>HabitScoring</code> domain, feature packages, type-safe routes, shared fakes</td><td>PR #24</td><td>[[TR-01]] to [[TR-03]], [[FR-14]]</td></tr>
 <tr><td>2026-09-26</td><td>UI refinement: theme colours, logo component</td><td>PR #25</td><td>[[NX-04-DES]]</td></tr>
+<tr><td>2026-11-05</td><td><strong>Part 3 / v2.0:</strong> Google SSO, FCM push, WorkManager reminders, full zu/tn localisation, audit fixes (AUD-01/02/03/05/06/10/11/16/17/18/21), Settings crash fix, release signing, Play Store kit, recaptured screenshots</td><td><code>716bedb</code> + uncommitted working tree</td><td>[[FR-21]], [[FR-22]], [[FR-23]], [[FR-18]]</td></tr>
 <tr><td>2026-10-04</td><td>Offline upload queue and <code>/api/sync</code>, sync banner, conflict review, project search, task filters, zu/tn resources, configurable <code>NEXUS_API_URL</code>, HTTPS-only release, Dockerfile/compose</td><td>PR #26 (commit 3a3f275)</td><td>[[FR-16]], [[FR-17]], [[FR-18]], [[TR-07]]</td></tr>
 </tbody>
 </table>
@@ -50,3 +51,29 @@ audience: Development team planning the final PoE; assessor reviewing project ma
 
 <h2>Definition of done</h2>
 <p>Adopted from the quality checklist in <code>PROJECT_IMPROVEMENTS.md</code>: API models and validation first; a Room migration for any schema change; loading, offline, retry, unauthorised and validation states covered; ViewModel unit tests plus instrumented coverage of the main path; accessibility checked; README and the improvements log updated {{F}}. {{R}} Add "CI green on the PR" once [[IMP-01]] is done.</p>
+
+<h2 id="PLAN-STATUS">Status at v2.0 (2026-11-05)</h2>
+<table>
+<caption>Backlog status after the Part 3 work</caption>
+<thead><tr><th scope="col" class="id">Task</th><th scope="col">Status</th><th scope="col">Evidence or remaining action</th></tr></thead>
+<tbody>
+<tr><td class="id">[[IMP-01]]</td><td>Open (team)</td><td>Needs the GitHub account billing lock resolved; then re-run CI. Workflows moved to Node 22.</td></tr>
+<tr><td class="id">[[IMP-02]]</td><td>Done</td><td>Zod 4.6.7 adopted; 29/29 backend tests pass. PR #27 can be closed as superseded.</td></tr>
+<tr><td class="id">[[IMP-03]]</td><td>Done</td><td>Refuses to start; <code>.bak</code> copy kept; 3 tests in <code>part3.test.js</code>.</td></tr>
+<tr><td class="id">[[IMP-04]]</td><td>Done</td><td><code>AuthErrorMessagesTest</code>; verified on device.</td></tr>
+<tr><td class="id">[[IMP-05]]</td><td>Done</td><td>Root <code>docker-compose.yml</code> uses a named volume at <code>/data</code>; <code>docker compose config</code> valid. Not run (no Docker daemon).</td></tr>
+<tr><td class="id">[[IMP-06]]</td><td>Done</td><td><code>TRUST_PROXY</code> env; not covered by a test.</td></tr>
+<tr><td class="id">[[IMP-07]]</td><td>Partly done</td><td>Signing config, upload key and Play kit done. API hosting and Play Console upload are team actions.</td></tr>
+<tr><td class="id">[[IMP-08]]</td><td>Done (built)</td><td>Reminders and push implemented ([[FR-22]], [[FR-23]]).</td></tr>
+<tr><td class="id">[[IMP-09]]</td><td>Done</td><td>Backup rules exclude <code>database</code>.</td></tr>
+<tr><td class="id">[[IMP-10]]</td><td>Done (ktlint)</td><td>Codebase brought to zero ktlint violations (592 at the start: auto-format, line wrapping, constant renames, and two rules disabled in <code>.editorconfig</code> with recorded reasons). <code>ktlintCheck</code> now runs in Android CI before the tests. <code>blank.yml</code> and <code>build-verification.log</code> removed. detekt is not gated because the tool crashes in this toolchain ([[AUD-23]]).</td></tr>
+<tr><td class="id">[[IMP-11]]</td><td>Open</td><td>No TalkBack or contrast audit recorded.</td></tr>
+<tr><td class="id">[[IMP-12]]</td><td>Done (alternative)</td><td>Every delete (project, task, habit) now asks for confirmation, and the project dialog warns that its tasks are deleted too. Verified on device (screenshot 21). Undo was not implemented.</td></tr>
+<tr><td class="id">[[IMP-13]]</td><td>Done</td><td><code>CsvRowTest</code>.</td></tr>
+<tr><td class="id">[[IMP-14]]</td><td>Done</td><td>New <code>HabitScoringTest</code> case.</td></tr>
+<tr><td class="id">[[IMP-15]]</td><td>Open</td><td>Room schema export and migration tests not added.</td></tr>
+<tr><td class="id">[[IMP-16]]</td><td>Done</td><td>README rewritten (contents links fixed, release notes, AI use); screenshots recaptured.</td></tr>
+<tr><td class="id">[[IMP-17]]</td><td>Done</td><td>210 strings × 3 languages; native-speaker review still recommended.</td></tr>
+<tr><td class="id">[[IMP-18]]</td><td>Done (code)</td><td>SSO and push implemented; need Google Cloud and Firebase projects to run end to end.</td></tr>
+</tbody>
+</table>

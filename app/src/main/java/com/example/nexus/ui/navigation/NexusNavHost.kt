@@ -22,6 +22,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -31,11 +33,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.nexus.NexusApp
+import com.example.nexus.R
 import com.example.nexus.auth.AuthSession
 import com.example.nexus.ui.auth.AuthViewModel
 import com.example.nexus.ui.auth.LoginScreen
 import com.example.nexus.ui.auth.RegisterScreen
 import com.example.nexus.ui.components.Motion
+import com.example.nexus.ui.components.localizedMessage
 import com.example.nexus.ui.components.rememberReduceMotion
 import com.example.nexus.ui.dashboard.DashboardScreen
 import com.example.nexus.ui.habits.HabitsScreen
@@ -109,15 +113,33 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     Column(Modifier.fillMaxSize()) {
         if (isAppAuthenticated && currentDestination?.hasRoute<Route.Splash>() == false) {
             Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
-                Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(if (syncStatus.pending > 0) Icons.Default.CloudUpload else Icons.Default.CloudDone, contentDescription = null, modifier = Modifier.size(20.dp))
+                Row(
+                    Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        if (syncStatus.pending > 0) Icons.Default.CloudUpload else Icons.Default.CloudDone,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
                     Column(Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        Text(syncStatus.message, style = MaterialTheme.typography.labelMedium)
-                        if (syncStatus.pending > 0) Text("${syncStatus.pending} pending changes", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedMessage(syncStatus.message), style = MaterialTheme.typography.labelMedium)
+                        if (syncStatus.pending > 0) {
+                            Text(
+                                pluralStringResource(R.plurals.sync_pending, syncStatus.pending, syncStatus.pending),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                     }
-                    TextButton(enabled = !syncStatus.syncing, onClick = { scope.launch { NexusApp.syncManager.sync() } }) { Text("Sync") }
-                    if (syncStatus.conflict) TextButton(onClick = { reviewConflict = true }) { Text("Review") }
-                    if (syncStatus.message.startsWith("Sign in")) TextButton(onClick = { AuthSession.clearToken() }) { Text("Sign in") }
+                    TextButton(enabled = !syncStatus.syncing, onClick = {
+                        scope.launch { NexusApp.syncManager.sync() }
+                    }) { Text(stringResource(R.string.sync_button)) }
+                    if (syncStatus.conflict) TextButton(onClick = { reviewConflict = true }) { Text(stringResource(R.string.sync_review)) }
+                    if (syncStatus.message.startsWith("Sign in")) {
+                        TextButton(onClick = {
+                            AuthSession.clearToken()
+                        }) { Text(stringResource(R.string.sync_sign_in)) }
+                    }
                 }
             }
         }
@@ -129,32 +151,32 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                 if (reduceMotion) {
                     EnterTransition.None
                 } else {
-                    slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { it / 4 } +
-                        fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+                    slideInHorizontally(tween(Motion.SCREEN_ENTER_MS, easing = FastOutSlowInEasing)) { it / 4 } +
+                        fadeIn(tween(Motion.SCREEN_ENTER_MS, easing = FastOutSlowInEasing))
                 }
             },
             exitTransition = {
                 if (reduceMotion) {
                     ExitTransition.None
                 } else {
-                    slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { -it / 4 } +
-                        fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+                    slideOutHorizontally(tween(Motion.SCREEN_EXIT_MS, easing = FastOutSlowInEasing)) { -it / 4 } +
+                        fadeOut(tween(Motion.SCREEN_EXIT_MS, easing = FastOutSlowInEasing))
                 }
             },
             popEnterTransition = {
                 if (reduceMotion) {
                     EnterTransition.None
                 } else {
-                    slideInHorizontally(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing)) { -it / 4 } +
-                        fadeIn(tween(Motion.screenEnterMs, easing = FastOutSlowInEasing))
+                    slideInHorizontally(tween(Motion.SCREEN_ENTER_MS, easing = FastOutSlowInEasing)) { -it / 4 } +
+                        fadeIn(tween(Motion.SCREEN_ENTER_MS, easing = FastOutSlowInEasing))
                 }
             },
             popExitTransition = {
                 if (reduceMotion) {
                     ExitTransition.None
                 } else {
-                    slideOutHorizontally(tween(Motion.screenExitMs, easing = FastOutSlowInEasing)) { it / 4 } +
-                        fadeOut(tween(Motion.screenExitMs, easing = FastOutSlowInEasing))
+                    slideOutHorizontally(tween(Motion.SCREEN_EXIT_MS, easing = FastOutSlowInEasing)) { it / 4 } +
+                        fadeOut(tween(Motion.SCREEN_EXIT_MS, easing = FastOutSlowInEasing))
                 }
             },
         ) {
@@ -174,6 +196,8 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                     uiState = authState,
                     onLogin = { email, password -> authViewModel.login(email, password) },
                     onNavigateToRegister = { navController.navigate(Route.Register) },
+                    onGoogleIdToken = authViewModel::googleSignIn,
+                    onGoogleError = authViewModel::googleSignInUnavailable,
                 )
             }
 
@@ -184,6 +208,8 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                         authViewModel.register(email, password, displayName)
                     },
                     onNavigateToLogin = { navController.popBackStack() },
+                    onGoogleIdToken = authViewModel::googleSignIn,
+                    onGoogleError = authViewModel::googleSignInUnavailable,
                 )
             }
 
@@ -263,10 +289,26 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
         if (showTabs) {
             NavigationBar {
                 val tabs = listOf(
-                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(Route.Dashboard, "Today", Icons.Default.Dashboard),
-                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(Route.Projects, "Projects", Icons.Default.Folder),
-                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(Route.Habits, "Habits", Icons.Default.CheckCircle),
-                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(Route.Settings, "Settings", Icons.Default.Settings),
+                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(
+                        Route.Dashboard,
+                        stringResource(R.string.nav_today),
+                        Icons.Default.Dashboard,
+                    ),
+                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(
+                        Route.Projects,
+                        stringResource(R.string.nav_projects),
+                        Icons.Default.Folder,
+                    ),
+                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(
+                        Route.Habits,
+                        stringResource(R.string.nav_habits),
+                        Icons.Default.CheckCircle,
+                    ),
+                    Triple<Route, String, androidx.compose.ui.graphics.vector.ImageVector>(
+                        Route.Settings,
+                        stringResource(R.string.action_settings),
+                        Icons.Default.Settings,
+                    ),
                 )
                 tabs.forEach { (route, label, icon) ->
                     val selected = when (route) {
@@ -275,7 +317,12 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
                         Route.Habits -> currentDestination?.hasRoute<Route.Habits>() == true
                         else -> currentDestination?.hasRoute<Route.Settings>() == true
                     }
-                    NavigationBarItem(selected = selected, icon = { Icon(icon, contentDescription = null) }, label = { Text(label) }, onClick = {
+                    NavigationBarItem(selected = selected, icon = {
+                        Icon(
+                            icon,
+                            contentDescription = null,
+                        )
+                    }, label = { Text(label, maxLines = 1, softWrap = false, style = MaterialTheme.typography.labelSmall) }, onClick = {
                         navController.navigate(route) {
                             popUpTo<Route.Dashboard> { saveState = true }
                             launchSingleTop = true
@@ -290,17 +337,17 @@ fun NexusNavHost(authViewModel: AuthViewModel = viewModel()) {
     if (reviewConflict) {
         AlertDialog(
             onDismissRequest = { reviewConflict = false },
-            title = { Text("Resolve a sync conflict") },
+            title = { Text(stringResource(R.string.sync_conflict_title)) },
             text = {
-                Text("The server could not accept an item. Keep your saved changes to review later, or discard this item's unsynced edits. Refresh the list afterwards to load the server copy. Other queued items will then retry.")
+                Text(stringResource(R.string.sync_conflict_body))
             },
             confirmButton = {
                 TextButton(onClick = {
                     reviewConflict = false
                     scope.launch { NexusApp.syncManager.discardConflict() }
-                }) { Text("Discard item edits") }
+                }) { Text(stringResource(R.string.sync_discard_item)) }
             },
-            dismissButton = { TextButton(onClick = { reviewConflict = false }) { Text("Keep changes") } },
+            dismissButton = { TextButton(onClick = { reviewConflict = false }) { Text(stringResource(R.string.sync_keep_changes)) } },
         )
     }
 }

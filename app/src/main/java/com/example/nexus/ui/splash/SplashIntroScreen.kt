@@ -43,9 +43,9 @@ import com.example.nexus.ui.theme.BrandGreen
 import com.example.nexus.ui.theme.BrandIconBg
 import com.example.nexus.ui.theme.BrandPurple
 import com.example.nexus.ui.theme.Spacing
-import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 @Composable
 fun SplashIntroScreen(onFinished: () -> Unit) {
@@ -114,20 +114,20 @@ fun SplashIntroScreen(onFinished: () -> Unit) {
 
     Box(
         modifier =
-            Modifier
-                .fillMaxSize()
-                .testTag("splash_content")
-                .background(
-                    Brush.radialGradient(
-                        colorStops =
-                            arrayOf(
-                                0f to Color(0xFF121218),
-                                1f to BrandDeepBg,
-                            ),
-                        radius = with(LocalDensity.current) { 560.dp.toPx() },
-                        center = Offset.Unspecified,
+        Modifier
+            .fillMaxSize()
+            .testTag("splash_content")
+            .background(
+                Brush.radialGradient(
+                    colorStops =
+                    arrayOf(
+                        0f to Color(0xFF121218),
+                        1f to BrandDeepBg,
                     ),
+                    radius = with(LocalDensity.current) { 560.dp.toPx() },
+                    center = Offset.Unspecified,
                 ),
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -137,13 +137,13 @@ fun SplashIntroScreen(onFinished: () -> Unit) {
         ) {
             NexusIcon(
                 modifier =
-                    Modifier
-                        .size(220.dp)
-                        .graphicsLayer {
-                            alpha = iconAlpha
-                            scaleX = iconScale * settleScale
-                            scaleY = iconScale * settleScale
-                        },
+                Modifier
+                    .size(220.dp)
+                    .graphicsLayer {
+                        alpha = iconAlpha
+                        scaleX = iconScale * settleScale
+                        scaleY = iconScale * settleScale
+                    },
                 spinnerAlpha = spinnerAlpha,
                 spinnerScale = spinnerScale,
                 spinnerRotation = spinnerRotation,
@@ -160,17 +160,17 @@ fun SplashIntroScreen(onFinished: () -> Unit) {
             Text(
                 text = "Nexus",
                 style =
-                    TextStyle(
-                        brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
-                        fontSize = 38.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = (-0.2).sp,
-                    ),
+                TextStyle(
+                    brush = Brush.linearGradient(listOf(BrandPurple, BrandGreen)),
+                    fontSize = 38.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.2).sp,
+                ),
                 modifier =
-                    Modifier.graphicsLayer {
-                        alpha = word
-                        translationY = (1f - word) * 10f
-                    },
+                Modifier.graphicsLayer {
+                    alpha = word
+                    translationY = (1f - word) * 10f
+                },
             )
         }
     }
@@ -217,11 +217,11 @@ private fun NexusIcon(
         val breathe = 0.1f + (0.1f * (sin(lineProgress[1] * PI).toFloat() + 1f) / 2f)
         drawCircle(
             brush =
-                Brush.radialGradient(
-                    colorStops = arrayOf(0f to BrandGlow.copy(alpha = 0.45f), 1f to Color.Transparent),
-                    center = center,
-                    radius = 66f * scale,
-                ),
+            Brush.radialGradient(
+                colorStops = arrayOf(0f to BrandGlow.copy(alpha = 0.45f), 1f to Color.Transparent),
+                center = center,
+                radius = 66f * scale,
+            ),
             center = center,
             radius = 66f * scale,
             alpha = breathe,
@@ -300,14 +300,7 @@ private fun NexusIcon(
     }
 }
 
-private fun DrawScope.drawProgressLine(
-    start: Offset,
-    end: Offset,
-    progress: Float,
-    color: Color,
-    width: Float,
-    alpha: Float,
-) {
+private fun DrawScope.drawProgressLine(start: Offset, end: Offset, progress: Float, color: Color, width: Float, alpha: Float,) {
     if (progress <= 0f) return
     val p = progress.coerceIn(0f, 1f)
     val point =
@@ -325,14 +318,7 @@ private fun DrawScope.drawProgressLine(
     )
 }
 
-private fun DrawScope.drawProgressLine(
-    start: Offset,
-    end: Offset,
-    progress: Float,
-    brush: Brush,
-    width: Float,
-    alpha: Float,
-) {
+private fun DrawScope.drawProgressLine(start: Offset, end: Offset, progress: Float, brush: Brush, width: Float, alpha: Float,) {
     if (progress <= 0f) return
     val p = progress.coerceIn(0f, 1f)
     val point =
@@ -350,24 +336,14 @@ private fun DrawScope.drawProgressLine(
     )
 }
 
-private fun DrawScope.drawDot(
-    progress: Float,
-    targetOffset: Offset,
-    color: Color,
-    radius: Float,
-    alphaMultiplier: Float,
-) {
+private fun DrawScope.drawDot(progress: Float, targetOffset: Offset, color: Color, radius: Float, alphaMultiplier: Float,) {
     if (progress <= 0f) return
     val p = progress.coerceIn(0f, 1f)
     val center = Offset(size.width / 2f + targetOffset.x * p, size.height / 2f + targetOffset.y * p)
     drawCircle(color = color, center = center, radius = radius, alpha = p * alphaMultiplier)
 }
 
-private inline fun DrawScope.drawIntoCenter(
-    center: Offset,
-    scale: Float,
-    crossinline block: DrawScope.() -> Unit,
-) {
+private inline fun DrawScope.drawIntoCenter(center: Offset, scale: Float, crossinline block: DrawScope.() -> Unit,) {
     withTransform({
         translate(left = center.x * (1f - scale), top = center.y * (1f - scale))
         scale(scaleX = scale, scaleY = scale)
@@ -376,11 +352,7 @@ private inline fun DrawScope.drawIntoCenter(
     }
 }
 
-private fun segment(
-    time: Float,
-    start: Float,
-    end: Float,
-): Float {
+private fun segment(time: Float, start: Float, end: Float,): Float {
     if (time <= start) return 0f
     if (time >= end) return 1f
     return (time - start) / (end - start)
@@ -388,12 +360,7 @@ private fun segment(
 
 private fun eased(value: Float): Float = FastOutSlowInEasing.transform(value.coerceIn(0f, 1f))
 
-private fun triangularPulse(
-    time: Float,
-    start: Float,
-    end: Float,
-    peak: Float,
-): Float {
+private fun triangularPulse(time: Float, start: Float, end: Float, peak: Float,): Float {
     if (time <= start || time >= end) return 0f
     return if (time < peak) {
         ((time - start) / (peak - start)).coerceIn(0f, 1f)

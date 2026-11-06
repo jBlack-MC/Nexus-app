@@ -1,4 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -19,6 +20,24 @@ require(nexusApiUrl.matches(Regex("https?://[A-Za-z0-9.:-]+(/[A-Za-z0-9._~/-]*)?
     "NEXUS_API_URL must be an HTTP(S) base URL ending with /"
 }
 
+// Google single sign-on: the *Web* OAuth 2.0 client ID from Google Cloud Console (the same value the
+// API uses as GOOGLE_CLIENT_ID). When empty, the "Continue with Google" button is hidden.
+val googleWebClientId = providers.gradleProperty("GOOGLE_WEB_CLIENT_ID")
+    .orElse(providers.environmentVariable("GOOGLE_WEB_CLIENT_ID"))
+    .getOrElse("")
+require(googleWebClientId.isEmpty() || googleWebClientId.matches(Regex("""[A-Za-z0-9.-]+\.apps\.googleusercontent\.com"""))) {
+    "GOOGLE_WEB_CLIENT_ID must look like <id>.apps.googleusercontent.com"
+}
+
+// Release signing (Play Store upload key). Values come from keystore.properties (git-ignored) or
+// environment variables in CI; nothing secret is stored in the repository.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+fun signingValue(key: String, env: String): String? = keystoreProperties.getProperty(key) ?: System.getenv(env)
+val releaseStoreFile = signingValue("storeFile", "NEXUS_KEYSTORE_PATH")
+
 android {
     namespace = "com.example.nexus"
     compileSdk = 37
@@ -27,12 +46,24 @@ android {
         applicationId = "com.example.nexus"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "BASE_URL", "\"$nexusApiUrl\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
+    }
+
+    signingConfigs {
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = signingValue("storePassword", "NEXUS_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "NEXUS_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "NEXUS_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -40,6 +71,7 @@ android {
             buildConfigField("String", "BASE_URL", "\"$nexusApiUrl\"")
         }
         release {
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -93,6 +125,16 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.5")
     ksp("androidx.room:room-compiler:2.8.5")
 
+    // Google single sign-on through Android Credential Manager
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Notifications: scheduled due-date reminders (WorkManager) and push (Firebase Cloud Messaging)
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
+    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+    implementation("com.google.firebase:firebase-messaging")
+
     testImplementation(libs.junit)
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
@@ -140,9 +182,18 @@ kover {
 
 // Never produce a release that silently points at an emulator or an invented host.
 tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    // Capture a plain String: referencing the script-level val inside doFirst would capture the
+    // build script object, which the configuration cache cannot serialise.
+    val releaseApiUrl: String = nexusApiUrl
     doFirst {
-        require(nexusApiUrl.startsWith("https://")) {
+        require(releaseApiUrl.startsWith("https://")) {
             "Release builds require -PNEXUS_API_URL=https://your-host/api/"
         }
     }
+}
+
+// Firebase is configured by dropping the project's google-services.json into app/. Without it the
+// app still builds; push registration is skipped at runtime and local reminders keep working.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }

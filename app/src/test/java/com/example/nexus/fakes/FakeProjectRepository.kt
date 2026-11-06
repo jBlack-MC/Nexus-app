@@ -43,10 +43,7 @@ class FakeProjectRepository(
         return newProject
     }
 
-    override suspend fun updateProject(
-        projectId: String,
-        request: UpdateProjectRequest,
-    ): Project {
+    override suspend fun updateProject(projectId: String, request: UpdateProjectRequest,): Project {
         updateProjectError?.let { throw it }
         updatedProjects.add(projectId to request)
         val index = projects.indexOfFirst { it.id == projectId }

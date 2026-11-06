@@ -28,7 +28,14 @@ import com.example.nexus.ui.settings.authCopy
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun LoginScreen(uiState: AuthUiState, onLogin: (String, String) -> Unit, onNavigateToRegister: () -> Unit,) {
+fun LoginScreen(
+    uiState: AuthUiState,
+    onLogin: (String, String) -> Unit,
+    onNavigateToRegister: () -> Unit,
+    onGoogleIdToken: (String) -> Unit = {
+    },
+    onGoogleError: (String?) -> Unit = {},
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
@@ -129,6 +136,11 @@ fun LoginScreen(uiState: AuthUiState, onLogin: (String, String) -> Unit, onNavig
                 enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank(),
                 isLoading = uiState.isLoading,
             )
+
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            OrDivider()
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            GoogleSignInButton(enabled = !uiState.isLoading, onIdToken = onGoogleIdToken, onError = onGoogleError)
 
             Spacer(modifier = Modifier.height(Spacing.sm))
 

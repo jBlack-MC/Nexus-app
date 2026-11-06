@@ -128,6 +128,14 @@ describe("Push notifications", () => {
     expect((await request(app).post("/api/users/me/devices").send({ token: "device-token-C-789" })).status).toBe(401);
   });
 
+  test("a device token moves to the account that registers it last", async () => {
+    const first = addUser({ deviceTokens: ["shared-phone-token-1"] });
+    const second = addUser();
+    await request(app).post("/api/users/me/devices").set("Authorization", `Bearer ${tokenFor(second)}`).send({ token: "shared-phone-token-1" });
+    expect(users.get(first.id).deviceTokens).toEqual([]);
+    expect(users.get(second.id).deviceTokens).toEqual(["shared-phone-token-1"]);
+  });
+
   test("test notification reports when push is not configured", async () => {
     const user = addUser({ deviceTokens: ["device-token-A-123"] });
     const res = await request(app).post("/api/users/me/notifications/test").set("Authorization", `Bearer ${tokenFor(user)}`);

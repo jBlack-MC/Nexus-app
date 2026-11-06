@@ -31,23 +31,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.R
 import com.example.nexus.api.GamificationStats
 import com.example.nexus.api.Habit
 import com.example.nexus.ui.components.CreateHabitDialog
+import com.example.nexus.ui.components.DeleteConfirmationDialog
+import com.example.nexus.ui.components.DeleteKind
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.HabitCard
 import com.example.nexus.ui.components.ListSkeleton
 import com.example.nexus.ui.components.NexusLogo
 import com.example.nexus.ui.components.NexusSecondaryButton
+import com.example.nexus.ui.components.rememberDeleteConfirmation
 import com.example.nexus.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HabitsScreen(
-    onBack: () -> Unit,
-    viewModel: HabitsViewModel = viewModel(),
-) {
+fun HabitsScreen(onBack: () -> Unit, viewModel: HabitsViewModel = viewModel(),) {
+    val confirmDelete = rememberDeleteConfirmation()
+    DeleteConfirmationDialog(confirmDelete)
     val state by viewModel.uiState.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
     var editingHabit by remember { mutableStateOf<Habit?>(null) }
@@ -59,19 +63,19 @@ fun HabitsScreen(
                 title = { NexusLogo(iconSize = Spacing.TopBarLogoSize, textSize = Spacing.TopBarLogoTextSize) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = viewModel::loadHabits) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_refresh))
                     }
                 },
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showCreateDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add habit")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.habits_add))
             }
         },
     ) { paddingValues ->
@@ -85,16 +89,16 @@ fun HabitsScreen(
             else ->
                 LazyColumn(
                     modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .padding(horizontal = Spacing.md)
-                            .testTag("habits_content"),
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = Spacing.md)
+                        .testTag("habits_content"),
                     verticalArrangement = Arrangement.spacedBy(Spacing.smd),
                 ) {
                     item {
-                        Text("Habits", style = MaterialTheme.typography.headlineSmall)
-                        Text("Build consistency, one small action at a time.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.nav_habits), style = MaterialTheme.typography.headlineSmall)
+                        Text(stringResource(R.string.habits_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(Spacing.sm))
                         StatsCard(state.stats)
                     }
@@ -103,7 +107,7 @@ fun HabitsScreen(
                             habit,
                             onToggle = { viewModel.toggleToday(habit) },
                             onEdit = { editingHabit = habit },
-                            onDelete = { viewModel.deleteHabit(habit) },
+                            onDelete = { confirmDelete.ask(DeleteKind.HABIT, habit.name) { viewModel.deleteHabit(habit) } },
                         )
                     }
                     item {
@@ -142,33 +146,50 @@ fun HabitsScreen(
 private fun StatsCard(stats: GamificationStats) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.smCompact)) {
-            Text("Level ${stats.level}  •  ${stats.points} points", style = MaterialTheme.typography.titleMedium)
-            Text("Current streak: ${stats.currentStreak} days  •  Best: ${stats.bestStreak} days")
-            Text("Completion rate: ${stats.completionRate}%")
-            if (stats.badges.isNotEmpty()) Text("Badges: ${stats.badges.joinToString()}")
+            Text(stringResource(R.string.habits_level_points, stats.level, stats.points), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.habits_streaks, stats.currentStreak, stats.bestStreak))
+            Text(stringResource(R.string.habits_completion_rate, stats.completionRate))
+            if (stats.badges.isNotEmpty()) {
+                Text(
+                    stringResource(
+                        R.string.habits_badges,
+                        stats.badges.map { localizedReward(it) }.joinToString(),
+                    )
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun RewardsCard(
-    rewards: List<String>,
-    redeemed: Set<String>,
-    onRedeem: (String) -> Unit,
-) {
+private fun RewardsCard(rewards: List<String>, redeemed: Set<String>, onRedeem: (String) -> Unit,) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Text("Rewards", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.habits_rewards), style = MaterialTheme.typography.titleMedium)
             rewards.forEach { reward ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(reward, modifier = Modifier.weight(1f))
+                    Text(localizedReward(reward), modifier = Modifier.weight(1f))
                     NexusSecondaryButton(
-                        text = if (reward in redeemed) "Redeemed" else "Redeem",
+                        text = if (reward in redeemed) stringResource(R.string.habits_redeemed) else stringResource(R.string.habits_redeem),
                         onClick = { onRedeem(reward) },
                         enabled = reward !in redeemed,
                     )
                 }
             }
         }
+    }
+}
+
+/** Translates a HabitScoring badge or reward (English, from the domain layer) for display. */
+@Composable
+private fun localizedReward(text: String): String {
+    val level = Regex("""Unlock level (\d+) theme""").matchEntire(text)?.groupValues?.get(1)?.toIntOrNull()
+    return when {
+        level != null -> stringResource(R.string.reward_unlock_theme, level)
+        text == "3-day streak" -> stringResource(R.string.badge_streak_3)
+        text == "7-day streak" -> stringResource(R.string.badge_streak_7)
+        text == "Reliable habit builder" -> stringResource(R.string.badge_reliable)
+        text == "Take a guilt-free break" -> stringResource(R.string.reward_break)
+        else -> text
     }
 }

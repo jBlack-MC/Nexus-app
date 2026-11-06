@@ -11,12 +11,12 @@ audience: Developers and whoever performs releases; assessor checking delivery a
 <caption>Workflows</caption>
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Workflow</th><th scope="col">Triggers</th><th scope="col">Jobs and gates</th></tr></thead>
 <tbody>
-<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 20, <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
-<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 20 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
-<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>Push/PR on main; manual</td><td>GitHub starter template that only echoes text. It provides no gate ([[AUD-13]]).</td></tr>
+<tr id="CI-01"><td class="id">CI-01</td><td><code>android-ci.yml</code> "Android CI"</td><td>Push to <code>main</code>, <code>master</code>, <code>release/**</code>; PR to main/master; manual</td><td><strong>backend-test</strong> (15 min): Node 22 (since v2.0; was 20), <code>npm ci</code>, <code>npm test</code> with a test-only JWT secret.<br><strong>build</strong> (30 min): JDK 17 Temurin, Gradle setup, wrapper validation, <code>ktlintCheck</code> (since v2.0), <code>./gradlew test</code>, <code>:app:assembleDebug</code>, upload <code>nexus-debug-apk</code> (14 days). Only if repository variable <code>NEXUS_API_URL</code> is set: <code>assembleRelease bundleRelease</code> and upload <code>nexus-release-artifacts</code>.</td></tr>
+<tr id="CI-02"><td class="id">CI-02</td><td><code>backend-ci.yml</code> "Backend CI"</td><td>Same branches, filtered to <code>backend/**</code> and its own file; manual</td><td>Node 22 tests, then <code>docker build</code>, run the container with <code>NODE_ENV=production</code>, wait 3 s, and require HTTP 200 from <code>/health</code>; the container is always removed.</td></tr>
+<tr id="CI-03"><td class="id">CI-03</td><td><code>blank.yml</code> "CI"</td><td>(removed in v2.0)</td><td>GitHub starter template that only echoed text; deleted ([[AUD-13]]).</td></tr>
 </tbody>
 </table>
-<p>Not gated in CI: ktlint, detekt, Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning {{F}}. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings {{U}}.</p>
+<p>Not gated in CI: detekt ([[AUD-23]]), Kover coverage thresholds, instrumented (<code>androidTest</code>) tests, and dependency vulnerability scanning {{F}}. Dependabot opened PR #27, but the repository has no <code>.github/dependabot.yml</code>, so its configuration lives in GitHub settings {{U}}.</p>
 
 <h2>Verified run history</h2>
 <p>Retrieved with <code>gh run list</code> / <code>gh run view</code> on 2026-11-05 (78 most recent runs: 49 success, 29 failure).</p>
@@ -38,9 +38,14 @@ audience: Developers and whoever performs releases; assessor checking delivery a
 <caption>Commands run on 2026-11-05 on the author's Windows workstation</caption>
 <thead><tr><th scope="col">Command</th><th scope="col">Result</th></tr></thead>
 <tbody>
-<tr><td><code>cd backend; npm test</code> (installed zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
-<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong>, 0 failures</td></tr>
-<tr><td><code>assembleDebug</code>, <code>assembleRelease</code>, Docker build</td><td>Not run for this package {{U}}. The Docker daemon was not running.</td></tr>
+<tr><td><code>cd backend; npm test</code> at v1.0 (zod 3.25.76)</td><td>2 suites, <strong>16/16 passed</strong>, 31.7 s</td></tr>
+<tr><td><code>cd backend; npm test</code> at v2.0 (zod 4.6.7)</td><td>3 suites, <strong>29/29 passed</strong>; <code>npm audit --omit=dev</code>: 0 vulnerabilities</td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest --rerun</code> at v1.0 (JDK 21 runtime)</td><td>BUILD SUCCESSFUL; 7 classes, <strong>32/32 passed</strong></td></tr>
+<tr><td><code>./gradlew :app:testDebugUnitTest</code> at v2.0</td><td>BUILD SUCCESSFUL; 10 classes, <strong>42/42 passed</strong></td></tr>
+<tr><td><code>./gradlew :app:connectedDebugAndroidTest</code> at v2.0 (Android 7.0 emulator)</td><td><strong>16/16 passed</strong> with the API stopped; 14/16 when a live API was reachable ([[AUD-22]])</td></tr>
+<tr><td><code>assembleRelease -PNEXUS_API_URL=https://api.nexus.invalid/api/</code> at v2.0</td><td>APK signed with the upload key, verified by <code>apksigner</code> (APK Signature Scheme v2). A configuration-cache error in the HTTPS guard was fixed, after which the build is SUCCESSFUL; an http:// URL is rejected. The placeholder build was deleted.</td></tr>
+<tr><td><code>assembleDebug</code> at v2.0</td><td>Succeeded; installed and exercised on the emulator</td></tr>
+<tr><td>Docker build</td><td>Not run {{U}}. The Docker daemon was not running; <code>docker compose config</code> validates both compose files.</td></tr>
 </tbody>
 </table>
 <p>Details per suite are in [[NX-09-TDH]].</p>
@@ -58,7 +63,7 @@ audience: Developers and whoever performs releases; assessor checking delivery a
 </table>
 
 <h2>Release process</h2>
-<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 {{F}}. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources {{F}}. No <code>signingConfig</code> is defined, so CI release artifacts would be unsigned ([[AUD-08]]).</p>
+<p>No release has been published: <code>gh release list</code> returns nothing and <code>versionCode</code> is 1 {{F}}. The Gradle build enforces two release rules: <code>NEXUS_API_URL</code> must start with <code>https://</code> (<code>preReleaseBuild</code> check), and release builds minify and shrink resources {{F}}. Since v2.0 a <code>release</code> signing config reads <code>keystore.properties</code> (git-ignored) or <code>NEXUS_KEYSTORE_*</code> environment variables, and the upload key was created with <code>scripts/create-upload-keystore.ps1</code> ([[AUD-08]] fixed). CI does not have the key yet, so CI release artifacts remain unsigned until the secrets are added.</p>
 <h3 id="REL-CHECK">Release checklist</h3>
 <p>Items marked {{R}} are recommendations for the first release. The others restate rules the repository already enforces or documents.</p>
 <ol>
@@ -66,7 +71,7 @@ audience: Developers and whoever performs releases; assessor checking delivery a
 <li id="REL-02">Backend tests pass locally: <code>npm ci &amp;&amp; npm test</code>.</li>
 <li id="REL-03">Android unit tests pass: <code>./gradlew test</code>. Instrumented tests pass on at least one API 24 and one current device. {{R}}</li>
 <li id="REL-04">Run the offline acceptance check in <code>docs/ONLINE_OFFLINE.md</code> (six steps) against the target API.</li>
-<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> and update the hard-coded "Version 1.0.0 (Prototype)" label in Settings. {{R}}</li>
+<li id="REL-05">Increment <code>versionCode</code>/<code>versionName</code> in <code>app/build.gradle.kts</code> (2 / 2.0.0 for the final PoE). Settings shows <code>BuildConfig.VERSION_NAME</code>.</li>
 <li id="REL-06">Hosted API is healthy over HTTPS with persistent storage and a stable <code>JWT_SECRET</code> ([[NX-11-DEP]]).</li>
 <li id="REL-07">Set repository variable <code>NEXUS_API_URL</code> to the HTTPS URL ending in <code>/</code>.</li>
 <li id="REL-08">Sign the APK/AAB with the release keystore held outside the repository ([[IMP-07]]). {{R}}</li>

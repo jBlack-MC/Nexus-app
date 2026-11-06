@@ -24,14 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun StatCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    value: String,
-    label: String,
-    containerColor: Color,
-    contentColor: Color,
-) {
+fun StatCard(modifier: Modifier = Modifier, icon: ImageVector, value: String, label: String, containerColor: Color, contentColor: Color,) {
     Card(
         modifier = modifier,
         border = CardDefaults.outlinedCardBorder(),
@@ -39,18 +32,18 @@ fun StatCard(
     ) {
         Column(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Spacing.sm, vertical = Spacing.md),
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.sm, vertical = Spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             Box(
                 modifier =
-                    Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(containerColor),
+                Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(containerColor),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(

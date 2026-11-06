@@ -16,21 +16,29 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.R
 import com.example.nexus.api.Project
 import com.example.nexus.ui.components.CreateProjectDialog
+import com.example.nexus.ui.components.DeleteConfirmationDialog
+import com.example.nexus.ui.components.DeleteKind
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.ListSkeleton
 import com.example.nexus.ui.components.NexusDestructiveIconButton
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.rememberDeleteConfirmation
 import com.example.nexus.ui.settings.CompactLanguageMenu
 import com.example.nexus.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> Unit, viewModel: ProjectListViewModel = viewModel(),) {
+    val confirmDelete = rememberDeleteConfirmation()
+    DeleteConfirmationDialog(confirmDelete)
     val uiState by viewModel.uiState.collectAsState()
     var query by rememberSaveable { mutableStateOf("") }
     val visibleProjects = uiState.projects.filter { it.name.contains(query, true) || it.description.orEmpty().contains(query, true) }
@@ -45,15 +53,15 @@ fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> 
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackToDashboard) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.loadProjects() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_refresh))
                     }
                     Text(
-                        "Projects",
+                        stringResource(R.string.nav_projects),
                         modifier = Modifier.padding(end = Spacing.md),
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -63,7 +71,7 @@ fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> 
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showCreateDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "New Project")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.project_new))
             }
         },
     ) { paddingValues ->
@@ -86,9 +94,9 @@ fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> 
                         )
                     } else if (uiState.projects.isEmpty()) {
                         EmptyState(
-                            message = "No projects yet. Create one to get started!",
+                            message = stringResource(R.string.projects_empty),
                             onAction = { showCreateDialog = true },
-                            actionLabel = "Create Project",
+                            actionLabel = stringResource(R.string.project_create),
                         )
                     } else {
                         LazyColumn(
@@ -97,23 +105,36 @@ fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> 
                             verticalArrangement = Arrangement.spacedBy(Spacing.smd),
                         ) {
                             item {
-                                Text("Your workspace", style = MaterialTheme.typography.headlineMedium)
-                                Text("${uiState.projects.size} projects ? one clear next step", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.projects_workspace), style = MaterialTheme.typography.headlineMedium)
+                                Text(
+                                    pluralStringResource(R.plurals.projects_count, uiState.projects.size, uiState.projects.size),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                             item {
                                 OutlinedTextField(value = query, onValueChange = {
                                     query = it
                                 }, label = {
-                                    Text("Search projects")
-                                }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                    Text(stringResource(R.string.projects_search))
+                                }, leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        null,
+                                    )
+                                }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             }
-                            if (visibleProjects.isEmpty()) item { Text("No projects match your search.") }
+                            if (visibleProjects.isEmpty()) item { Text(stringResource(R.string.projects_no_match)) }
                             items(visibleProjects, key = { it.id }) { project ->
                                 ProjectItem(
                                     project = project,
                                     onClick = { onOpenProject(project.id) },
                                     onEdit = { editingProject = project },
-                                    onDelete = { viewModel.deleteProject(project.id) },
+                                    onDelete = {
+                                        confirmDelete.ask(
+                                            DeleteKind.PROJECT,
+                                            project.name,
+                                        ) { viewModel.deleteProject(project.id) }
+                                    },
                                 )
                             }
                         }
@@ -129,7 +150,7 @@ fun ProjectListScreen(onBackToDashboard: () -> Unit, onOpenProject: (String) -> 
                         .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.loadProjects() }) {
-                            Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
+                            Text(stringResource(R.string.action_retry), color = MaterialTheme.colorScheme.inversePrimary)
                         }
                     },
                 ) {
@@ -189,9 +210,9 @@ fun ProjectItem(project: Project, onClick: () -> Unit, onEdit: () -> Unit, onDel
                     color = MaterialTheme.colorScheme.primary,
                 )
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit))
                 }
-                NexusDestructiveIconButton(onClick = onDelete, contentDescription = "Delete")
+                NexusDestructiveIconButton(onClick = onDelete, contentDescription = stringResource(R.string.action_delete))
             }
             if (!project.description.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(Spacing.xs))

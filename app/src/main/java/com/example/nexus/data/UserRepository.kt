@@ -19,6 +19,16 @@ open class UserRepository(
     open suspend fun register(request: RegisterRequest): AuthResponse =
         apiService?.register(request) ?: throw IllegalStateException("No service")
 
+    open suspend fun googleSignIn(idToken: String): AuthResponse =
+        apiService?.googleSignIn(com.example.nexus.api.GoogleSignInRequest(idToken)) ?: throw IllegalStateException("No service")
+
+    open suspend fun registerDevice(token: String) {
+        apiService?.registerDevice(com.example.nexus.api.DeviceTokenRequest(token))
+    }
+
+    open suspend fun sendTestNotification(): com.example.nexus.api.TestNotificationResult =
+        apiService?.sendTestNotification() ?: throw IllegalStateException("No service")
+
     open suspend fun getProfile(): UserProfile {
         val key = cacheOwner()?.let { "profile:$it" }
         return try {

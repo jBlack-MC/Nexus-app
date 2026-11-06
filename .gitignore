@@ -24,7 +24,7 @@ local.properties
 
 # Backend runtime state and dependencies
 /backend/node_modules/
-/backend/nexus-data.json
+/backend/nexus-data.json*
 
 # AI assistant artifacts
 /.artifacts/
@@ -34,3 +34,9 @@ local.properties
 .env.local
 .env.*
 
+
+# Release signing and Firebase project config: provided locally or by CI secrets, never committed
+keystore.properties
+*.jks
+*.keystore
+/app/google-services.json

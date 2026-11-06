@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NX-02-TRD Technical Requirements - Nexus</title>
 <link rel="stylesheet" href="../tools/style.css">
-<style>@media print { @page { @top-left { content: "NX-02-TRD \00B7  Technical Requirements \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+<style>@media print { @page { @top-left { content: "NX-02-TRD \00B7  Technical Requirements \00B7  v2.0 \00B7  Draft for team review"; } } }</style>
 </head>
 <body>
 <main class="doc">
@@ -15,11 +15,11 @@
   <p class="subtitle">Architecture, technology stack, interfaces, quality attributes and operational requirements.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-02-TRD</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Developers and operators maintaining Nexus; assessor checking technical depth</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -35,7 +35,8 @@
 
 
 <h2 id="d02-system-context"><span class="num">1</span>System context</h2>
-<p>Nexus has two deployable parts: the Android app (<code>app/</code>, package <code>com.example.nexus</code>) and the Nexus API (<code>backend/server.js</code>). The app talks only to the Nexus API over REST/JSON. A Retrofit client for the public MyMemory translation API is defined, but nothing in the app calls it (<span class="tag fact">Implemented</span>, <a href="08-engineering-audit.html#AUD-09">AUD-09</a>).</p>
+<p><strong>Version 2.0 update.</strong> Part 3 added Google SSO (Credential Manager plus <code>google-auth-library</code>), FCM push (<code>firebase-messaging</code> plus <code>firebase-admin</code>), WorkManager reminders, full en/zu/tn resources, release signing, Zod 4 and Node 22. The diagram shows the core components; the new pieces are listed in the tables below.</p>
+<p>Nexus has two deployable parts: the Android app (<code>app/</code>, package <code>com.example.nexus</code>) and the Nexus API (<code>backend/server.js</code>). The app talks to the Nexus API over REST/JSON. Since v2.0 it also uses Google Identity (Credential Manager) for SSO and Firebase Cloud Messaging for push. A Retrofit client for the public MyMemory translation API is defined, but nothing in the app calls it (<span class="tag fact">Implemented</span>, <a href="08-engineering-audit.html#AUD-09">AUD-09</a>).</p>
 
 <figure class="diagram" id="DIAG-01">
 <svg viewBox="0 0 760 330" role="img" aria-labelledby="diag01t diag01d" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
@@ -75,9 +76,10 @@
 <tr><td>UI</td><td>Jetpack Compose (BOM 2026.02.01), Material 3, Navigation Compose 2.8.0 with kotlinx-serialization routes, material-icons-extended</td><td><code>libs.versions.toml</code>, <code>app/build.gradle.kts</code></td></tr>
 <tr><td>Networking</td><td>Retrofit 3.0.0 + Gson converter, OkHttp logging-interceptor 4.12.0 (BASIC in debug, NONE in release)</td><td><code>RetrofitClient.kt</code></td></tr>
 <tr><td>Local storage</td><td>Room 2.8.5 (runtime, ktx, compiler via KSP); AndroidX Security Crypto 1.1.0</td><td><code>Database.kt</code>, <code>TokenManager.kt</code></td></tr>
+<tr><td>SSO and notifications (v2.0)</td><td>androidx.credentials 1.6.0 + play-services-auth, googleid 1.1.1; WorkManager 2.12.0; Firebase BoM 35.1.0 (firebase-messaging); google-services plugin 4.5.0, applied only when <code>app/google-services.json</code> exists</td><td><code>app/build.gradle.kts</code></td></tr>
 <tr><td>Quality tooling</td><td>ktlint plugin 12.1.2, detekt 1.23.8, Kover 0.9.1; JUnit 4.13.2, MockK 1.13.12, coroutines-test 1.8.1, Compose UI test</td><td><code>build.gradle.kts</code></td></tr>
-<tr><td>API runtime</td><td>Node.js (CI uses 20; Docker image uses <code>node:22-alpine</code>), ES modules</td><td><code>.github/workflows/*.yml</code>, <code>backend/Dockerfile</code></td></tr>
-<tr><td>API libraries</td><td>express ^4.21.2, bcryptjs ^2.4.3, jsonwebtoken ^9.0.2, zod ^3.23.8 (3.25.76 installed), express-rate-limit ^7.5.0, helmet ^8.3.0, cors ^2.8.6, pino ^10.3.1, pino-http ^11.0.0</td><td><code>backend/package.json</code></td></tr>
+<tr><td>API runtime</td><td>Node.js 22 (CI and Docker; required by google-auth-library 11 and firebase-admin 14), ES modules</td><td><code>.github/workflows/*.yml</code>, <code>backend/Dockerfile</code></td></tr>
+<tr><td>API libraries</td><td>express ^4.21.2, bcryptjs ^2.4.3, jsonwebtoken ^9.0.2, zod ^4 (4.6.7 installed), google-auth-library ^11.3.3, firebase-admin ^14.5.0, express-rate-limit ^7.5.0, helmet ^8.3.0, cors ^2.8.6, pino ^10.3.1, pino-http ^11.0.0</td><td><code>backend/package.json</code></td></tr>
 <tr><td>API tests</td><td>Jest ^29.7.0 and Supertest ^7.0.0, run in band with <code>--experimental-vm-modules</code></td><td><code>backend/package.json</code></td></tr>
 </tbody>
 </table>
@@ -111,7 +113,10 @@
 <tr><td><code>GET /app/config</code></td><td>No</td><td>Static config: versions 1.0.0, maintenance off, feature flags, no announcements</td></tr>
 <tr><td><code>GET /localization/:language</code></td><td>No</td><td>Five-string bundle for en/zu/tn (falls back to en)</td></tr>
 <tr><td><code>POST /auth/register</code></td><td>No, rate-limited</td><td>201 <code>{token}</code>; 409 duplicate email; 429 after 10 per 15 min</td></tr>
-<tr><td><code>POST /auth/login</code></td><td>No, rate-limited</td><td>200 <code>{token}</code>; 401 invalid credentials</td></tr>
+<tr><td><code>POST /auth/login</code></td><td>No, rate-limited</td><td>200 <code>{token}</code>; 401 invalid credentials (emails case-insensitive)</td></tr>
+<tr><td><code>POST /auth/google</code></td><td>No, rate-limited</td><td><code>{idToken}</code>; 201 new account or 200 existing/linked, <code>{token}</code>; 401 <code>INVALID_GOOGLE_TOKEN</code>; 503 <code>SSO_NOT_CONFIGURED</code></td></tr>
+<tr><td><code>POST /users/me/devices</code>, <code>DELETE /users/me/devices/:token</code></td><td>Yes</td><td>Register or unregister an FCM token (204)</td></tr>
+<tr><td><code>POST /users/me/notifications/test</code></td><td>Yes</td><td>Pushes a test notification; returns <code>{configured, sent, devices}</code></td></tr>
 <tr><td><code>GET</code>/<code>PATCH /users/me</code></td><td>Yes</td><td>Profile <code>{email, displayName, language, notificationsEnabled}</code>; PATCH rejects unknown fields</td></tr>
 <tr><td><code>POST /users/me/password</code></td><td>Yes</td><td>204; 401 wrong current password</td></tr>
 <tr><td><code>DELETE /users/me</code></td><td>Yes</td><td>204; removes the user and all their data</td></tr>
@@ -128,10 +133,11 @@
 
 <h3 id="d02-device-integrations"><span class="num">4.2</span>Device integrations</h3>
 <ul>
-<li>Permissions: <code>INTERNET</code> and <code>ACCESS_NETWORK_STATE</code> only <span class="tag fact">Implemented</span>.</li>
+<li>Permissions: <code>INTERNET</code>, <code>ACCESS_NETWORK_STATE</code> and (v2.0) <code>POST_NOTIFICATIONS</code>, requested at runtime on Android 13+ <span class="tag fact">Implemented</span>.</li>
+<li>WorkManager periodic job (reminders) and an FCM <code>FirebaseMessagingService</code> (v2.0) <span class="tag fact">Implemented</span>.</li>
 <li><code>ConnectivityManager</code> network callback triggers sync when a network becomes available <span class="tag fact">Implemented</span>.</li>
 <li>Android share sheet for CSV export (<code>Intent.ACTION_SEND</code>, <code>text/csv</code>) <span class="tag fact">Implemented</span>.</li>
-<li>Backup: <code>allowBackup="true"</code>; shared preferences are excluded from cloud backup and device transfer, but the Room database is not excluded (<a href="08-engineering-audit.html#AUD-05">AUD-05</a>).</li>
+<li>Backup: <code>allowBackup="true"</code>; since v2.0 both shared preferences and the Room database are excluded from cloud backup and device transfer (<a href="08-engineering-audit.html#AUD-05">AUD-05</a> fixed).</li>
 </ul>
 
 <h2 id="d02-quality-attributes"><span class="num">5</span>Quality attributes</h2>
@@ -157,6 +163,9 @@
 <tr><td><code>DATABASE_PATH</code></td><td>No</td><td>Data file path; defaults to <code>backend/nexus-data.json</code>, and to <code>/data/nexus-data.json</code> in the Docker image.</td></tr>
 <tr><td><code>NODE_ENV</code></td><td>No</td><td><code>production</code> hides 500 messages; <code>test</code> disables listening and enables the test route.</td></tr>
 <tr><td><code>LOG_LEVEL</code></td><td>No (info)</td><td>Pino log level.</td></tr>
+<tr><td><code>GOOGLE_CLIENT_ID</code></td><td>For SSO</td><td>Web OAuth client ID(s), comma-separated, accepted as the ID-token audience. Unset disables <code>/auth/google</code> (503).</td></tr>
+<tr><td><code>FIREBASE_SERVICE_ACCOUNT_BASE64</code></td><td>For push</td><td>Base64 of the Firebase service-account JSON (or use <code>GOOGLE_APPLICATION_CREDENTIALS</code>). Unset makes push a logged no-op.</td></tr>
+<tr><td><code>TRUST_PROXY</code></td><td>Behind a proxy</td><td>Express trust-proxy setting (e.g. <code>1</code>) so rate limiting uses the client IP.</td></tr>
 </tbody>
 </table>
 <ul>
@@ -165,7 +174,7 @@
 <li id="OPS-03"><strong>OPS-03</strong> Run exactly one API instance per data file (<a href="01-product-requirements.html#CON-01">CON-01</a>).</li>
 </ul>
 
-<footer class="docfoot">NX-02-TRD &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+<footer class="docfoot">NX-02-TRD &middot; v2.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
 </main>
 </body>
 </html>

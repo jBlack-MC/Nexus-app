@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NX-03-FLOW Application Flow - Nexus</title>
 <link rel="stylesheet" href="../tools/style.css">
-<style>@media print { @page { @top-left { content: "NX-03-FLOW \00B7  Application Flow \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+<style>@media print { @page { @top-left { content: "NX-03-FLOW \00B7  Application Flow \00B7  v2.0 \00B7  Draft for team review"; } } }</style>
 </head>
 <body>
 <main class="doc">
@@ -15,11 +15,11 @@
   <p class="subtitle">Navigation map, key user journeys, system interactions and error/alternate flows.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-03-FLOW</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Testers, developers and the assessor following the demo</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -81,6 +81,8 @@
 <tr id="UF-07"><td class="id">UF-07</td><td>Resolve a conflict</td><td>An upload is rejected with 409 (or 400). The banner shows "An item changed on another device · review required" with a Review button. The dialog offers "Keep changes" (the queue stays blocked and the edits are kept) or "Discard item edits" (that entity's queued operations and its local row are removed, then the rest of the queue retries).</td><td><a href="01-product-requirements.html#FR-17">FR-17</a>, <a href="08-engineering-audit.html#AUD-19">AUD-19</a></td></tr>
 <tr id="UF-08"><td class="id">UF-08</td><td>Session expiry during sync</td><td>Upload returns 401, the banner says "Sign in again to sync saved changes", and a "Sign in" button clears the token and opens Login. Queued changes stay on the device for the same account.</td><td><a href="01-product-requirements.html#FR-02">FR-02</a>, <a href="01-product-requirements.html#FR-16">FR-16</a></td></tr>
 <tr id="UF-09"><td class="id">UF-09</td><td>Manage account</td><td>Settings tab: edit Display Name; choose Appearance (System/Light/Dark) and Language; toggle reminders; "Sync account"; "Export habits CSV", then "Share CSV"; "Change password"; "Delete account and data" (confirm); "Log Out".</td><td><a href="01-product-requirements.html#FR-04">FR-04</a> to <a href="01-product-requirements.html#FR-08">FR-08</a>, <a href="01-product-requirements.html#FR-15">FR-15</a></td></tr>
+<tr id="UF-11"><td class="id">UF-11</td><td>Sign in with Google (v2.0)</td><td>Login or Register: tap "Continue with Google", pick an account in the Credential Manager sheet. The app posts the ID token to <code>/auth/google</code>, receives a Nexus JWT and opens Today. First use creates the account; an existing email account is linked.</td><td><a href="01-product-requirements.html#FR-21">FR-21</a></td></tr>
+<tr id="UF-12"><td class="id">UF-12</td><td>Notifications (v2.0)</td><td>Settings: keep "Task due-date reminders" on (grant permission on Android 13+). A reminder lists overdue and due-today tasks. "Send test notification" shows a local notification and reports the server push result. Editing on phone A pushes "Task … updated on another device" to phone B, which refreshes its cache.</td><td><a href="01-product-requirements.html#FR-22">FR-22</a>, <a href="01-product-requirements.html#FR-23">FR-23</a></td></tr>
 <tr id="UF-10"><td class="id">UF-10</td><td>Shared device, account switch</td><td>User A signs out with pending changes and user B signs in. B sees only B's rows. A's queue is neither shown nor uploaded until A signs in again.</td><td><a href="01-product-requirements.html#FR-03">FR-03</a>, <a href="01-product-requirements.html#NFR-03">NFR-03</a></td></tr>
 </tbody>
 </table>
@@ -113,8 +115,9 @@
 <thead><tr><th scope="col" class="id">ID</th><th scope="col">Condition</th><th scope="col">System behaviour</th><th scope="col">User sees</th></tr></thead>
 <tbody>
 <tr id="EF-01"><td class="id">EF-01</td><td>API unreachable or timed out (5 s connect, 15 s call)</td><td>Writes are queued; reads fall back to Room.</td><td>Banner "Offline · changes saved on device" or "Offline · showing saved data"; Dashboard "Showing saved data". Sign-in shows "No internet connection. Check your network and try again."</td></tr>
-<tr id="EF-02"><td class="id">EF-02</td><td>401/403 on a screen request</td><td><code>ApiError.SessionExpired</code>; Settings clears the session.</td><td>"Your session has expired. Please log in again." This is also shown for a wrong password at sign-in (<a href="08-engineering-audit.html#AUD-18">AUD-18</a>).</td></tr>
-<tr id="EF-03"><td class="id">EF-03</td><td>409 at registration (email exists) or 429 (rate limit)</td><td>Mapped to <code>ApiError.Unknown</code>.</td><td>"Something went wrong. Please try again." (<a href="08-engineering-audit.html#AUD-18">AUD-18</a>)</td></tr>
+<tr id="EF-02"><td class="id">EF-02</td><td>401/403 on a screen request</td><td><code>ApiError.SessionExpired</code>; Settings clears the session.</td><td>"Your session has expired. Please log in again." Since v2.0, a wrong password at sign-in shows "Email or password is incorrect." instead (<a href="08-engineering-audit.html#AUD-18">AUD-18</a> fixed).</td></tr>
+<tr id="EF-03"><td class="id">EF-03</td><td>409 at registration (email exists) or 429 (rate limit)</td><td>Mapped by <code>AuthViewModel.authErrorMessage</code> (v2.0).</td><td>"An account with this email already exists. Sign in instead." / "Too many attempts. Please wait 15 minutes and try again."</td></tr>
+<tr id="EF-09"><td class="id">EF-09</td><td>Google sign-in cancelled, no Google account on the device, or server SSO not configured</td><td>Cancel shows nothing; the other cases show a message.</td><td>"Add a Google account to this device…" / "Google sign-in is not available on this server yet."</td></tr>
 <tr id="EF-04"><td class="id">EF-04</td><td>409/400 during sync</td><td>The queue stops at the failing operation; <code>conflict=true</code>.</td><td>Review button (<a href="#UF-07">UF-07</a>)</td></tr>
 <tr id="EF-05"><td class="id">EF-05</td><td>5xx from the API</td><td><code>ApiError.ServerError</code>. In production the API hides internal messages.</td><td>"Something went wrong on our end. Please try again shortly." Sync banner: "Sync needs attention · saved changes kept on device".</td></tr>
 <tr id="EF-06"><td class="id">EF-06</td><td>Item not available offline</td><td>Room has no row (never downloaded).</td><td>Error state with Retry, e.g. "Project is not available offline" (<a href="01-product-requirements.html#CON-05">CON-05</a>)</td></tr>
@@ -123,7 +126,7 @@
 </tbody>
 </table>
 
-<footer class="docfoot">NX-03-FLOW &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+<footer class="docfoot">NX-03-FLOW &middot; v2.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
 </main>
 </body>
 </html>

@@ -25,11 +25,11 @@ import com.example.nexus.ui.projects.ProjectListViewModel
 import com.example.nexus.ui.settings.SettingsScreen
 import com.example.nexus.ui.settings.SettingsViewModel
 import com.example.nexus.ui.splash.SplashIntroScreen
+import java.io.IOException
 import kotlinx.coroutines.delay
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
 
 /**
  * Instrumented test suite verifying content settling and screenshot capture wait conditions
@@ -90,8 +90,7 @@ class ScreenshotCaptureTest {
     @Test
     fun captureDashboardContent() {
         val fakeDashboardRepo = object : DashboardRepository() {
-            override suspend fun getDashboard(): DashboardData =
-                DashboardData(projects = 4, tasks = 12, activity = 8)
+            override suspend fun getDashboard(): DashboardData = DashboardData(projects = 4, tasks = 12, activity = 8)
         }
         val viewModel = DashboardViewModel(dashboardRepository = fakeDashboardRepo)
         composeTestRule.setContent {
@@ -110,8 +109,7 @@ class ScreenshotCaptureTest {
     @Test
     fun captureDashboardOffline() {
         val fakeDashboardRepo = object : DashboardRepository() {
-            override suspend fun getDashboard(): DashboardData =
-                throw IOException("Unable to connect to Nexus server.")
+            override suspend fun getDashboard(): DashboardData = throw IOException("Unable to connect to Nexus server.")
         }
         val viewModel = DashboardViewModel(dashboardRepository = fakeDashboardRepo)
         composeTestRule.setContent {
@@ -186,8 +184,7 @@ class ScreenshotCaptureTest {
     @Test
     fun captureProfileContent() {
         val fakeUserRepo = object : UserRepository() {
-            override suspend fun getProfile(): UserProfile =
-                UserProfile("alex.dev@example.com", "Alex Developer")
+            override suspend fun getProfile(): UserProfile = UserProfile("alex.dev@example.com", "Alex Developer")
         }
         val viewModel = SettingsViewModel(userRepository = fakeUserRepo)
         composeTestRule.setContent {
@@ -203,8 +200,7 @@ class ScreenshotCaptureTest {
     @Test
     fun captureSettingsContent() {
         val fakeUserRepo = object : UserRepository() {
-            override suspend fun getProfile(): UserProfile =
-                UserProfile("alex.dev@example.com", "Alex Developer")
+            override suspend fun getProfile(): UserProfile = UserProfile("alex.dev@example.com", "Alex Developer")
         }
         val viewModel = SettingsViewModel(userRepository = fakeUserRepo)
         composeTestRule.setContent {

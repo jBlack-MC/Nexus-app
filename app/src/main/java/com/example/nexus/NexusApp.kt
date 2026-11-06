@@ -49,6 +49,12 @@ class NexusApp : Application() {
         }
         configRepository = ConfigRepository(apiService)
 
+        // Notifications: channels, scheduled due-date reminders, and FCM push registration.
+        com.example.nexus.notifications.NexusNotifications.createChannels(this)
+        com.example.nexus.notifications.Reminders.schedule(this)
+        com.example.nexus.notifications.PushRegistration.init(this)
+        if (AuthSession.cacheOwnerId() != null) com.example.nexus.notifications.PushRegistration.register(this)
+
         val connectivity = getSystemService(android.net.ConnectivityManager::class.java)
         connectivity.registerNetworkCallback(
             android.net.NetworkRequest.Builder().addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET).build(),
@@ -68,6 +74,13 @@ class NexusApp : Application() {
     }
 
     companion object {
+        /** Called after any successful sign-in (password or Google). Safe in unit tests. */
+        fun onSignedIn() {
+            if (!this::instance.isInitialized) return
+            com.example.nexus.notifications.PushRegistration.register(instance)
+            com.example.nexus.notifications.Reminders.runNow(instance)
+        }
+
         lateinit var syncManager: com.example.nexus.data.SyncManager
             private set
         lateinit var instance: NexusApp

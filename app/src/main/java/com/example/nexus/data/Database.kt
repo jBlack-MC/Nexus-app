@@ -167,7 +167,10 @@ class TaskConverters {
 
     @TypeConverter fun labelsToString(value: List<String>): String = gson.toJson(value)
 
-    @TypeConverter fun stringToLabels(value: String): List<String> = gson.fromJson(value, object : TypeToken<List<String>>() {}.type) ?: emptyList()
+    @TypeConverter fun stringToLabels(value: String): List<String> = gson.fromJson(
+        value,
+        object : TypeToken<List<String>>() {}.type,
+    ) ?: emptyList()
 
     @TypeConverter fun checklistToString(value: List<ChecklistItem>): String = gson.toJson(value)
 
@@ -176,7 +179,10 @@ class TaskConverters {
 
     @TypeConverter fun intListToString(value: List<Int>): String = gson.toJson(value)
 
-    @TypeConverter fun stringToIntList(value: String): List<Int> = gson.fromJson(value, object : TypeToken<List<Int>>() {}.type) ?: emptyList()
+    @TypeConverter fun stringToIntList(value: String): List<Int> = gson.fromJson(
+        value,
+        object : TypeToken<List<Int>>() {}.type,
+    ) ?: emptyList()
 
     @TypeConverter fun frequencyToString(value: HabitFrequency): String = value.name
 
@@ -238,16 +244,20 @@ abstract class NexusDatabase : RoomDatabase() {
         /** Every known migration. Add a new entry here for each future version bump. */
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("CREATE TABLE IF NOT EXISTS pending_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, userId TEXT NOT NULL, operationId TEXT NOT NULL, resource TEXT NOT NULL, entityId TEXT NOT NULL, action TEXT NOT NULL, payload TEXT NOT NULL)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS pending_changes (" +
+                        "sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, userId TEXT NOT NULL, operationId TEXT NOT NULL, " +
+                        "resource TEXT NOT NULL, entityId TEXT NOT NULL, action TEXT NOT NULL, payload TEXT NOT NULL)",
+                )
             }
         }
         private val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_3_4, MIGRATION_4_5)
 
         @Volatile
-        private var INSTANCE: NexusDatabase? = null
+        private var cachedDatabase: NexusDatabase? = null
 
         fun getDatabase(context: Context): NexusDatabase {
-            return INSTANCE ?: synchronized(this) {
+            return cachedDatabase ?: synchronized(this) {
                 val instance =
                     Room.databaseBuilder(
                         context.applicationContext,
@@ -258,7 +268,7 @@ abstract class NexusDatabase : RoomDatabase() {
                         // matching Migration must fail loudly instead of silently wiping the cache.
                         .addMigrations(*MIGRATIONS)
                         .build()
-                INSTANCE = instance
+                cachedDatabase = instance
                 instance
             }
         }

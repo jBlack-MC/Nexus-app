@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NX-06-PLAN Implementation Plan - Nexus</title>
 <link rel="stylesheet" href="../tools/style.css">
-<style>@media print { @page { @top-left { content: "NX-06-PLAN \00B7  Implementation Plan \00B7  v1.0 \00B7  Draft for team review"; } } }</style>
+<style>@media print { @page { @top-left { content: "NX-06-PLAN \00B7  Implementation Plan \00B7  v2.0 \00B7  Draft for team review"; } } }</style>
 </head>
 <body>
 <main class="doc">
@@ -15,11 +15,11 @@
   <p class="subtitle">Completed work with evidence, and remaining work ordered by dependency with priorities, estimates, acceptance criteria and tests.</p>
   <table class="meta"><caption>Document control</caption><tbody>
     <tr><th scope="row">Document ID</th><td>NX-06-PLAN</td></tr>
-    <tr><th scope="row">Version</th><td>1.0</td></tr>
+    <tr><th scope="row">Version</th><td>2.0</td></tr>
     <tr><th scope="row">Date</th><td>2026-11-05</td></tr>
     <tr><th scope="row">Status</th><td>Draft for team review (not approved)</td></tr>
     <tr><th scope="row">Intended readers</th><td>Development team planning the final PoE; assessor reviewing project management</td></tr>
-    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes at commit 3a3f275 (tree identical to main at 9f8e82a)</td></tr>
+    <tr><th scope="row">Evidence baseline</th><td>Branch New-Changes: commit 716bedb plus the uncommitted Part 3 working-tree changes of 2026-11-05 (v1.0 analysed 3a3f275)</td></tr>
     <tr><th scope="row">Prepared by</th><td>AI-assisted (Claude Code) from repository evidence; team review pending</td></tr>
     <tr><th scope="row">Approved by</th><td><span class="tag unk">Unknown</span> No approval recorded</td></tr>
   </tbody></table>
@@ -31,7 +31,7 @@
     <span class="tag unk">Unknown</span> no evidence available;
     <span class="tag est">Estimate</span> planning figure, not a measurement.</p>
 </header>
-<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d06-completed-work">1 Completed work</a></li><li><a href="#d06-remaining-work">2 Remaining work</a></li><li><a href="#d06-definition-of-done">3 Definition of done</a></li></ol></nav>
+<nav class="toc" aria-label="Table of contents"><h2>Contents</h2><ol><li><a href="#d06-completed-work">1 Completed work</a></li><li><a href="#d06-remaining-work">2 Remaining work</a></li><li><a href="#d06-definition-of-done">3 Definition of done</a></li><li><a href="#PLAN-STATUS">4 Status at v2.0 (2026-11-05)</a></li></ol></nav>
 
 
 <h2 id="d06-completed-work"><span class="num">1</span>Completed work</h2>
@@ -45,6 +45,7 @@
 <tr><td>2026-09-23</td><td>Backend remediation: mutex + atomic writes, Zod validation, JWT secret check, bcrypt, rate limiting, health check, Pino; task detail screen</td><td>PR #23; <code>server.test.js</code></td><td><a href="01-product-requirements.html#NFR-01">NFR-01</a>, <a href="01-product-requirements.html#NFR-04">NFR-04</a>, <a href="01-product-requirements.html#FR-12">FR-12</a></td></tr>
 <tr><td>2026-09-24</td><td>Android structural remediation: six repositories, manual DI, <code>HabitScoring</code> domain, feature packages, type-safe routes, shared fakes</td><td>PR #24</td><td><a href="02-technical-requirements.html#TR-01">TR-01</a> to <a href="02-technical-requirements.html#TR-03">TR-03</a>, <a href="01-product-requirements.html#FR-14">FR-14</a></td></tr>
 <tr><td>2026-09-26</td><td>UI refinement: theme colours, logo component</td><td>PR #25</td><td><a href="04-design-brief.html#NX-04-DES">NX-04-DES</a></td></tr>
+<tr><td>2026-11-05</td><td><strong>Part 3 / v2.0:</strong> Google SSO, FCM push, WorkManager reminders, full zu/tn localisation, audit fixes (AUD-01/02/03/05/06/10/11/16/17/18/21), Settings crash fix, release signing, Play Store kit, recaptured screenshots</td><td><code>716bedb</code> + uncommitted working tree</td><td><a href="01-product-requirements.html#FR-21">FR-21</a>, <a href="01-product-requirements.html#FR-22">FR-22</a>, <a href="01-product-requirements.html#FR-23">FR-23</a>, <a href="01-product-requirements.html#FR-18">FR-18</a></td></tr>
 <tr><td>2026-10-04</td><td>Offline upload queue and <code>/api/sync</code>, sync banner, conflict review, project search, task filters, zu/tn resources, configurable <code>NEXUS_API_URL</code>, HTTPS-only release, Dockerfile/compose</td><td>PR #26 (commit 3a3f275)</td><td><a href="01-product-requirements.html#FR-16">FR-16</a>, <a href="01-product-requirements.html#FR-17">FR-17</a>, <a href="01-product-requirements.html#FR-18">FR-18</a>, <a href="02-technical-requirements.html#TR-07">TR-07</a></td></tr>
 </tbody>
 </table>
@@ -80,7 +81,33 @@
 <h2 id="d06-definition-of-done"><span class="num">3</span>Definition of done</h2>
 <p>Adopted from the quality checklist in <code>PROJECT_IMPROVEMENTS.md</code>: API models and validation first; a Room migration for any schema change; loading, offline, retry, unauthorised and validation states covered; ViewModel unit tests plus instrumented coverage of the main path; accessibility checked; README and the improvements log updated <span class="tag fact">Implemented</span>. <span class="tag rec">Recommendation</span> Add "CI green on the PR" once <a href="#IMP-01">IMP-01</a> is done.</p>
 
-<footer class="docfoot">NX-06-PLAN &middot; v1.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
+<h2 id="PLAN-STATUS"><span class="num">4</span>Status at v2.0 (2026-11-05)</h2>
+<table>
+<caption>Backlog status after the Part 3 work</caption>
+<thead><tr><th scope="col" class="id">Task</th><th scope="col">Status</th><th scope="col">Evidence or remaining action</th></tr></thead>
+<tbody>
+<tr><td class="id"><a href="#IMP-01">IMP-01</a></td><td>Open (team)</td><td>Needs the GitHub account billing lock resolved; then re-run CI. Workflows moved to Node 22.</td></tr>
+<tr><td class="id"><a href="#IMP-02">IMP-02</a></td><td>Done</td><td>Zod 4.6.7 adopted; 29/29 backend tests pass. PR #27 can be closed as superseded.</td></tr>
+<tr><td class="id"><a href="#IMP-03">IMP-03</a></td><td>Done</td><td>Refuses to start; <code>.bak</code> copy kept; 3 tests in <code>part3.test.js</code>.</td></tr>
+<tr><td class="id"><a href="#IMP-04">IMP-04</a></td><td>Done</td><td><code>AuthErrorMessagesTest</code>; verified on device.</td></tr>
+<tr><td class="id"><a href="#IMP-05">IMP-05</a></td><td>Done</td><td>Root <code>docker-compose.yml</code> uses a named volume at <code>/data</code>; <code>docker compose config</code> valid. Not run (no Docker daemon).</td></tr>
+<tr><td class="id"><a href="#IMP-06">IMP-06</a></td><td>Done</td><td><code>TRUST_PROXY</code> env; not covered by a test.</td></tr>
+<tr><td class="id"><a href="#IMP-07">IMP-07</a></td><td>Partly done</td><td>Signing config, upload key and Play kit done. API hosting and Play Console upload are team actions.</td></tr>
+<tr><td class="id"><a href="#IMP-08">IMP-08</a></td><td>Done (built)</td><td>Reminders and push implemented (<a href="01-product-requirements.html#FR-22">FR-22</a>, <a href="01-product-requirements.html#FR-23">FR-23</a>).</td></tr>
+<tr><td class="id"><a href="#IMP-09">IMP-09</a></td><td>Done</td><td>Backup rules exclude <code>database</code>.</td></tr>
+<tr><td class="id"><a href="#IMP-10">IMP-10</a></td><td>Done (ktlint)</td><td>Codebase brought to zero ktlint violations (592 at the start: auto-format, line wrapping, constant renames, and two rules disabled in <code>.editorconfig</code> with recorded reasons). <code>ktlintCheck</code> now runs in Android CI before the tests. <code>blank.yml</code> and <code>build-verification.log</code> removed. detekt is not gated because the tool crashes in this toolchain (<a href="08-engineering-audit.html#AUD-23">AUD-23</a>).</td></tr>
+<tr><td class="id"><a href="#IMP-11">IMP-11</a></td><td>Open</td><td>No TalkBack or contrast audit recorded.</td></tr>
+<tr><td class="id"><a href="#IMP-12">IMP-12</a></td><td>Done (alternative)</td><td>Every delete (project, task, habit) now asks for confirmation, and the project dialog warns that its tasks are deleted too. Verified on device (screenshot 21). Undo was not implemented.</td></tr>
+<tr><td class="id"><a href="#IMP-13">IMP-13</a></td><td>Done</td><td><code>CsvRowTest</code>.</td></tr>
+<tr><td class="id"><a href="#IMP-14">IMP-14</a></td><td>Done</td><td>New <code>HabitScoringTest</code> case.</td></tr>
+<tr><td class="id"><a href="#IMP-15">IMP-15</a></td><td>Open</td><td>Room schema export and migration tests not added.</td></tr>
+<tr><td class="id"><a href="#IMP-16">IMP-16</a></td><td>Done</td><td>README rewritten (contents links fixed, release notes, AI use); screenshots recaptured.</td></tr>
+<tr><td class="id"><a href="#IMP-17">IMP-17</a></td><td>Done</td><td>210 strings × 3 languages; native-speaker review still recommended.</td></tr>
+<tr><td class="id"><a href="#IMP-18">IMP-18</a></td><td>Done (code)</td><td>SSO and push implemented; need Google Cloud and Firebase projects to run end to end.</td></tr>
+</tbody>
+</table>
+
+<footer class="docfoot">NX-06-PLAN &middot; v2.0 &middot; 2026-11-05 &middot; Part of the <a href="../index.html">Nexus documentation package</a>. Generated by docs/deliverables/tools/build.mjs.</footer>
 </main>
 </body>
 </html>

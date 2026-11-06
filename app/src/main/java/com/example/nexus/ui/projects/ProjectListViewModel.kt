@@ -54,10 +54,7 @@ class ProjectListViewModel(
         }
     }
 
-    fun createProject(
-        name: String,
-        description: String,
-    ) {
+    fun createProject(name: String, description: String,) {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching {
@@ -84,11 +81,7 @@ class ProjectListViewModel(
         }
     }
 
-    fun updateProject(
-        projectId: String,
-        name: String,
-        description: String,
-    ) {
+    fun updateProject(projectId: String, name: String, description: String,) {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching { projectUpdater(projectId, UpdateProjectRequest(name.trim(), description.trim().ifBlank { null })) }

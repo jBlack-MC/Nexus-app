@@ -28,7 +28,14 @@ import com.example.nexus.ui.settings.authCopy
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun RegisterScreen(uiState: AuthUiState, onRegister: (String, String, String) -> Unit, onNavigateToLogin: () -> Unit,) {
+fun RegisterScreen(
+    uiState: AuthUiState,
+    onRegister: (String, String, String) -> Unit,
+    onNavigateToLogin: () -> Unit,
+    onGoogleIdToken: (String) -> Unit = {
+    },
+    onGoogleError: (String?) -> Unit = {},
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var displayName by remember { mutableStateOf("") }
@@ -145,6 +152,11 @@ fun RegisterScreen(uiState: AuthUiState, onRegister: (String, String, String) ->
                 enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank() && displayName.isNotBlank(),
                 isLoading = uiState.isLoading,
             )
+
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            OrDivider()
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            GoogleSignInButton(enabled = !uiState.isLoading, onIdToken = onGoogleIdToken, onError = onGoogleError)
 
             Spacer(modifier = Modifier.height(Spacing.sm))
 

@@ -24,7 +24,7 @@ audience: Designers and developers changing the UI; assessor reviewing UX decisi
 <li>Bottom <code>NavigationBar</code> with four destinations: Today, Projects, Habits, Settings. Navigating between them saves and restores state and uses <code>launchSingleTop</code> {{F}}.</li>
 <li>Second-level screens (Project detail, Tasks, Task detail, Profile) use a top app bar with a Back arrow ("Back" content description) {{F}}.</li>
 <li>Create and edit actions use modal dialogs (project, task editor, habit, password), not separate screens {{F}}.</li>
-<li>Destructive actions confirm first: log out and delete account. Deleting a project, task or habit from a list has no confirmation dialog {{F}} ({{R}} add an undo snackbar; see [[IMP-12]]).</li>
+<li>Destructive actions confirm first: log out, delete account and (since v2.0) deleting any project, task or habit. The project dialog warns that its tasks are deleted too {{F}} ([[IMP-12]]).</li>
 </ul>
 <p>The full map is in [[DIAG-02]].</p>
 
@@ -62,7 +62,7 @@ audience: Designers and developers changing the UI; assessor reviewing UX decisi
 <tr><td>Not relying on colour alone</td><td>Priority and status are shown as text chips ("Priority · High"), not colour only.</td><td>{{F}}</td></tr>
 <tr><td>Keyboard / IME</td><td><code>windowSoftInputMode="adjustResize"</code>; auth forms scroll above the keyboard (improvements log).</td><td>{{F}}</td></tr>
 <tr><td>Contrast, touch targets, TalkBack walkthrough</td><td>No measurements or audit records in the repository.</td><td>{{U}} → [[IMP-11]]</td></tr>
-<tr><td>Localised content</td><td>en/zu/tn resource strings for auth and a few labels; feature screens are English-only.</td><td>Partial ([[FR-18]])</td></tr>
+<tr><td>Localised content</td><td>Every screen in en/zu/tn (210 strings each), including content descriptions, errors and notifications. Bottom-bar labels are single-line, so the longest isiZulu label ("Amaphrojekthi") fits.</td><td>{{F}} ([[FR-18]])</td></tr>
 </tbody>
 </table>
 
@@ -70,9 +70,12 @@ audience: Designers and developers changing the UI; assessor reviewing UX decisi
 <p>Layouts are single-column phone layouts built with <code>fillMaxWidth</code>, <code>LazyColumn</code> and horizontally scrolling chip rows. Window insets are handled with <code>statusBarsPadding</code>. No window size classes or tablet layouts exist; tablet layouts are listed as planned {{F}}. Landscape behaviour has not been tested {{U}}.</p>
 
 <h2>Screen evidence</h2>
-<p>Only two distinct, correctly identified screenshots exist in the repository. The UI-audit folder <code>docs/screenshots/ui-audit/</code> contains nine files, but they are only four distinct images, and their file names do not match their content ([[AUD-21]]). Both images below were captured on 2026-09-25, before the 2026-10-04 navigation and sync-banner changes, so they may not match the current UI.</p>
+<p>These screenshots were captured on 2026-11-05 from version 2.0.0 running on an Android 7.0 (API 24) emulator against the local API, using fictional demo data. They replace the old UI-audit set, whose file names did not match their content ([[AUD-21]]). All 21 are in <code>docs/screenshots/part3/</code>.</p>
 <figure class="shots" id="FIG-SHOTS">
-<div><img src="../../screenshots/ui-audit/splash.png" alt="Login screen: Nexus logo, Language picker set to English, Welcome Back heading, Email and Password fields, disabled Sign In button, and a Need an account? Register link."><figcaption>Login screen (stored as <code>splash.png</code>).</figcaption></div>
-<div><img src="../../screenshots/ui-audit/dashboard-offline.png" alt="Skeleton loading state: top bar with back arrow, Nexus logo and English label, then grey placeholder blocks."><figcaption>Skeleton loading state (stored under four names, including <code>dashboard-offline.png</code>).</figcaption></div>
+<div><img src="../../screenshots/part3/01-login.png" alt="Login screen with language picker, email and password fields"><figcaption>Login</figcaption></div>
+<div><img src="../../screenshots/part3/03-dashboard.png" alt="Today dashboard with counts for projects, tasks and activity and the schedule cards"><figcaption>Today</figcaption></div>
+<div><img src="../../screenshots/part3/07-tasks.png" alt="Task list with progress bar, search and status filter chips"><figcaption>Tasks</figcaption></div>
+<div><img src="../../screenshots/part3/09-habits.png" alt="Habits with level, points, streaks, completion rate and badges"><figcaption>Habits</figcaption></div>
+<div><img src="../../screenshots/part3/11-settings-notifications.png" alt="Settings showing the reminders switch and Send test notification button"><figcaption>Settings</figcaption></div>
+<div><img src="../../screenshots/part3/15-dashboard-isizulu.png" alt="Today dashboard in isiZulu"><figcaption>isiZulu</figcaption></div>
 </figure>
-<p>{{R}} Recapture the screen set from a running build and replace the folder contents ([[IMP-16]]); [[NX-10-UM]] intentionally uses text-only instructions until then.</p>

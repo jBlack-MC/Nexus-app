@@ -24,6 +24,8 @@ object RetrofitClient {
                     if (!token.isNullOrBlank()) {
                         addHeader("Authorization", "Bearer $token")
                     }
+                    // Lets the API skip pushing a "changed on another device" alert to this device.
+                    com.example.nexus.notifications.PushRegistration.currentToken?.let { addHeader("X-Nexus-Device-Token", it) }
                 }.build()
 
             chain.proceed(request)
@@ -44,13 +46,5 @@ object RetrofitClient {
             .client(httpClient)
             .build()
             .create(ApiService::class.java)
-    }
-
-    val languageInstance: LanguageApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.mymemory.translated.net/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(LanguageApiService::class.java)
     }
 }

@@ -109,10 +109,10 @@ fun NexusDestructiveButton(
             enabled = enabled,
             shape = MaterialTheme.shapes.medium,
             colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                ),
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
+            ),
             contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.sm),
         ) {
             if (icon != null) {
@@ -136,9 +136,9 @@ fun NexusDestructiveButton(
             shape = MaterialTheme.shapes.medium,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
             colors =
-                ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error,
+            ),
             contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.sm),
         ) {
             if (icon != null) {

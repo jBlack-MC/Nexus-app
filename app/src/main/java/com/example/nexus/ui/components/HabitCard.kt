@@ -14,18 +14,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.nexus.R
 import com.example.nexus.api.Habit
 import com.example.nexus.ui.habits.HabitsViewModel
 import com.example.nexus.ui.theme.Spacing
 
 @Composable
-fun HabitCard(
-    habit: Habit,
-    onToggle: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun HabitCard(habit: Habit, onToggle: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier,) {
     val doneToday = HabitsViewModel.today() in habit.completedDates
     Card(modifier.fillMaxWidth()) {
         Column(Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -33,15 +29,15 @@ fun HabitCard(
                 Column(Modifier.weight(1f)) {
                     Text(habit.name, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        habit.frequency.name.lowercase().replaceFirstChar { it.uppercase() },
+                        habit.frequency.displayName(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, contentDescription = "Edit habit") }
-                NexusDestructiveIconButton(onClick = onDelete, contentDescription = "Delete habit")
+                IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.habit_edit)) }
+                NexusDestructiveIconButton(onClick = onDelete, contentDescription = stringResource(R.string.habit_delete))
             }
             NexusPrimaryButton(
-                text = if (doneToday) "Completed today" else "Complete today",
+                text = if (doneToday) stringResource(R.string.habit_completed_today) else stringResource(R.string.habit_complete_today),
                 onClick = onToggle,
                 modifier = Modifier.fillMaxWidth(),
             )

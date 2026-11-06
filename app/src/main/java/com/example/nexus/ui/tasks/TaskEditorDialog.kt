@@ -10,9 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.nexus.R
 import com.example.nexus.api.ChecklistItem
 import com.example.nexus.api.Task
 import com.example.nexus.api.TaskPriority
@@ -27,7 +29,7 @@ import java.util.UUID
 
 /**
  * Material's date picker works in UTC milliseconds, so dates are formatted in UTC to preserve the
- * exact day the user tapped. "Today", however, must be the device's local date so the overdue
+ * exact day the user tapped. stringResource(R.string.nav_today), however, must be the device's local date so the overdue
  * comparison agrees with DashboardScreen.
  */
 private val utcIsoFormatter: SimpleDateFormat =
@@ -44,35 +46,26 @@ internal fun isoDateToMillis(date: String?): Long? =
     date?.takeIf { it.isNotBlank() }?.let { runCatching { utcIsoFormatter.parse(it)?.time }.getOrNull() }
 
 /** Overdue means still open and due before the device's local today. */
-internal fun isTaskOverdue(
-    dueDate: String?,
-    isCompleted: Boolean,
-): Boolean = !isCompleted && dueDate != null && dueDate < currentIsoDate()
+internal fun isTaskOverdue(dueDate: String?, isCompleted: Boolean,): Boolean = !isCompleted && dueDate != null && dueDate < currentIsoDate()
 
-internal fun TaskPriority.displayName(): String =
-    when (this) {
-        TaskPriority.NONE -> "None"
-        TaskPriority.LOW -> "Low"
-        TaskPriority.MEDIUM -> "Medium"
-        TaskPriority.HIGH -> "High"
-    }
+@Composable
+internal fun TaskPriority.displayName(): String = when (this) {
+    TaskPriority.NONE -> stringResource(R.string.priority_none)
+    TaskPriority.LOW -> stringResource(R.string.priority_low)
+    TaskPriority.MEDIUM -> stringResource(R.string.priority_medium)
+    TaskPriority.HIGH -> stringResource(R.string.priority_high)
+}
 
-internal fun TaskStatus.displayName(): String =
-    when (this) {
-        TaskStatus.TODO -> "To do"
-        TaskStatus.IN_PROGRESS -> "In progress"
-        TaskStatus.DONE -> "Done"
-    }
+@Composable
+internal fun TaskStatus.displayName(): String = when (this) {
+    TaskStatus.TODO -> stringResource(R.string.status_todo)
+    TaskStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress)
+    TaskStatus.DONE -> stringResource(R.string.status_done)
+}
 
 /** A horizontally scrollable row of single-choice chips. Every option carries a text label. */
 @Composable
-private fun <T> ChipSelector(
-    title: String,
-    options: List<T>,
-    selected: T,
-    label: (T) -> String,
-    onSelect: (T) -> Unit,
-) {
+private fun <T> ChipSelector(title: String, options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit,) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.smCompact)) {
         Text(title, style = MaterialTheme.typography.labelLarge)
         Row(
@@ -92,20 +85,16 @@ private fun <T> ChipSelector(
 
 /** Shows the chosen due date, or a hint, with an X to clear it. */
 @Composable
-private fun DueDateField(
-    dueDate: String?,
-    onPick: () -> Unit,
-    onClear: () -> Unit,
-) {
+private fun DueDateField(dueDate: String?, onPick: () -> Unit, onClear: () -> Unit,) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.smCompact)) {
-        Text("Due date", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.task_due_date), style = MaterialTheme.typography.labelLarge)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             OutlinedButton(onClick = onPick, modifier = Modifier.weight(1f)) {
-                Text(dueDate ?: "Pick a date")
+                Text(dueDate ?: stringResource(R.string.task_pick_date))
             }
             if (dueDate != null) {
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Default.Close, contentDescription = "Clear due date")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.task_clear_due_date))
                 }
             }
         }
@@ -118,11 +107,7 @@ private fun DueDateField(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskEditorDialog(
-    task: Task? = null,
-    onDismiss: () -> Unit,
-    onSave: (TaskDraft) -> Unit,
-) {
+fun TaskEditorDialog(task: Task? = null, onDismiss: () -> Unit, onSave: (TaskDraft) -> Unit,) {
     val key = task?.id
     var title by remember(key) { mutableStateOf(task?.title.orEmpty()) }
     var description by remember(key) { mutableStateOf(task?.description.orEmpty()) }
@@ -144,21 +129,21 @@ fun TaskEditorDialog(
         ) {
             Column(
                 modifier =
-                    Modifier
-                        .heightIn(max = 560.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(Spacing.xlCompact),
+                Modifier
+                    .heightIn(max = 560.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(Spacing.xlCompact),
                 verticalArrangement = Arrangement.spacedBy(Spacing.smd),
             ) {
                 Text(
-                    text = if (task == null) "New task" else "Edit task",
+                    text = if (task == null) stringResource(R.string.task_new) else stringResource(R.string.task_edit),
                     style = MaterialTheme.typography.titleLarge,
                 )
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title") },
+                    label = { Text(stringResource(R.string.task_field_title)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -166,7 +151,7 @@ fun TaskEditorDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description (optional)") },
+                    label = { Text(stringResource(R.string.field_description_optional)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -177,7 +162,7 @@ fun TaskEditorDialog(
                 )
 
                 ChipSelector(
-                    title = "Priority",
+                    title = stringResource(R.string.task_priority),
                     options = TaskPriority.entries,
                     selected = priority,
                     label = { it.displayName() },
@@ -185,7 +170,7 @@ fun TaskEditorDialog(
                 )
 
                 ChipSelector(
-                    title = "Status",
+                    title = stringResource(R.string.task_status),
                     options = TaskStatus.entries,
                     selected = status,
                     label = { it.displayName() },
@@ -234,10 +219,10 @@ fun TaskEditorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
                     Spacer(modifier = Modifier.width(Spacing.sm))
                     NexusPrimaryButton(
-                        text = if (task == null) "Create" else "Save",
+                        text = if (task == null) stringResource(R.string.action_create) else stringResource(R.string.action_save),
                         onClick = {
                             onSave(
                                 TaskDraft(
@@ -268,10 +253,10 @@ fun TaskEditorDialog(
                         datePickerState.selectedDateMillis?.let { dueDate = millisToIsoDate(it) }
                         showDatePicker = false
                     },
-                ) { Text("OK") }
+                ) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             DatePicker(state = datePickerState)
@@ -289,16 +274,16 @@ private fun LabelsEditor(
     onRemove: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.smCompact)) {
-        Text("Labels", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.task_labels), style = MaterialTheme.typography.labelLarge)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             OutlinedTextField(
                 value = input,
                 onValueChange = onInputChange,
-                label = { Text("Add label") },
+                label = { Text(stringResource(R.string.task_add_label)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
-            NexusPrimaryButton(text = "Add", onClick = onAdd, enabled = input.isNotBlank())
+            NexusPrimaryButton(text = stringResource(R.string.action_add), onClick = onAdd, enabled = input.isNotBlank())
         }
         if (labels.isNotEmpty()) {
             Row(
@@ -313,7 +298,7 @@ private fun LabelsEditor(
                         trailingIcon = {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "Remove label $label",
+                                contentDescription = stringResource(R.string.task_remove_label, label),
                                 modifier = Modifier.size(16.dp),
                             )
                         },
@@ -335,16 +320,16 @@ private fun ChecklistEditor(
     onRemove: (ChecklistItem) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.smCompact)) {
-        Text("Checklist", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.task_checklist), style = MaterialTheme.typography.labelLarge)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             OutlinedTextField(
                 value = input,
                 onValueChange = onInputChange,
-                label = { Text("Add step") },
+                label = { Text(stringResource(R.string.task_add_step)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
-            NexusPrimaryButton(text = "Add", onClick = onAdd, enabled = input.isNotBlank())
+            NexusPrimaryButton(text = stringResource(R.string.action_add), onClick = onAdd, enabled = input.isNotBlank())
         }
         items.forEach { item ->
             Row(
@@ -360,7 +345,7 @@ private fun ChecklistEditor(
                     textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
                 )
                 IconButton(onClick = { onRemove(item) }) {
-                    Icon(Icons.Default.Close, contentDescription = "Remove step ${item.title}")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.task_remove_step, item.title))
                 }
             }
         }

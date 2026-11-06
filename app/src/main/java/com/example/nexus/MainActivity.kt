@@ -33,6 +33,10 @@ class MainActivity : ComponentActivity() {
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalContext provides localizedContext,
                 androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration,
+                com.example.nexus.ui.auth.LocalHostActivity provides this,
+                // LocalContext is a locale-specific context, so Compose cannot find the activity's
+                // result registry on its own (needed for the notification permission request).
+                androidx.activity.compose.LocalActivityResultRegistryOwner provides this,
             ) {
                 NexusTheme(darkTheme = darkTheme) { NexusNavHost() }
             }

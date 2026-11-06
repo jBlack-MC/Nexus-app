@@ -9,12 +9,12 @@ import com.example.nexus.api.Habit
 import com.example.nexus.api.HabitFrequency
 import com.example.nexus.data.HabitRepository
 import com.example.nexus.domain.HabitScoring
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 data class HabitsUiState(
     val habits: List<Habit> = emptyList(),
@@ -46,10 +46,7 @@ class HabitsViewModel(
         }
     }
 
-    fun createHabit(
-        name: String,
-        frequency: HabitFrequency,
-    ) {
+    fun createHabit(name: String, frequency: HabitFrequency,) {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching { habitCreator(CreateHabitRequest(name.trim(), frequency = frequency)) }
@@ -68,11 +65,7 @@ class HabitsViewModel(
         }
     }
 
-    fun editHabit(
-        habit: Habit,
-        name: String,
-        frequency: HabitFrequency,
-    ) {
+    fun editHabit(habit: Habit, name: String, frequency: HabitFrequency,) {
         if (name.isBlank()) return
         viewModelScope.launch {
             runCatching { habitUpdater(habit.copy(name = name.trim(), frequency = frequency)) }

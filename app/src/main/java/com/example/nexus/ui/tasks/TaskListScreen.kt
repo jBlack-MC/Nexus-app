@@ -26,17 +26,22 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nexus.R
 import com.example.nexus.api.Task
 import com.example.nexus.api.TaskPriority
+import com.example.nexus.ui.components.DeleteConfirmationDialog
+import com.example.nexus.ui.components.DeleteKind
 import com.example.nexus.ui.components.EmptyState
 import com.example.nexus.ui.components.ErrorState
 import com.example.nexus.ui.components.ListSkeleton
 import com.example.nexus.ui.components.Motion
 import com.example.nexus.ui.components.NexusDestructiveIconButton
 import com.example.nexus.ui.components.NexusLogo
+import com.example.nexus.ui.components.rememberDeleteConfirmation
 import com.example.nexus.ui.components.rememberReduceMotion
 import com.example.nexus.ui.settings.CompactLanguageMenu
 import com.example.nexus.ui.theme.Spacing
@@ -49,15 +54,24 @@ fun TaskListScreen(
     onOpenDetail: (String) -> Unit,
     viewModel: TaskListViewModel = viewModel(),
 ) {
+    val confirmDelete = rememberDeleteConfirmation()
+    DeleteConfirmationDialog(confirmDelete)
     val uiState by viewModel.uiState.collectAsState()
     var query by rememberSaveable { mutableStateOf("") }
-    var filter by rememberSaveable { mutableStateOf("All") }
+    var filter by rememberSaveable { mutableStateOf(TaskFilter.ALL) }
     var highPriority by rememberSaveable { mutableStateOf(false) }
     val visibleTasks = uiState.tasks.filter { task ->
-        (task.title.contains(query, true) || task.description.orEmpty().contains(query, true) || task.labels.any { it.contains(query, true) }) &&
+        (
+            task.title.contains(
+                query,
+                true,
+            ) || task.description.orEmpty().contains(query, true) || task.labels.any { it.contains(query, true) }
+            ) &&
             (
-                filter == "All" || (filter == "Open" && !task.isCompleted) || (filter == "Done" && task.isCompleted) ||
-                    (filter == "In progress" && task.status == com.example.nexus.api.TaskStatus.IN_PROGRESS)
+                filter == TaskFilter.ALL ||
+                    (filter == TaskFilter.OPEN && !task.isCompleted) ||
+                    (filter == TaskFilter.DONE && task.isCompleted) ||
+                    (filter == TaskFilter.IN_PROGRESS && task.status == com.example.nexus.api.TaskStatus.IN_PROGRESS)
                 ) &&
             (!highPriority || task.priority == TaskPriority.HIGH)
     }.sortedWith(compareBy<Task> { it.isCompleted }.thenBy { it.dueDate ?: "9999" }.thenByDescending { it.priority.ordinal })
@@ -77,12 +91,12 @@ fun TaskListScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackToProject) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     Text(
-                        "Tasks",
+                        stringResource(R.string.nav_tasks),
                         modifier = Modifier.padding(end = Spacing.md),
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -95,7 +109,7 @@ fun TaskListScreen(
                 editorTask = null
                 showEditor = true
             }) {
-                Icon(Icons.Default.Add, contentDescription = "New Task")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.task_new))
             }
         },
     ) { paddingValues ->
@@ -116,12 +130,12 @@ fun TaskListScreen(
                         )
                     } else if (uiState.tasks.isEmpty()) {
                         EmptyState(
-                            message = "No tasks yet. Add one to stay productive!",
+                            message = stringResource(R.string.tasks_empty),
                             onAction = {
                                 editorTask = null
                                 showEditor = true
                             },
-                            actionLabel = "Add Task",
+                            actionLabel = stringResource(R.string.task_add),
                         )
                     } else {
                         LazyColumn(
@@ -130,8 +144,17 @@ fun TaskListScreen(
                             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                         ) {
                             item {
-                                Text("A little progress, every day.", style = MaterialTheme.typography.headlineSmall)
-                                Text("${uiState.tasks.count { it.isCompleted }} of ${uiState.tasks.size} tasks complete", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.tasks_headline), style = MaterialTheme.typography.headlineSmall)
+                                Text(
+                                    stringResource(
+                                        R.string.tasks_progress,
+                                        uiState.tasks.count {
+                                            it.isCompleted
+                                        },
+                                        uiState.tasks.size
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                                 LinearProgressIndicator(progress = {
                                     uiState.tasks.count {
                                         it.isCompleted
@@ -140,30 +163,41 @@ fun TaskListScreen(
                                 OutlinedTextField(value = query, onValueChange = {
                                     query = it
                                 }, label = {
-                                    Text("Search tasks or labels")
-                                }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                    Text(stringResource(R.string.tasks_search))
+                                }, leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        null,
+                                    )
+                                }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    listOf("All", "Open", "In progress", "Done").forEach { label ->
-                                        FilterChip(selected = filter == label, onClick = { filter = label }, label = { Text(label) })
+                                    TaskFilter.entries.forEach { option ->
+                                        FilterChip(
+                                            selected = filter == option,
+                                            onClick = { filter = option },
+                                            label = { Text(stringResource(option.label)) },
+                                        )
                                     }
-                                    FilterChip(selected = highPriority, onClick = { highPriority = !highPriority }, label = { Text("High priority") })
+                                    FilterChip(selected = highPriority, onClick = {
+                                        highPriority = !highPriority
+                                    }, label = { Text(stringResource(R.string.tasks_filter_high)) })
                                 }
                             }
-                            if (visibleTasks.isEmpty()) item { Text("No tasks match these filters.") }
+                            if (visibleTasks.isEmpty()) item { Text(stringResource(R.string.tasks_no_match)) }
                             items(visibleTasks, key = { it.id }) { task ->
                                 TaskItem(
                                     task = task,
                                     onToggle = { viewModel.toggleCompleted(task) },
                                     onOpen = { onOpenDetail(task.id) },
-                                    onDelete = { viewModel.deleteTask(task.id) },
+                                    onDelete = { confirmDelete.ask(DeleteKind.TASK, task.title) { viewModel.deleteTask(task.id) } },
                                     modifier =
                                     if (reduceMotion) {
                                         Modifier
                                     } else {
                                         Modifier.animateItem(
-                                            fadeInSpec = tween(Motion.fadeMs),
-                                            placementSpec = tween(Motion.itemMs, easing = FastOutSlowInEasing),
-                                            fadeOutSpec = tween(Motion.fadeMs),
+                                            fadeInSpec = tween(Motion.FADE_MS),
+                                            placementSpec = tween(Motion.ITEM_MS, easing = FastOutSlowInEasing),
+                                            fadeOutSpec = tween(Motion.FADE_MS),
                                         )
                                     },
                                 )
@@ -181,7 +215,7 @@ fun TaskListScreen(
                         .padding(Spacing.md),
                     action = {
                         TextButton(onClick = { viewModel.loadTasks(projectId) }) {
-                            Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
+                            Text(stringResource(R.string.action_retry), color = MaterialTheme.colorScheme.inversePrimary)
                         }
                     },
                 ) {
@@ -235,7 +269,7 @@ fun TaskItem(modifier: Modifier = Modifier, task: Task, onToggle: () -> Unit, on
             add(task.status.displayName())
             if (task.labels.isNotEmpty()) add(task.labels.joinToString(", "))
             if (task.checklist.isNotEmpty()) {
-                add("${task.checklist.count { it.isCompleted }}/${task.checklist.size} steps")
+                add(stringResource(R.string.task_steps, task.checklist.count { it.isCompleted }, task.checklist.size))
             }
         }
     Card(
@@ -291,16 +325,24 @@ fun TaskItem(modifier: Modifier = Modifier, task: Task, onToggle: () -> Unit, on
                 )
                 task.dueDate?.let { due ->
                     Text(
-                        text = if (overdue) "Due $due · Overdue" else "Due $due",
+                        text = if (overdue) stringResource(R.string.task_due_overdue, due) else stringResource(R.string.task_due, due),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
             IconButton(onClick = onOpen) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit")
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            NexusDestructiveIconButton(onClick = onDelete, contentDescription = "Delete")
+            NexusDestructiveIconButton(onClick = onDelete, contentDescription = stringResource(R.string.action_delete))
         }
     }
+}
+
+/** Task list status filter. Stable enum keys (not display text), so filtering works in every language. */
+private enum class TaskFilter(val label: Int) {
+    ALL(R.string.tasks_filter_all),
+    OPEN(R.string.task_state_open),
+    IN_PROGRESS(R.string.status_in_progress),
+    DONE(R.string.status_done),
 }
